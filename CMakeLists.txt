@@ -1,0 +1,19 @@
+﻿cmake_minimum_required(VERSION 3.11.0)
+project(cpp_ndarray VERSION 0.1.0)
+
+# 设置C/C++标准
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/install)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/install)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/install)
+
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/CMakeCache.txt)
+  if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
+  endif()
+endif()
+
+add_executable(ndarray src/demo.cc)
