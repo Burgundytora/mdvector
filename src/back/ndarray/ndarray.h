@@ -12,8 +12,6 @@
 #include <numeric>
 #include <vector>
 
-#include "check_simd.h"
-
 using std::array;
 using std::vector;
 
