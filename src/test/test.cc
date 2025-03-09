@@ -7,6 +7,7 @@
 #include "src/header/intel_mkl.h"
 #include "src/header/normal.h"
 #include "src/header/time_cost.h"
+#include "src/header/mdvector.hpp"
 
 constexpr bool do_add = true;
 constexpr bool do_sub = false;
@@ -135,6 +136,13 @@ int main(int args, char* argv[]) {
   size_t total_element = 300;
 
   set_mkl_avx2_sequential_mode();
+
+  MDVector<float, 2> aaa(2, 2);
+  MDVector<float, 2> bbb = aaa;
+  bbb = aaa;
+  aaa[1, 1] = 666;
+  std::cout << "aaa[1, 1]:" << aaa[1, 1] << "\n";
+  std::cout << "bbb[1, 1]:" << bbb[1, 1] << "\n";
 
   try {
     // float

@@ -1,4 +1,4 @@
-#ifndef HEADER_AVX2_H_
+﻿#ifndef HEADER_AVX2_H_
 #define HEADER_AVX2_H_
 
 #include "allocator.h"
@@ -94,5 +94,22 @@ void avx2_div(const T* a, const T* b, T* c, size_t n) {
     }
   }
 }
+
+// // AVX2赋值实现
+// template <typename E>
+// void avx2_assign(const E& expr) {
+//   constexpr size_t pack_size = SimdConfig<T>::pack_size;
+//   const size_t aligned_size = (total_elements_ / pack_size) * pack_size;
+
+//   if constexpr (std::is_same_v<T, float>) {
+//     for (size_t i = 0; i < aligned_size; i += pack_size) {
+//       _mm256_store_ps(data_ + i, expr[i]);
+//     }
+//   } else {
+//     for (size_t i = 0; i < aligned_size; i += pack_size) {
+//       _mm256_store_pd(data_ + i, expr[i]);
+//     }
+//   }
+// }
 
 #endif  // HEADER_AVX2_H_

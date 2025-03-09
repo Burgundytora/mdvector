@@ -9,6 +9,7 @@ void norm_add(const T* a, const T* b, T* c, size_t n) {
     c[i] = a[i] + b[i];
   }
 }
+
 template <class T>
 void norm_sub(const T* a, const T* b, T* c, size_t n) {
   // float double int
@@ -17,6 +18,7 @@ void norm_sub(const T* a, const T* b, T* c, size_t n) {
     c[i] = a[i] - b[i];
   }
 }
+
 template <class T>
 void norm_mul(const T* a, const T* b, T* c, size_t n) {
   // float double int
@@ -25,6 +27,7 @@ void norm_mul(const T* a, const T* b, T* c, size_t n) {
     c[i] = a[i] * b[i];
   }
 }
+
 template <class T>
 void norm_div(const T* a, const T* b, T* c, size_t n) {
   // float double int
