@@ -3,6 +3,7 @@
 
 #include <mdspan>
 #include <array>
+#include <vector>
 
 #include "allocator.h"
 
@@ -17,7 +18,7 @@
 
 // 核心MDVector类
 template <typename T, size_t Dims>
-class MDVector : {
+class MDVector {
  public:
   // ========================================================
   // mdspan类型别名定义
@@ -29,7 +30,7 @@ class MDVector : {
   // ========================================================
   // AlignedAllocator<T> allocator_;
   // T* data_;
-  vector<T, AlignedAllocator<T>> data_;
+  std::vector<T, AlignedAllocator<T>> data_;
   mdspan_type view_;
   std::array<size_t, Dims> dimensions_;
   size_t total_elements_ = 0;
@@ -42,7 +43,6 @@ class MDVector : {
     static_assert(sizeof...(dims) == Dims, "mdvector dimension wrong");
     total_elements_ = 1;
     for (auto d : dimensions_) total_elements_ *= d;
-    data_ = allocator_.allocate(total_elements_);
     data_.resize(total_elements_);
     view_ = mdspan_type(data_, dimensions_);
   }
@@ -97,7 +97,7 @@ class MDVector : {
   void ShowDataMatrixStyle() {
     if (Dims == 0) return;
 
-    const size_t cols = len_info_.back();
+    const size_t cols = dimensions_.back();
     const size_t rows = data_.size() / cols;
 
     // std::cout << "data in matrix style:\n";
@@ -124,44 +124,65 @@ class MDVector : {
   // 运算 avx2指令集方法
   MDVector operator+(const MDVector& other) {
     MDVector res(other);
-    avx2_add(this->data_.data(), other->data_.data(), res.data_.data(), this->total_elements_);
+    avx2_add(this->data_.data(), other.data_.data(), res.data_.data(), this->total_elements_);
     return res;
   }
-  MDVector& operator+=(const MDVector& other) {
-    avx2_add(this->data_.data(), other->data_.data(), this->data_.data(), this->total_elements_);
-    return *this;
-  }
+
   MDVector operator-(const MDVector& other) {
     MDVector res(other);
-    avx2_sub(this->data_.data(), other->data_.data(), res.data_.data(), this->total_elements_);
+    avx2_sub(this->data_.data(), other.data_.data(), res.data_.data(), this->total_elements_);
     return res;
   }
-  MDVector& operator-=(const MDVector& other) {
-    avx2_sub(this->data_.data(), other->data_.data(), this->data_.data(), this->total_elements_);
-    return *this;
-  }
+
   MDVector operator*(const MDVector& other) {
     MDVector res(other);
-    avx2_mul(this->data_.data(), other->data_.data(), res.data_.data(), this->total_elements_);
+    avx2_mul(this->data_.data(), other.data_.data(), res.data_.data(), this->total_elements_);
     return res;
   }
-  MDVector& operator*=(const MDVector& other) {
-    avx2_mul(this->data_.data(), other->data_.data(), this->data_.data(), this->total_elements_);
-    return *this;
-  }
+
   MDVector operator/(const MDVector& other) {
     MDVector res(other);
-    avx2_div(this->data_.data(), other->data_.data(), res.data_.data(), this->total_elements_);
+    avx2_div(this->data_.data(), other.data_.data(), res.data_.data(), this->total_elements_);
     return res;
   }
+
+  // ========================================================
+  MDVector& operator+=(const MDVector& other) {
+    avx2_add_inplace(other.data_.data(), this->data_.data(), this->total_elements_);
+    return *this;
+  }
+
+  MDVector& operator-=(const MDVector& other) {
+    avx2_sub_inplace(other.data_.data(), this->data_.data(), this->total_elements_);
+    return *this;
+  }
+
+  MDVector& operator*=(const MDVector& other) {
+    avx2_mul_inplace(other.data_.data(), this->data_.data(), this->total_elements_);
+    return *this;
+  }
+
   MDVector& operator/=(const MDVector& other) {
-    avx2_div(this->data_.data(), other->data_.data(), this->data_.data(), this->total_elements_);
+    avx2_div_inplace(other.data_.data(), this->data_.data(), this->total_elements_);
     return *this;
   }
   // ========================================================
 
-  // FMA加乘融合, 通过函数
-  MDVector& FMA_M(const MDVector& other_mul, const MDVector& other_add) {}
+  // FMA加乘融合
+  // ?=a*b+c
+  // MDVector new = fma_abc(a, b, c)
+  MDVector fma_abc(const MDVector& a, const MDVector& b, const MDVector& c) {
+    MDVector d(a);
+    avx2_fma(a.data_.data(), b.data_.data(), c.data_.data(), d.data_.data(), this->total_elements_);
+    return d;
+  }
+
+  // c=a*b+c
+  // c.fma_c_abc(a, b)
+  MDVector& fma_c_abc(const MDVector& a, const MDVector& b) {
+    avx2_fma(a.data_.data(), b.data_.data(), this->data_.data(), this->total_elements_);
+    return d;
+  }
 
  private:
 };

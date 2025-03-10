@@ -110,9 +110,6 @@ void avx2_div(const T* a, const T* b, T* c, size_t n) {
 // c += a
 template <class T>
 void avx2_add_inplace(const T* a, T* c, size_t n) {
-  constexpr size_t pack_size = SimdConfig<T>::pack_size;
-  size_t i = 0;
-
   for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
     if constexpr (std::is_same_v<T, float>) {
       __m256 va = _mm256_load_ps(a + i);
@@ -129,9 +126,6 @@ void avx2_add_inplace(const T* a, T* c, size_t n) {
 // c -= a
 template <class T>
 void avx2_sub_inplace(const T* a, T* c, size_t n) {
-  constexpr size_t pack_size = SimdConfig<T>::pack_size;
-  size_t i = 0;
-
   for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
     if constexpr (std::is_same_v<T, float>) {
       __m256 va = _mm256_load_ps(a + i);
@@ -148,9 +142,6 @@ void avx2_sub_inplace(const T* a, T* c, size_t n) {
 // c *= a
 template <class T>
 void avx2_mul_inplace(const T* a, T* c, size_t n) {
-  constexpr size_t pack_size = SimdConfig<T>::pack_size;
-  size_t i = 0;
-
   for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
     if constexpr (std::is_same_v<T, float>) {
       __m256 va = _mm256_load_ps(a + i);
@@ -167,9 +158,6 @@ void avx2_mul_inplace(const T* a, T* c, size_t n) {
 // c /= a
 template <class T>
 void avx2_div_inplace(const T* a, T* c, size_t n) {
-  constexpr size_t pack_size = SimdConfig<T>::pack_size;
-  size_t i = 0;
-
   for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
     if constexpr (std::is_same_v<T, float>) {
       __m256 va = _mm256_load_ps(a + i);
@@ -183,48 +171,258 @@ void avx2_div_inplace(const T* a, T* c, size_t n) {
   }
 }
 
-// ========================================================
-//  c ?= a
+// // ========================================================
+// //  复杂指令 c ?= a ? b
+// // 是否用得到？ 针对性优化
+// // 尾部掩码处理 相比幽灵元素如何？
+// //  c += a + b
+// template <class T>
+// void avx2_add_accumulate(const T* a, const T* b, T* c, size_t n) {
+//   constexpr size_t pack_size = SimdConfig<T>::pack_size;
+//   size_t i = 0;
 
-// c = a*b+c
+//   // 主循环（展开两次减少分支预测开销）
+//   for (; i + 2 * pack_size <= n; i += 2 * pack_size) {
+//     if constexpr (std::is_same_v<T, float>) {
+//       // 第一组
+//       __m256 va0 = _mm256_load_ps(a + i);
+//       __m256 vb0 = _mm256_load_ps(b + i);
+//       __m256 sum0 = _mm256_add_ps(va0, vb0);
+//       __m256 vc0 = _mm256_load_ps(c + i);
+//       _mm256_store_ps(c + i, _mm256_add_ps(vc0, sum0));
+
+//       // 第二组
+//       __m256 va1 = _mm256_load_ps(a + i + pack_size);
+//       __m256 vb1 = _mm256_load_ps(b + i + pack_size);
+//       __m256 sum1 = _mm256_add_ps(va1, vb1);
+//       __m256 vc1 = _mm256_load_ps(c + i + pack_size);
+//       _mm256_store_ps(c + i + pack_size, _mm256_add_ps(vc1, sum1));
+//     } else {
+//       // 类似逻辑处理double
+//       __m256d va0 = _mm256_load_pd(a + i);
+//       __m256d vb0 = _mm256_load_pd(b + i);
+//       __m256d sum0 = _mm256_add_pd(va0, vb0);
+//       __m256d vc0 = _mm256_load_pd(c + i);
+//       _mm256_store_pd(c + i, _mm256_add_pd(vc0, sum0));
+
+//       __m256d va1 = _mm256_load_pd(a + i + pack_size);
+//       __m256d vb1 = _mm256_load_pd(b + i + pack_size);
+//       __m256d sum1 = _mm256_add_pd(va1, vb1);
+//       __m256d vc1 = _mm256_load_pd(c + i + pack_size);
+//       _mm256_store_pd(c + i + pack_size, _mm256_add_pd(vc1, sum1));
+//     }
+//   }
+
+//   // 处理剩余完整块
+//   for (; i <= n - pack_size; i += pack_size) {
+//     if constexpr (std::is_same_v<T, float>) {
+//       __m256 va = _mm256_load_ps(a + i);
+//       __m256 vb = _mm256_load_ps(b + i);
+//       __m256 sum = _mm256_add_ps(va, vb);
+//       __m256 vc = _mm256_load_ps(c + i);
+//       _mm256_store_ps(c + i, _mm256_add_ps(vc, sum));
+//     } else {
+//       __m256d va = _mm256_load_pd(a + i);
+//       __m256d vb = _mm256_load_pd(b + i);
+//       __m256d sum = _mm256_add_pd(va, vb);
+//       __m256d vc = _mm256_load_pd(c + i);
+//       _mm256_store_pd(c + i, _mm256_add_pd(vc, sum));
+//     }
+//   }
+
+//   // 尾部处理（掩码优化）
+//   size_t remaining = n - i;
+//   if (remaining > 0) {
+//     if constexpr (std::is_same_v<T, float>) {
+//       __m256i mask = _mm256_setr_epi32((remaining > 0) ? -1 : 0, (remaining > 1) ? -1 : 0, (remaining > 2) ? -1 : 0,
+//                                        (remaining > 3) ? -1 : 0, (remaining > 4) ? -1 : 0, (remaining > 5) ? -1 : 0,
+//                                        (remaining > 6) ? -1 : 0, (remaining > 7) ? -1 : 0);
+//       __m256 va = _mm256_maskload_ps(a + i, mask);
+//       __m256 vb = _mm256_maskload_ps(b + i, mask);
+//       __m256 sum = _mm256_add_ps(va, vb);
+//       __m256 vc = _mm256_maskload_ps(c + i, mask);
+//       _mm256_maskstore_ps(c + i, mask, _mm256_add_ps(vc, sum));
+//     } else {
+//       __m256i mask = _mm256_setr_epi64x((remaining > 0) ? -1 : 0, (remaining > 1) ? -1 : 0, (remaining > 2) ? -1 : 0,
+//                                         (remaining > 3) ? -1 : 0);
+//       __m256d va = _mm256_maskload_pd(a + i, mask);
+//       __m256d vb = _mm256_maskload_pd(b + i, mask);
+//       __m256d sum = _mm256_add_pd(va, vb);
+//       __m256d vc = _mm256_maskload_pd(c + i, mask);
+//       _mm256_maskstore_pd(c + i, mask, _mm256_add_pd(vc, sum));
+//     }
+//   }
+// }
+// ========================================================
+
+// FMA操作
+// d[i] = a[i] * b[i] + c[i]
 template <class T>
-void avx2_fma(const T* a, const T* b, T* c, size_t n) {
-  // float double int
-  static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "type must be float or double!");
-  if constexpr (std::is_same_v<T, float>) {
-    for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
-      // float
+void avx2_fma_d_abc(const T* a, const T* b, T* c, T* d, size_t n) {
+  static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "Type must be float or double!");
+  for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
+    if constexpr (std::is_same_v<T, float>) {
       __m256 va = _mm256_load_ps(a + i);
       __m256 vb = _mm256_load_ps(b + i);
-      __m256 vc = _mm256_div_ps(va, vb);
-      _mm256_store_ps(c + i, vc);
-    }
-  } else {
-    for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
-      // double
+      __m256 vc = _mm256_load_ps(c + i);
+      __m256 result = _mm256_fmadd_ps(va, vb, vc);
+      _mm256_store_ps(d + i, result);
+    } else {
       __m256d va = _mm256_load_pd(a + i);
       __m256d vb = _mm256_load_pd(b + i);
-      __m256d vc = _mm256_div_pd(va, vb);
-      _mm256_store_pd(c + i, vc);
+      __m256d vc = _mm256_load_pd(c + i);
+      __m256d result = _mm256_fmadd_pd(va, vb, vc);
+      _mm256_store_pd(d + i, result);
     }
   }
 }
 
-// // AVX2赋值实现
-// template <typename E>
-// void avx2_assign(const E& expr) {
-//   constexpr size_t pack_size = SimdConfig<T>::pack_size;
-//   const size_t aligned_size = (total_elements_ / pack_size) * pack_size;
+// c[i] = a[i] * b[i] + c[i]
+template <class T>
+void avx2_fma_c_abc(const T* a, const T* b, T* c, size_t n) {
+  static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "Type must be float or double!");
+  for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
+    if constexpr (std::is_same_v<T, float>) {
+      __m256 va = _mm256_load_ps(a + i);
+      __m256 vb = _mm256_load_ps(b + i);
+      __m256 vc = _mm256_load_ps(c + i);
+      __m256 result = _mm256_fmadd_ps(va, vb, vc);
+      _mm256_store_ps(c + i, result);
+    } else {
+      __m256d va = _mm256_load_pd(a + i);
+      __m256d vb = _mm256_load_pd(b + i);
+      __m256d vc = _mm256_load_pd(c + i);
+      __m256d result = _mm256_fmadd_pd(va, vb, vc);
+      _mm256_store_pd(c + i, result);
+    }
+  }
+}
 
-//   if constexpr (std::is_same_v<T, float>) {
-//     for (size_t i = 0; i < aligned_size; i += pack_size) {
-//       _mm256_store_ps(data_ + i, expr[i]);
-//     }
-//   } else {
-//     for (size_t i = 0; i < aligned_size; i += pack_size) {
-//       _mm256_store_pd(data_ + i, expr[i]);
-//     }
-//   }
-// }
+// d[i] = a[i] * b[i] - c[i]
+template <class T>
+void avx2_fms_d_abc(const T* a, const T* b, T* c, T* d, size_t n) {
+  static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "Type must be float or double!");
+  for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
+    if constexpr (std::is_same_v<T, float>) {
+      __m256 va = _mm256_load_ps(a + i);
+      __m256 vb = _mm256_load_ps(b + i);
+      __m256 vc = _mm256_load_ps(c + i);
+      __m256 result = _mm256_fmsub_ps(va, vb, vc);
+      _mm256_store_ps(d + i, result);
+    } else {
+      __m256d va = _mm256_load_pd(a + i);
+      __m256d vb = _mm256_load_pd(b + i);
+      __m256d vc = _mm256_load_pd(c + i);
+      __m256d result = _mm256_fmsub_pd(va, vb, vc);
+      _mm256_store_pd(d + i, result);
+    }
+  }
+}
+
+// c[i] = a[i] * b[i] - c[i]
+template <class T>
+void avx2_fms_c_abc(const T* a, const T* b, T* c, size_t n) {
+  static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "Type must be float or double!");
+  for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
+    if constexpr (std::is_same_v<T, float>) {
+      __m256 va = _mm256_load_ps(a + i);
+      __m256 vb = _mm256_load_ps(b + i);
+      __m256 vc = _mm256_load_ps(c + i);
+      __m256 result = _mm256_fmsub_ps(va, vb, vc);
+      _mm256_store_ps(c + i, result);
+    } else {
+      __m256d va = _mm256_load_pd(a + i);
+      __m256d vb = _mm256_load_pd(b + i);
+      __m256d vc = _mm256_load_pd(c + i);
+      __m256d result = _mm256_fmsub_pd(va, vb, vc);
+      _mm256_store_pd(c + i, result);
+    }
+  }
+}
+
+// d[i] = -(a[i] * b[i]) + c[i]
+template <class T>
+void avx2_fnma_d_abc(const T* a, const T* b, T* c, T* d, size_t n) {
+  static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "Type must be float or double!");
+  for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
+    if constexpr (std::is_same_v<T, float>) {
+      __m256 va = _mm256_load_ps(a + i);
+      __m256 vb = _mm256_load_ps(b + i);
+      __m256 vc = _mm256_load_ps(c + i);
+      __m256 result = _mm256_fnmadd_ps(va, vb, vc);
+      _mm256_store_ps(d + i, result);
+    } else {
+      __m256d va = _mm256_load_pd(a + i);
+      __m256d vb = _mm256_load_pd(b + i);
+      __m256d vc = _mm256_load_pd(c + i);
+      __m256d result = _mm256_fnmadd_pd(va, vb, vc);
+      _mm256_store_pd(d + i, result);
+    }
+  }
+}
+
+// c[i] = -(a[i] * b[i]) + c[i]
+template <class T>
+void avx2_fnma_c_abc(const T* a, const T* b, T* c, size_t n) {
+  static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "Type must be float or double!");
+  for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
+    if constexpr (std::is_same_v<T, float>) {
+      __m256 va = _mm256_load_ps(a + i);
+      __m256 vb = _mm256_load_ps(b + i);
+      __m256 vc = _mm256_load_ps(c + i);
+      __m256 result = _mm256_fnmadd_ps(va, vb, vc);
+      _mm256_store_ps(c + i, result);
+    } else {
+      __m256d va = _mm256_load_pd(a + i);
+      __m256d vb = _mm256_load_pd(b + i);
+      __m256d vc = _mm256_load_pd(c + i);
+      __m256d result = _mm256_fnmadd_pd(va, vb, vc);
+      _mm256_store_pd(c + i, result);
+    }
+  }
+}
+
+// d[i] = -(a[i] * b[i]) + c[i]
+template <class T>
+void avx2_fnms_d_abc(const T* a, const T* b, T* c, T* d, size_t n) {
+  static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "Type must be float or double!");
+  for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
+    if constexpr (std::is_same_v<T, float>) {
+      __m256 va = _mm256_load_ps(a + i);
+      __m256 vb = _mm256_load_ps(b + i);
+      __m256 vc = _mm256_load_ps(c + i);
+      __m256 result = _mm256_fnmsub_ps(va, vb, vc);
+      _mm256_store_ps(d + i, result);
+    } else {
+      __m256d va = _mm256_load_pd(a + i);
+      __m256d vb = _mm256_load_pd(b + i);
+      __m256d vc = _mm256_load_pd(c + i);
+      __m256d result = _mm256_fnmsub_pd(va, vb, vc);
+      _mm256_store_pd(d + i, result);
+    }
+  }
+}
+
+// c[i] = -(a[i] * b[i]) + c[i]
+template <class T>
+void avx2_fnms_c_abc(const T* a, const T* b, T* c, T* d, size_t n) {
+  static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "Type must be float or double!");
+  for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
+    if constexpr (std::is_same_v<T, float>) {
+      __m256 va = _mm256_load_ps(a + i);
+      __m256 vb = _mm256_load_ps(b + i);
+      __m256 vc = _mm256_load_ps(c + i);
+      __m256 result = _mm256_fnmsub_ps(va, vb, vc);
+      _mm256_store_ps(c + i, result);
+    } else {
+      __m256d va = _mm256_load_pd(a + i);
+      __m256d vb = _mm256_load_pd(b + i);
+      __m256d vc = _mm256_load_pd(c + i);
+      __m256d result = _mm256_fnmsub_pd(va, vb, vc);
+      _mm256_store_pd(c + i, result);
+    }
+  }
+}
+// ... 其他融合指令
 
 #endif  // HEADER_AVX2_H_
