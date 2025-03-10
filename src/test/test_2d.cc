@@ -18,9 +18,9 @@ constexpr bool do_sub = true;
 constexpr bool do_mul = true;
 constexpr bool do_div = true;
 
-constexpr size_t loop = 200000;
-constexpr size_t dim1 = 100;
-constexpr size_t dim2 = 100;
+constexpr size_t loop = 10000000;
+constexpr size_t dim1 = 3;
+constexpr size_t dim2 = 70;
 constexpr size_t total_element = dim1 * dim2;
 
 template <class T>
@@ -29,7 +29,7 @@ void test_norm() {
   T** data2_ = new T*[dim1];
   T** data3_ = new T*[dim1];
 
-  for (size_t i = 0; i < dim2; i++) {
+  for (size_t i = 0; i < dim1; i++) {
     data1_[i] = new T[dim2];
     data2_[i] = new T[dim2];
     data3_[i] = new T[dim2];
@@ -342,7 +342,6 @@ int main(int args, char* argv[]) {
   // float
   test_norm<float>();
   test_vector<float>();
-  test_norm_1d<float>();
   test_avx2<float>();
   test_mkl_avx2<float>();
   test_eigen_matrixf();
@@ -350,7 +349,6 @@ int main(int args, char* argv[]) {
   // double
   test_norm<double>();
   test_vector<double>();
-  test_norm_1d<double>();
   test_avx2<double>();
   test_mkl_avx2<double>();
   test_eigen_matrixd();

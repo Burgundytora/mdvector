@@ -15,8 +15,8 @@ constexpr bool do_add = true;
 constexpr bool do_sub = true;
 constexpr bool do_mul = true;
 constexpr bool do_div = true;
-constexpr size_t loop = 10000000;
-constexpr size_t total_element = 300;
+constexpr size_t loop = 100000000;
+constexpr size_t total_element = 10;
 
 template <class T>
 void test_norm() {
