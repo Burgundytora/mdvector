@@ -154,6 +154,24 @@ double:  avx2 > eigen > mkl > normal = vector
 |                         | eigen matrix                     | 1204ms                     |
 
 
+**2d-100*100-data, 100000 times**
+
+float:   avx2 > eigen > mkl > normal = vector
+
+double:  avx2 > eigen > normal = vector > mkl
+| Type                    | Method                           | cost time                  |
+| :---------------------- | :------------------------------- |--------------------------- |
+| float                   | norm                             | 1736ms                     |
+|                         | vector                           | 1812ms                     |
+|                         | avx2                             | 1178ms                     |
+|                         | mkl(intel cpu)                   | 1663ms                     |
+|                         | eigen matrix                     | 1429ms                     |
+| double                  | norm                             | 3842ms                     |
+|                         | vector                           | 3666ms                     |
+|                         | avx2                             | 3000ms                     |
+|                         | mkl(intel cpu)                   | 4317ms                     |
+|                         | eigen matrix                     | 3463ms                     |
+
 
 **2d-300*300-data, 20000 times**
 

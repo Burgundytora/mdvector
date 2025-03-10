@@ -18,9 +18,9 @@ constexpr bool do_sub = true;
 constexpr bool do_mul = true;
 constexpr bool do_div = true;
 
-constexpr size_t loop = 10;
-constexpr size_t dim1 = 3000;
-constexpr size_t dim2 = 3000;
+constexpr size_t loop = 200000;
+constexpr size_t dim1 = 100;
+constexpr size_t dim2 = 100;
 constexpr size_t total_element = dim1 * dim2;
 
 template <class T>
@@ -77,6 +77,44 @@ void test_norm() {
           data3_[i][j] = data1_[i][j] / data2_[i][j];
         }
       }
+    }
+  }
+
+  delete[] data1_;
+  delete[] data2_;
+  delete[] data3_;
+}
+
+template <class T>
+void test_norm_1d() {
+  T* data1_ = new T[total_element];
+  T* data2_ = new T[total_element];
+  T* data3_ = new T[total_element];
+
+  // 赋值
+  for (size_t i = 0; i < total_element; i++) {
+    data1_[i] = 1;
+    data2_[i] = 2;
+  }
+
+  TimerRecorder a(std::string(typeid(T).name()) + ": norm");
+
+  size_t k = 0;
+  while (k++ < loop) {
+    if constexpr (do_add) {
+      norm_add<T>(data1_, data2_, data3_, total_element);
+    }
+
+    if constexpr (do_sub) {
+      norm_sub<T>(data1_, data2_, data3_, total_element);
+    }
+
+    if constexpr (do_mul) {
+      norm_mul<T>(data1_, data2_, data3_, total_element);
+    }
+
+    if constexpr (do_div) {
+      norm_div<T>(data1_, data2_, data3_, total_element);
     }
   }
 
@@ -304,6 +342,7 @@ int main(int args, char* argv[]) {
   // float
   test_norm<float>();
   test_vector<float>();
+  test_norm_1d<float>();
   test_avx2<float>();
   test_mkl_avx2<float>();
   test_eigen_matrixf();
@@ -311,6 +350,7 @@ int main(int args, char* argv[]) {
   // double
   test_norm<double>();
   test_vector<double>();
+  test_norm_1d<double>();
   test_avx2<double>();
   test_mkl_avx2<double>();
   test_eigen_matrixd();
