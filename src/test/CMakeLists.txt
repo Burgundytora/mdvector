@@ -1,7 +1,7 @@
 ﻿
 include_directories("${PROJECT_SOURCE_DIR}")
 
-add_executable(test test.cc)
+add_executable(test_1d test_1d.cc)
 
 if(USE_MKL)
     if(CMAKE_CL_64)
@@ -34,6 +34,7 @@ if(USE_MKL)
             "${MKL_DIR}/lib32/mkl_rt.lib"
         )
     endif()
-    target_link_libraries(test ${MKL_LIB})
+
+    target_link_libraries(test_1d ${MKL_LIB})
     file(COPY ${MKL_DLL} DESTINATION ${PROJECT_BINARY_DIR})
 endif()

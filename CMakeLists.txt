@@ -10,11 +10,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(USE_MKL "Enable Intel MKL acceleration" ON)
 option(USE_AVX2 "Enable AVX2 optimizations" ON)
 
-if(USE_MKL)
-    set(MKL_DIR "C:/Program Files (x86)/Intel/oneAPI/mkl/latest")
-    include_directories("${MKL_DIR}/include")
-    add_definitions(-DMDVECTOR_USE_MKL)
-endif()
+# set(MKL_DIR "C:/Program Files (x86)/Intel/oneAPI/mkl/latest")
+set(MKL_DIR "E:/oneAPI/mkl/latest")
+set(EIGEN_DIR "E:/dependency/include/eigen-3.4.0")
+include_directories("${EIGEN_DIR}")
+include_directories("${MKL_DIR}/include")
+add_definitions(-DMDVECTOR_USE_MKL)
 
 # 平台信息
 if(WIN32)
@@ -28,7 +29,6 @@ elseif(UNIX)
 elseif(IOS)
     set(PLATFORM_INFO "macOS")
 endif()
-
 
 message(STATUS "platform info: ${PLATFORM_INFO}")
 message(STATUS "build type: ${CMAKE_BUILD_TYPE}")
@@ -55,6 +55,5 @@ else()
     add_compile_options("-Werror")
     add_definitions("-pthread -march=native -mavx2")
 endif()
-
 
 add_subdirectory(src)
