@@ -1,6 +1,6 @@
-multi-dimension container, for Numerical calculations
+**multi-dimension container, for Numerical calculations**
 
-+-*/ element-wise calculation speed compara
+**+-*/ element-wise calculation speed compara**
 
 
 
@@ -17,7 +17,7 @@ avx2 >> eigen vector > eigen matrix > normal >> mkl
 |                         | eigen vector                     | 1225ms                     |
 | double                  | norm                             | 1789ms                     |
 |                         | avx2                             |  432ms                     |
-|                         | mkl                              | 5476ms                     |
+|                         | mkl(intel cpu)                   | 5476ms                     |
 |                         | eigen matrix                     | 1593ms                     |
 |                         | eigen vector                     | 1397ms                     |
 
@@ -36,7 +36,7 @@ avx2 > normal >= eigen > mkl
 |                         | eigen vector                     | 1844ms                     |
 | double                  | norm                             | 3907ms                     |
 |                         | avx2                             | 3068ms                     |
-|                         | mkl                              | 5301ms                     |
+|                         | mkl(intel cpu)                   | 5301ms                     |
 |                         | eigen matrix                     | 4189ms                     |
 |                         | eigen vector                     | 4245ms                     |
 
@@ -55,7 +55,7 @@ avx2 > eigen = normal > mkl
 |                         | eigen vector                     | 2147ms                     |
 | double                  | norm                             | 4724ms                     |
 |                         | avx2                             | 4166ms                     |
-|                         | mkl                              | 6347ms                     |
+|                         | mkl(intel cpu)                   | 6347ms                     |
 |                         | eigen matrix                     | 4969ms                     |
 |                         | eigen vector                     | 5065ms                     |
 
@@ -71,7 +71,7 @@ avx2 = normal = eigen = mkl
 |                         | eigen vector                     | 1703ms                     |
 | double                  | norm                             | 3388ms                     |
 |                         | avx2                             | 3397ms                     |
-|                         | mkl                              | 3516ms                     |
+|                         | mkl(intel cpu)                   | 3516ms                     |
 |                         | eigen matrix                     | 3411ms                     |
 |                         | eigen vector                     | 3408ms                     |
 
@@ -86,7 +86,7 @@ double:  mkl >= eigen >= avx = normal
 | :---------------------- | :------------------------------- |--------------------------- |
 | float                   | norm                             | 3090ms                     |
 |                         | avx2                             | 3076ms                     |
-|                         | mkl                              | 3046ms                     |
+|                         | mkl(intel cpu)                   | 3046ms                     |
 |                         | eigen matrix                     | 3118ms                     |
 |                         | eigen vector                     | 3113ms                     |
 | double                  | norm                             | 6642ms                     |
@@ -94,3 +94,101 @@ double:  mkl >= eigen >= avx = normal
 |                         | mkl(intel cpu)                   | 6233ms                     |
 |                         | eigen matrix                     | 6394ms                     |
 |                         | eigen vector                     | 6481ms                     |
+
+
+**2d-3*3-data, 100000000 times**
+
+float:   avx2 >> normal = vector > eigen = mkl
+
+double:  normal = vector > eigen > avx2(???) > mkl
+| Type                    | Method                           | cost time                  |
+| :---------------------- | :------------------------------- |--------------------------- |
+| float                   | norm                             | 1310ms                     |
+|                         | vector                           | 1315ms                     |
+|                         | avx2                             |  322ms                     |
+|                         | mkl(intel cpu)                   | 8013ms                     |
+|                         | eigen matrix                     | 1802ms                     |
+| double                  | norm                             | 1305ms                     |
+|                         | vector                           | 1318ms                     |
+|                         | avx2                             | 3982ms                     |
+|                         | mkl(intel cpu)                   | 7306ms                     |
+|                         | eigen matrix                     | 2023ms                     |
+
+
+**2d-10*10-data, 5000000 times**
+
+float:   avx2 >> eigen > mkl > normal = vector
+
+double:  avx2 > eigen > mkl > normal = vector
+| Type                    | Method                           | cost time                  |
+| :---------------------- | :------------------------------- |--------------------------- |
+| float                   | norm                             | 1274ms                     |
+|                         | vector                           | 1329ms                     |
+|                         | avx2                             |  111ms                     |
+|                         | mkl(intel cpu)                   |  800ms                     |
+|                         | eigen matrix                     |  422ms                     |
+| double                  | norm                             | 1484ms                     |
+|                         | vector                           | 1500ms                     |
+|                         | avx2                             |  449ms                     |
+|                         | mkl(intel cpu)                   | 1150ms                     |
+|                         | eigen matrix                     |  712ms                     |
+
+
+
+**2d-30*30-data, 1000000 times**
+
+float:   avx2 > eigen > mkl > normal = vector
+
+double:  avx2 > eigen > mkl > normal = vector
+| Type                    | Method                           | cost time                  |
+| :---------------------- | :------------------------------- |--------------------------- |
+| float                   | norm                             | 1067ms                     |
+|                         | vector                           | 1092ms                     |
+|                         | avx2                             |  339ms                     |
+|                         | mkl(intel cpu)                   |  577ms                     |
+|                         | eigen matrix                     |  516ms                     |
+| double                  | norm                             | 2408ms                     |
+|                         | vector                           | 2414ms                     |
+|                         | avx2                             |  919ms                     |
+|                         | mkl(intel cpu)                   | 1380ms                     |
+|                         | eigen matrix                     | 1204ms                     |
+
+
+
+**2d-300*300-data, 20000 times**
+
+float:   avx2 > eigen > mkl > normal = vector
+
+double:  avx2 > eigen > normal = vector = mkl
+| Type                    | Method                           | cost time                  |
+| :---------------------- | :------------------------------- |--------------------------- |
+| float                   | norm                             | 1495ms                     |
+|                         | vector                           | 1521ms                     |
+|                         | avx2                             | 1030ms                     |
+|                         | mkl(intel cpu)                   | 1428ms                     |
+|                         | eigen matrix                     | 1269ms                     |
+| double                  | norm                             | 5625ms                     |
+|                         | vector                           | 5627ms                     |
+|                         | avx2                             | 5393ms                     |
+|                         | mkl(intel cpu)                   | 5655ms                     |
+|                         | eigen matrix                     | 5424ms                     |
+
+
+
+**2d-1000*1000-data, 1000 times**
+
+float:   avx2 = eigen = mkl = normal = vector
+
+double:  avx2 = eigen = normal = vector = mkl
+| Type                    | Method                           | cost time                  |
+| :---------------------- | :------------------------------- |--------------------------- |
+| float                   | norm                             | 1603ms                     |
+|                         | vector                           | 1556ms                     |
+|                         | avx2                             | 1523ms                     |
+|                         | mkl(intel cpu)                   | 1644ms                     |
+|                         | eigen matrix                     | 1618ms                     |
+| double                  | norm                             | 3520ms                     |
+|                         | vector                           | 3494ms                     |
+|                         | avx2                             | 3394ms                     |
+|                         | mkl(intel cpu)                   | 3484ms                     |
+|                         | eigen matrix                     | 3425ms                     |

@@ -1,6 +1,8 @@
 ﻿
 #include <iostream>
 #include <format>
+#include <vector>
+using std::vector;
 
 #include "src/header/allocator.h"
 #include "src/header/avx2.h"
@@ -15,19 +17,30 @@ constexpr bool do_add = true;
 constexpr bool do_sub = true;
 constexpr bool do_mul = true;
 constexpr bool do_div = true;
-constexpr size_t loop = 10000000;
-constexpr size_t total_element = 300;
+
+constexpr size_t loop = 10;
+constexpr size_t dim1 = 3000;
+constexpr size_t dim2 = 3000;
+constexpr size_t total_element = dim1 * dim2;
 
 template <class T>
 void test_norm() {
-  T* data1_ = new T[total_element];
-  T* data2_ = new T[total_element];
-  T* data3_ = new T[total_element];
+  T** data1_ = new T*[dim1];
+  T** data2_ = new T*[dim1];
+  T** data3_ = new T*[dim1];
+
+  for (size_t i = 0; i < dim2; i++) {
+    data1_[i] = new T[dim2];
+    data2_[i] = new T[dim2];
+    data3_[i] = new T[dim2];
+  }
 
   // 赋值
-  for (size_t i = 0; i < total_element; i++) {
-    data1_[i] = 1;
-    data2_[i] = 2;
+  for (size_t i = 0; i < dim1; i++) {
+    for (size_t j = 0; j < dim2; j++) {
+      data1_[i][j] = 1;
+      data2_[i][j] = 2;
+    }
   }
 
   TimerRecorder a(std::string(typeid(T).name()) + ": norm");
@@ -35,25 +48,103 @@ void test_norm() {
   size_t k = 0;
   while (k++ < loop) {
     if constexpr (do_add) {
-      norm_add<T>(data1_, data2_, data3_, total_element);
+      for (size_t i = 0; i < dim1; i++) {
+        for (size_t j = 0; j < dim2; j++) {
+          data3_[i][j] = data1_[i][j] + data2_[i][j];
+        }
+      }
     }
 
     if constexpr (do_sub) {
-      norm_sub<T>(data1_, data2_, data3_, total_element);
+      for (size_t i = 0; i < dim1; i++) {
+        for (size_t j = 0; j < dim2; j++) {
+          data3_[i][j] = data1_[i][j] - data2_[i][j];
+        }
+      }
     }
 
     if constexpr (do_mul) {
-      norm_mul<T>(data1_, data2_, data3_, total_element);
+      for (size_t i = 0; i < dim1; i++) {
+        for (size_t j = 0; j < dim2; j++) {
+          data3_[i][j] = data1_[i][j] * data2_[i][j];
+        }
+      }
     }
 
     if constexpr (do_div) {
-      norm_div<T>(data1_, data2_, data3_, total_element);
+      for (size_t i = 0; i < dim1; i++) {
+        for (size_t j = 0; j < dim2; j++) {
+          data3_[i][j] = data1_[i][j] / data2_[i][j];
+        }
+      }
     }
   }
 
   delete[] data1_;
   delete[] data2_;
   delete[] data3_;
+}
+
+template <class T>
+void test_vector() {
+  // vector<vector<T>> data1_ = vector<vector<T>>(dim1, vector<T>(dim2, 1));
+  // vector<vector<T>> data2_ = vector<vector<T>>(dim1, vector<T>(dim2, 2));
+  // vector<vector<T>> data3_ = vector<vector<T>>(dim1, vector<T>(dim2, 1));
+
+  vector<vector<T>> data1_;
+  vector<vector<T>> data2_;
+  vector<vector<T>> data3_;
+
+  for (size_t i = 0; i < dim1; i++) {
+    data1_.push_back(vector<T>(dim2, 1));
+    data2_.push_back(vector<T>(dim2, 2));
+    data3_.push_back(vector<T>(dim2, 0));
+  }
+
+  // 赋值
+  for (size_t i = 0; i < dim1; i++) {
+    for (size_t j = 0; j < dim2; j++) {
+      data1_[i][j] = 1;
+      data2_[i][j] = 2;
+    }
+  }
+
+  TimerRecorder a(std::string(typeid(T).name()) + ": vector");
+
+  size_t k = 0;
+  while (k++ < loop) {
+    if constexpr (do_add) {
+      for (size_t i = 0; i < dim1; i++) {
+        for (size_t j = 0; j < dim2; j++) {
+          data3_[i][j] = data1_[i][j] + data2_[i][j];
+        }
+      }
+    }
+
+    if constexpr (do_sub) {
+      for (size_t i = 0; i < dim1; i++) {
+        for (size_t j = 0; j < dim2; j++) {
+          data3_[i][j] = data1_[i][j] - data2_[i][j];
+        }
+      }
+    }
+
+    if constexpr (do_mul) {
+      for (size_t i = 0; i < dim1; i++) {
+        for (size_t j = 0; j < dim2; j++) {
+          data3_[i][j] = data1_[i][j] * data2_[i][j];
+        }
+      }
+    }
+
+    if constexpr (do_div) {
+      for (size_t i = 0; i < dim1; i++) {
+        for (size_t j = 0; j < dim2; j++) {
+          data3_[i][j] = data1_[i][j] / data2_[i][j];
+        }
+      }
+    }
+  }
 }
 
 template <class T>
@@ -136,9 +227,9 @@ void test_mkl_avx2() {
 }
 
 void test_eigen_matrixf() {
-  Eigen::MatrixXf data1_ = Eigen::MatrixXf::Zero(1, total_element);
-  Eigen::MatrixXf data2_ = Eigen::MatrixXf::Zero(1, total_element);
-  Eigen::MatrixXf data3_ = Eigen::MatrixXf::Zero(1, total_element);
+  Eigen::MatrixXf data1_ = Eigen::MatrixXf::Zero(dim1, dim2);
+  Eigen::MatrixXf data2_ = Eigen::MatrixXf::Zero(dim1, dim2);
+  Eigen::MatrixXf data3_ = Eigen::MatrixXf::Zero(dim1, dim2);
 
   // 赋值
   for (size_t i = 0; i < total_element; i++) {
@@ -171,87 +262,19 @@ void test_eigen_matrixf() {
 }
 
 void test_eigen_matrixd() {
-  Eigen::MatrixXd data1_ = Eigen::MatrixXd::Zero(total_element, 1);
-  Eigen::MatrixXd data2_ = Eigen::MatrixXd::Zero(total_element, 1);
-  Eigen::MatrixXd data3_ = Eigen::MatrixXd::Zero(total_element, 1);
+  Eigen::MatrixXd data1_ = Eigen::MatrixXd::Zero(dim1, dim2);
+  Eigen::MatrixXd data2_ = Eigen::MatrixXd::Zero(dim1, dim2);
+  Eigen::MatrixXd data3_ = Eigen::MatrixXd::Zero(dim1, dim2);
 
   // 赋值
-  for (size_t i = 0; i < total_element; i++) {
-    data1_(i, 0) = 1;
-    data2_(i, 0) = 2;
+  for (size_t i = 0; i < dim1; i++) {
+    for (size_t j = 0; j < dim2; j++) {
+      data1_(i, j) = 1;
+      data2_(i, j) = 2;
+    }
   }
 
   TimerRecorder a("double: eigen matrix");
-
-  size_t k = 0;
-  while (k++ < loop) {
-    if constexpr (do_add) {
-      data3_ = data1_ + data2_;
-    }
-
-    if constexpr (do_sub) {
-      data3_ = data1_ - data2_;
-    }
-
-    if constexpr (do_mul) {
-      data3_ = data1_.cwiseProduct(data2_);
-    }
-
-    if constexpr (do_div) {
-      data3_ = data1_.cwiseQuotient(data2_);
-    }
-  }
-
-  return;
-}
-
-void test_eigen_vectorxd() {
-  Eigen::VectorXd data1_ = Eigen::VectorXd::Zero(total_element);
-  Eigen::VectorXd data2_ = Eigen::VectorXd::Zero(total_element);
-  Eigen::VectorXd data3_ = Eigen::VectorXd::Zero(total_element);
-
-  // 赋值
-  for (size_t i = 0; i < total_element; i++) {
-    data1_(i) = 1;
-    data2_(i) = 2;
-  }
-
-  TimerRecorder a("double: eigen vector");
-
-  size_t k = 0;
-  while (k++ < loop) {
-    if constexpr (do_add) {
-      data3_ = data1_ + data2_;
-    }
-
-    if constexpr (do_sub) {
-      data3_ = data1_ - data2_;
-    }
-
-    if constexpr (do_mul) {
-      data3_ = data1_.cwiseProduct(data2_);
-    }
-
-    if constexpr (do_div) {
-      data3_ = data1_.cwiseQuotient(data2_);
-    }
-  }
-
-  return;
-}
-
-void test_eigen_vectorxf() {
-  Eigen::VectorXf data1_ = Eigen::VectorXf::Zero(total_element);
-  Eigen::VectorXf data2_ = Eigen::VectorXf::Zero(total_element);
-  Eigen::VectorXf data3_ = Eigen::VectorXf::Zero(total_element);
-
-  // 赋值
-  for (size_t i = 0; i < total_element; i++) {
-    data1_(i) = 1;
-    data2_(i) = 2;
-  }
-
-  TimerRecorder a("float: eigen vector");
 
   size_t k = 0;
   while (k++ < loop) {
@@ -280,17 +303,17 @@ int main(int args, char* argv[]) {
 
   // float
   test_norm<float>();
+  test_vector<float>();
   test_avx2<float>();
   test_mkl_avx2<float>();
   test_eigen_matrixf();
-  test_eigen_vectorxf();
 
   // double
   test_norm<double>();
+  test_vector<double>();
   test_avx2<double>();
   test_mkl_avx2<double>();
   test_eigen_matrixd();
-  test_eigen_vectorxd();
 
   std::cout << "test complete" << std::endl;
 
