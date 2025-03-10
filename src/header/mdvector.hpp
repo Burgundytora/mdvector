@@ -181,7 +181,7 @@ class MDVector {
   // c.fma_c_abc(a, b)
   MDVector& fma_c_abc(const MDVector& a, const MDVector& b) {
     avx2_fma(a.data_.data(), b.data_.data(), this->data_.data(), this->total_elements_);
-    return d;
+    return *this;
   }
 
  private:
