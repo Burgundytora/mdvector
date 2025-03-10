@@ -1,6 +1,9 @@
 multi-dimension container, for Numerical calculations
 
-+-*/ element-wise calculation speed conpara
++-*/ element-wise calculation speed compara
+
+
+
 
 **1d-10-data, 50000000 times**
 
@@ -19,6 +22,8 @@ avx2 >> eigen vector > eigen matrix > normal >> mkl
 |                         | eigen vector                     | 1397ms                     |
 
 
+
+
 **1d-300-data, 10000000 times**
 
 avx2 > normal >= eigen > mkl
@@ -34,6 +39,8 @@ avx2 > normal >= eigen > mkl
 |                         | mkl                              | 5301ms                     |
 |                         | eigen matrix                     | 4189ms                     |
 |                         | eigen vector                     | 4245ms                     |
+
+
 
 
 **1d-10K-data, 300000 times**
@@ -67,6 +74,8 @@ avx2 = normal = eigen = mkl
 |                         | mkl                              | 3516ms                     |
 |                         | eigen matrix                     | 3411ms                     |
 |                         | eigen vector                     | 3408ms                     |
+
+
 
 **1d-10M-data, 100 times**
 
