@@ -4,9 +4,7 @@
 #include <vector>
 using std::vector;
 
-#include "src/header/allocator.h"
 #include "src/header/avx2.h"
-#include "src/header/intel_mkl.h"
 #include "src/header/normal.h"
 #include "src/header/time_cost.h"
 #include "src/header/mdvector.hpp"
@@ -14,14 +12,14 @@ using std::vector;
 #include "Eigen/Dense"
 
 constexpr bool do_add = true;
-constexpr bool do_sub = false;
-constexpr bool do_mul = false;
-constexpr bool do_div = false;
+constexpr bool do_sub = true;
+constexpr bool do_mul = true;
+constexpr bool do_div = true;
 
-constexpr size_t loop = 50000000;
-constexpr size_t dim1 = 3;
-constexpr size_t dim2 = 60;
-constexpr size_t total_element = dim1 * dim2;
+size_t loop = 10000000;
+size_t dim1 = 3;
+size_t dim2 = 59;
+size_t total_element = dim1 * dim2;
 
 template <class T>
 void test_norm() {
@@ -295,45 +293,6 @@ void test_avx2() {
   allocator_.deallocate(data3_);
 }
 
-template <class T>
-void test_mkl_avx2() {
-  MklAlignedAllocator<T> allocator_;
-  T* data1_ = allocator_.allocate(total_element);
-  T* data2_ = allocator_.allocate(total_element);
-  T* data3_ = allocator_.allocate(total_element);
-
-  // 赋值
-  for (size_t i = 0; i < total_element; i++) {
-    data1_[i] = 1;
-    data2_[i] = 2;
-  }
-
-  TimerRecorder a(std::string(typeid(T).name()) + ": mkl");
-
-  size_t k = 0;
-  while (k++ < loop) {
-    if constexpr (do_add) {
-      mkl_add<T>(data1_, data2_, data3_, total_element);
-    }
-
-    if constexpr (do_sub) {
-      mkl_sub<T>(data1_, data2_, data3_, total_element);
-    }
-
-    if constexpr (do_mul) {
-      mkl_mul<T>(data1_, data2_, data3_, total_element);
-    }
-
-    if constexpr (do_div) {
-      mkl_div<T>(data1_, data2_, data3_, total_element);
-    }
-  }
-
-  allocator_.deallocate(data1_);
-  allocator_.deallocate(data2_);
-  allocator_.deallocate(data3_);
-}
-
 void test_eigen_matrixf() {
   Eigen::MatrixXf data1_ = Eigen::MatrixXf::Zero(dim1, dim2);
   Eigen::MatrixXf data2_ = Eigen::MatrixXf::Zero(dim1, dim2);
@@ -422,12 +381,12 @@ int main(int args, char* argv[]) {
 
   // double
 
-  test_norm<double>();
   test_vector<double>();
+  test_norm<double>();
+  test_eigen_matrixd();
   test_avx2<double>();
   test_mdvector_expr<double>();
   test_mdvector_fun<double>();
-  test_eigen_matrixd();
 
   std::cout << "test complete" << std::endl;
 

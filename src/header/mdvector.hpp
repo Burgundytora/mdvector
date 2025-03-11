@@ -5,16 +5,7 @@
 #include <array>
 #include <vector>
 
-#include "allocator.h"
-
-// // 表达式模板基类 eigen设置思想
-// // 为了复杂表达式引入性能下降，需要评估
-// template <typename Derived>
-// class Expr {
-//  public:
-//   auto operator[](size_t i) const { return static_cast<const Derived&>(*this)[i]; }
-//   size_t size() const { return static_cast<const Derived&>(*this).size(); }
-// };
+#include "avx2.h"
 
 // 维度数量设置
 using MDShape_1d = std::array<size_t, 1>;
@@ -22,9 +13,12 @@ using MDShape_2d = std::array<size_t, 2>;
 using MDShape_3d = std::array<size_t, 3>;
 using MDShape_4d = std::array<size_t, 4>;
 
+// // 表达式模板基类 eigen设置思想
+// // 抽象类封装后 相比手写avx2性能下降10%~20% 小数据损失更多
+
 // 核心MDVector类
 template <class T, size_t Dims>
-class MDVector : public VectorExpr<MDVector<T, Dims>> {
+class MDVector : public Expr<MDVector<T, Dims>> {
  public:
   // ========================================================
   // mdspan类型别名定义
@@ -92,7 +86,6 @@ class MDVector : public VectorExpr<MDVector<T, Dims>> {
 
   // 基础功能函数
   T* data() const { return const_cast<T*>(data_.data()); }
-  // T* data() const { return data_.da; }
 
   size_t size() const { return total_elements_; }
 
@@ -161,41 +154,21 @@ class MDVector : public VectorExpr<MDVector<T, Dims>> {
     return *this;
   }
 
-  // 测试函数形式的性能
-  // c = a + b
-  // c.equal_a_plus_b(a, b)
-  inline void equal_a_plus_b(const MDVector& a, const MDVector& b) {
-    avx2_add(a.data(), b.data(), this->data(), this->total_elements_);
-  }
-
-  // avx2
   // 实现表达式赋值
   template <typename E>
-  MDVector& operator=(const VectorExpr<E>& expr) {
+  MDVector& operator=(const Expr<E>& expr) {
     expr.eval_to(this->data());  // 直接计算到目标内存
     return *this;
   }
 
   // 实现表达式求值
   void eval_to_impl(T* __restrict dest) const { avx2_copy(this->data_, dest, this->size()); }
-  // ========================================================
 
-  MDVector operator-(const MDVector& other) {
-    MDVector res(other);
-    avx2_sub(this->data_.data(), other.data_.data(), res.data_.data(), this->total_elements_);
-    return res;
-  }
-
-  MDVector operator*(const MDVector& other) {
-    MDVector res(other);
-    avx2_mul(this->data_.data(), other.data_.data(), res.data_.data(), this->total_elements_);
-    return res;
-  }
-
-  MDVector operator/(const MDVector& other) {
-    MDVector res(other);
-    avx2_div(this->data_.data(), other.data_.data(), res.data_.data(), this->total_elements_);
-    return res;
+  // 函数形式 有时候比表达式模板快一些
+  // c = a + b
+  // c.equal_a_plus_b(a, b)
+  void equal_a_plus_b(const MDVector& a, const MDVector& b) {
+    avx2_add(a.data(), b.data(), this->data(), this->total_elements_);
   }
 
   // ========================================================

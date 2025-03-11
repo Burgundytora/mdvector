@@ -2,9 +2,7 @@
 #include <iostream>
 #include <format>
 
-#include "src/header/allocator.h"
 #include "src/header/avx2.h"
-#include "src/header/intel_mkl.h"
 #include "src/header/normal.h"
 #include "src/header/time_cost.h"
 #include "src/header/mdvector.hpp"
@@ -15,8 +13,9 @@ constexpr bool do_add = true;
 constexpr bool do_sub = false;
 constexpr bool do_mul = false;
 constexpr bool do_div = false;
-constexpr size_t loop = 100000000;
-constexpr size_t total_element = 50;
+
+size_t loop = 100000000;
+size_t total_element = 10;
 
 template <class T>
 void test_norm() {
@@ -200,45 +199,6 @@ void test_avx2() {
   allocator_.deallocate(data3_);
 }
 
-template <class T>
-void test_mkl_avx2() {
-  MklAlignedAllocator<T> allocator_;
-  T* data1_ = allocator_.allocate(total_element);
-  T* data2_ = allocator_.allocate(total_element);
-  T* data3_ = allocator_.allocate(total_element);
-
-  // 赋值
-  for (size_t i = 0; i < total_element; i++) {
-    data1_[i] = 1;
-    data2_[i] = 2;
-  }
-
-  TimerRecorder a(std::string(typeid(T).name()) + ": mkl");
-
-  size_t k = 0;
-  while (k++ < loop) {
-    if constexpr (do_add) {
-      mkl_add<T>(data1_, data2_, data3_, total_element);
-    }
-
-    if constexpr (do_sub) {
-      mkl_sub<T>(data1_, data2_, data3_, total_element);
-    }
-
-    if constexpr (do_mul) {
-      mkl_mul<T>(data1_, data2_, data3_, total_element);
-    }
-
-    if constexpr (do_div) {
-      mkl_div<T>(data1_, data2_, data3_, total_element);
-    }
-  }
-
-  allocator_.deallocate(data1_);
-  allocator_.deallocate(data2_);
-  allocator_.deallocate(data3_);
-}
-
 void test_eigen_matrixf() {
   Eigen::MatrixXf data1_ = Eigen::MatrixXf::Zero(1, total_element);
   Eigen::MatrixXf data2_ = Eigen::MatrixXf::Zero(1, total_element);
@@ -390,19 +350,18 @@ int main(int args, char* argv[]) {
   // test_mdvector_expr<float>();
   // test_mdvector_fun<float>();
   // test_avx2<float>();
-  // test_mkl_avx2<float>();
   // test_eigen_matrixf();
   // test_eigen_vectorxf();
 
   // double
+
+  test_norm<double>();
+  test_vector<double>();
+  test_eigen_matrixd();
+  test_eigen_vectorxd();
   test_avx2<double>();
   test_mdvector_expr<double>();
   test_mdvector_fun<double>();
-  test_eigen_matrixd();
-  test_eigen_vectorxd();
-  test_norm<double>();
-  test_vector<double>();
-  test_mkl_avx2<double>();
 
   std::cout << "test complete" << std::endl;
 
