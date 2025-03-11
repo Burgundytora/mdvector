@@ -423,6 +423,72 @@ void avx2_fnms_c_abc(const T* a, const T* b, T* c, T* d, size_t n) {
     }
   }
 }
+
+// 辅助AVX2复制函数
+template <class T>
+void avx2_copy(const T* src, T* dest, size_t n) {
+  if constexpr (std::is_same_v<T, float>) {
+    for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
+      _mm256_store_ps(dest + i, _mm256_load_ps(src + i));
+    }
+  } else {
+    for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
+      _mm256_store_pd(dest + i, _mm256_load_pd(src + i));
+    }
+  }
+}
 // ... 其他融合指令
+
+// 表达式模板AVX2版本
+template <typename Derived>
+class VectorExpr {
+ public:
+  const Derived& derived() const { return static_cast<const Derived&>(*this); }
+
+  // 关键方法：直接操作目标内存
+  template <typename T>
+  void eval_to(T* __restrict dest) const {
+    derived().eval_to_impl(dest);
+  }
+};
+
+template <typename L, typename R>
+class AddExpr : public VectorExpr<AddExpr<L, R>> {
+  const L& lhs;
+  const R& rhs;
+
+ public:
+  AddExpr(const L& l, const R& r) : lhs(l), rhs(r) {}
+
+  template <class T>
+  void eval_to_impl(T* __restrict dest) const {
+    avx2_add(lhs.data(), rhs.data(), dest, lhs.size());
+  }
+};
+
+template <typename L, typename R>
+class SubExpr : public VectorExpr<SubExpr<L, R>> {
+  const L& lhs;
+  const R& rhs;
+
+ public:
+  SubExpr(const L& l, const R& r) : lhs(l), rhs(r) {}
+
+  template <class T>
+  void eval_to_impl(T* __restrict dest) const {
+    avx2_sub(lhs.data(), rhs.data(), dest, lhs.size());
+  }
+};
+
+// 运算符重载返回表达式
+template <typename L, typename R>
+AddExpr<L, R> operator+(const VectorExpr<L>& lhs, const VectorExpr<R>& rhs) {
+  return AddExpr<L, R>(lhs.derived(), rhs.derived());
+}
+
+template <typename L, typename R>
+SubExpr<L, R> operator-(const VectorExpr<L>& lhs, const VectorExpr<R>& rhs) {
+  return SubExpr<L, R>(lhs.derived(), rhs.derived());
+}
 
 #endif  // HEADER_AVX2_H_

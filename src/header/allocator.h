@@ -23,7 +23,7 @@ template <typename T>
 class AlignedAllocator {
  public:
   using value_type = T;
-  T* allocate(size_t n) {
+  static T* allocate(size_t n) {
     size_t aligned_size = ((n + SimdConfig<T>::pack_size - 1) / SimdConfig<T>::pack_size) * SimdConfig<T>::pack_size;
     aligned_size = std::max(aligned_size, SimdConfig<T>::pack_size);
     void* ptr =
@@ -36,7 +36,7 @@ class AlignedAllocator {
     return static_cast<T*>(ptr);
   }
 
-  void deallocate(T* p) noexcept {
+  static void deallocate(T* p, size_t _ = 0) noexcept {
     if (p) {
 #ifdef _WIN32
       _aligned_free(p);

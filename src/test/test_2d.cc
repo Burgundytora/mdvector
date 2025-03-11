@@ -14,13 +14,13 @@ using std::vector;
 #include "Eigen/Dense"
 
 constexpr bool do_add = true;
-constexpr bool do_sub = true;
-constexpr bool do_mul = true;
-constexpr bool do_div = true;
+constexpr bool do_sub = false;
+constexpr bool do_mul = false;
+constexpr bool do_div = false;
 
-constexpr size_t loop = 10000000;
+constexpr size_t loop = 50000000;
 constexpr size_t dim1 = 3;
-constexpr size_t dim2 = 70;
+constexpr size_t dim2 = 60;
 constexpr size_t total_element = dim1 * dim2;
 
 template <class T>
@@ -97,7 +97,7 @@ void test_norm_1d() {
     data2_[i] = 2;
   }
 
-  TimerRecorder a(std::string(typeid(T).name()) + ": norm");
+  TimerRecorder a(std::string(typeid(T).name()) + ": norm 1d");
 
   size_t k = 0;
   while (k++ < loop) {
@@ -181,6 +181,76 @@ void test_vector() {
           data3_[i][j] = data1_[i][j] / data2_[i][j];
         }
       }
+    }
+  }
+}
+
+template <class T>
+void test_mdvector_expr() {
+  MDShape_2d test_shape = {dim1, dim2};
+  MDVector<T, 2> data1_(test_shape);
+  MDVector<T, 2> data2_(test_shape);
+  MDVector<T, 2> data3_(test_shape);
+
+  // 赋值
+  for (size_t i = 0; i < total_element; i++) {
+    data1_.data_[i] = 1;
+    data2_.data_[i] = 2;
+  }
+
+  TimerRecorder a(std::string(typeid(T).name()) + ": mdvector expr");
+
+  size_t k = 0;
+  while (k++ < loop) {
+    if constexpr (do_add) {
+      data3_ = data1_ + data2_;
+    }
+
+    if constexpr (do_sub) {
+      data3_ = data1_ - data2_;
+    }
+
+    if constexpr (do_mul) {
+      data3_ = data1_ * data2_;
+    }
+
+    if constexpr (do_div) {
+      data3_ = data1_ / data2_;
+    }
+  }
+}
+
+template <class T>
+void test_mdvector_fun() {
+  MDShape_2d test_shape = {dim1, dim2};
+  MDVector<T, 2> data1_(test_shape);
+  MDVector<T, 2> data2_(test_shape);
+  MDVector<T, 2> data3_(test_shape);
+
+  // 赋值
+  for (size_t i = 0; i < total_element; i++) {
+    data1_.data_[i] = 1;
+    data2_.data_[i] = 2;
+  }
+
+  TimerRecorder a(std::string(typeid(T).name()) + ": mdvector fun");
+
+  size_t k = 0;
+  while (k++ < loop) {
+    if constexpr (do_add) {
+      data3_.equal_a_plus_b(data1_, data2_);
+    }
+
+    if constexpr (do_sub) {
+      data3_ = data1_ - data2_;
+    }
+
+    if constexpr (do_mul) {
+      data3_ = data1_ * data2_;
+    }
+
+    if constexpr (do_div) {
+      data3_ = data1_ / data2_;
     }
   }
 }
@@ -314,6 +384,7 @@ void test_eigen_matrixd() {
 
   TimerRecorder a("double: eigen matrix");
 
+  double temp;
   size_t k = 0;
   while (k++ < loop) {
     if constexpr (do_add) {
@@ -337,20 +408,25 @@ void test_eigen_matrixd() {
 }
 
 int main(int args, char* argv[]) {
-  set_mkl_avx2_sequential_mode();
+  // set_mkl_avx2_sequential_mode();
 
-  // float
-  test_norm<float>();
-  test_vector<float>();
-  test_avx2<float>();
-  test_mkl_avx2<float>();
-  test_eigen_matrixf();
+  std::cout << "2d: " << dim1 << "*" << dim2 << "\n";
+
+  // // float
+  // test_norm<float>();
+  // test_vector<float>();
+  // test_mdvector_expr<float>();
+  // test_mdvector_fun<float>();
+  // test_avx2<float>();
+  // test_eigen_matrixf();
 
   // double
+
   test_norm<double>();
   test_vector<double>();
   test_avx2<double>();
-  test_mkl_avx2<double>();
+  test_mdvector_expr<double>();
+  test_mdvector_fun<double>();
   test_eigen_matrixd();
 
   std::cout << "test complete" << std::endl;

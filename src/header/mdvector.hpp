@@ -16,9 +16,15 @@
 //   size_t size() const { return static_cast<const Derived&>(*this).size(); }
 // };
 
+// 维度数量设置
+using MDShape_1d = std::array<size_t, 1>;
+using MDShape_2d = std::array<size_t, 2>;
+using MDShape_3d = std::array<size_t, 3>;
+using MDShape_4d = std::array<size_t, 4>;
+
 // 核心MDVector类
-template <typename T, size_t Dims>
-class MDVector {
+template <class T, size_t Dims>
+class MDVector : public VectorExpr<MDVector<T, Dims>> {
  public:
   // ========================================================
   // mdspan类型别名定义
@@ -26,26 +32,31 @@ class MDVector {
   using layout_type = std::layout_right;
   using mdspan_type = std::mdspan<T, extents_type, layout_type>;
 
- private:
+ public:
   // ========================================================
-  // AlignedAllocator<T> allocator_;
-  // T* data_;
-  std::vector<T, AlignedAllocator<T>> data_;
-  mdspan_type view_;
-  std::array<size_t, Dims> dimensions_;
-  size_t total_elements_ = 0;
+  // 类成员
+  std::vector<T, AlignedAllocator<T>> data_;  // 数据
+  mdspan_type view_;                          // 一维vector的多维视图
+  std::array<size_t, Dims> dimensions_;       // 维度信息
+  size_t total_elements_ = 0;                 // 元素总数
+
+  template <size_t... I>
+  extents_type CreateExtents(std::index_sequence<I...>) {
+    return extents_type{dimensions_[I]...};
+  }
 
  public:
   // ========================================================
-  // 构造函数
-  template <typename... len>
-  MDVector(len... dims) : dimensions_{static_cast<size_t>(dims)...} {
-    static_assert(sizeof...(dims) == Dims, "mdvector dimension wrong");
+  // 构造函数  使用array静态维度数量
+  MDVector(std::array<size_t, Dims> dim_set) : dimensions_{dim_set} {
+    static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "Type must be float or double!");
     total_elements_ = 1;
     for (auto d : dimensions_) total_elements_ *= d;
     data_.resize(total_elements_);
-    view_ = mdspan_type(data_, dimensions_);
+    view_ = mdspan_type(data_.data(), CreateExtents(std::make_index_sequence<Dims>{}));
   }
+  // 析构函数
+  ~MDVector() = default;
 
   // ========================================================
   // 访问运算符 提供safe 和 unsafe两种方式
@@ -80,7 +91,8 @@ class MDVector {
   // ========================================================
 
   // 基础功能函数
-  T* data() const { return data_; }
+  T* data() const { return const_cast<T*>(data_.data()); }
+  // T* data() const { return data_.da; }
 
   size_t size() const { return total_elements_; }
 
@@ -111,22 +123,62 @@ class MDVector {
   }
   // ========================================================
 
-  // 拷贝/赋值
-  // data and view re build  data_ val equal
-  MDVector& operator=(const MDVector& other) {
-    *this = MDVector(other.dimensions_);
-    this->data_ = other.data;
-  }
-  // data and view re build  data_ val not equal only dim equal
-  MDVector(const MDVector& other) { *this = MDVector(other.dimensions_); }
-  // ========================================================
+  // TODO: 需要检查
+  // 修改后的拷贝构造函数
+  MDVector(const MDVector& other)
+      : dimensions_(other.dimensions_),
+        total_elements_(other.total_elements_),
+        data_(other.data_),  // 直接复制数据
+        view_(data_.data(), CreateExtents(std::make_index_sequence<Dims>{})) {}
 
-  // 运算 avx2指令集方法
-  MDVector operator+(const MDVector& other) {
-    MDVector res(other);
-    avx2_add(this->data_.data(), other.data_.data(), res.data_.data(), this->total_elements_);
-    return res;
+  // 添加深拷贝赋值运算符
+  MDVector& operator=(const MDVector& other) {
+    if (this != &other) {
+      dimensions_ = other.dimensions_;
+      total_elements_ = other.total_elements_;
+      data_ = other.data_;  // 复制数据
+      view_ = mdspan_type(data_, CreateExtents(std::make_index_sequence<Dims>{}));
+    }
+    return *this;
   }
+
+  // 添加移动构造函数
+  MDVector(MDVector&& other) noexcept
+      : dimensions_(std::move(other.dimensions_)),
+        total_elements_(other.total_elements_),
+        data_(std::move(other.data_)),
+        view_(data_.data(), CreateExtents(std::make_index_sequence<Dims>{})) {}
+
+  // 添加移动赋值运算符
+  MDVector& operator=(MDVector&& other) noexcept {
+    if (this != &other) {
+      dimensions_ = std::move(other.dimensions_);
+      total_elements_ = other.total_elements_;
+      data_ = std::move(other.data_);
+      data_ = other.data_;
+      view_ = mdspan_type(data_.data(), CreateExtents(std::make_index_sequence<Dims>{}));
+    }
+    return *this;
+  }
+
+  // 测试函数形式的性能
+  // c = a + b
+  // c.equal_a_plus_b(a, b)
+  inline void equal_a_plus_b(const MDVector& a, const MDVector& b) {
+    avx2_add(a.data(), b.data(), this->data(), this->total_elements_);
+  }
+
+  // avx2
+  // 实现表达式赋值
+  template <typename E>
+  MDVector& operator=(const VectorExpr<E>& expr) {
+    expr.eval_to(this->data());  // 直接计算到目标内存
+    return *this;
+  }
+
+  // 实现表达式求值
+  void eval_to_impl(T* __restrict dest) const { avx2_copy(this->data_, dest, this->size()); }
+  // ========================================================
 
   MDVector operator-(const MDVector& other) {
     MDVector res(other);
