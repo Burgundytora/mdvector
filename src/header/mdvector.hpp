@@ -45,7 +45,9 @@ class MDVector : public Expr<MDVector<T, Dims>> {
   MDVector(std::array<size_t, Dims> dim_set) : dimensions_{dim_set} {
     static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "Type must be float or double!");
     total_elements_ = 1;
-    for (auto d : dimensions_) total_elements_ *= d;
+    for (auto d : dimensions_) {
+      total_elements_ *= d;
+    }
     data_.resize(total_elements_);
     view_ = mdspan_type(data_.data(), CreateExtents(std::make_index_sequence<Dims>{}));
   }
@@ -163,15 +165,36 @@ class MDVector : public Expr<MDVector<T, Dims>> {
 
   // 实现表达式求值
   void eval_to_impl(T* __restrict dest) const { avx2_copy(this->data_, dest, this->size()); }
+  // ========================================================
 
   // 函数形式 有时候比表达式模板快一些
   // c = a + b
-  // c.equal_a_plus_b(a, b)
-  void equal_a_plus_b(const MDVector& a, const MDVector& b) {
+  // c.equal_a_add_b(a, b)
+  void equal_a_add_b(const MDVector& a, const MDVector& b) {
     avx2_add(a.data(), b.data(), this->data(), this->total_elements_);
   }
 
+  // c = a - b
+  // c.equal_a_sub_b(a, b)
+  void equal_a_sub_b(const MDVector& a, const MDVector& b) {
+    avx2_sub(a.data(), b.data(), this->data(), this->total_elements_);
+  }
+
+  // c = a * b
+  // c.equal_a_mul_b(a, b)
+  void equal_a_mul_b(const MDVector& a, const MDVector& b) {
+    avx2_mul(a.data(), b.data(), this->data(), this->total_elements_);
+  }
+
+  // c = a / b
+  // c.equal_a_div_b(a, b)
+  void equal_a_div_b(const MDVector& a, const MDVector& b) {
+    avx2_div(a.data(), b.data(), this->data(), this->total_elements_);
+  }
   // ========================================================
+
+  // ========================================================
+  // b ?= a
   MDVector& operator+=(const MDVector& other) {
     avx2_add_inplace(other.data_.data(), this->data_.data(), this->total_elements_);
     return *this;

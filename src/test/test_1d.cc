@@ -14,8 +14,8 @@ constexpr bool do_sub = false;
 constexpr bool do_mul = false;
 constexpr bool do_div = false;
 
-size_t loop = 100000000;
-size_t total_element = 10;
+size_t loop = 10000000;
+size_t total_element = 59;
 
 template <class T>
 void test_norm() {
@@ -142,19 +142,19 @@ void test_mdvector_fun() {
   size_t k = 0;
   while (k++ < loop) {
     if constexpr (do_add) {
-      data3_.equal_a_plus_b(data1_, data2_);
+      data3_.equal_a_add_b(data1_, data2_);
     }
 
     if constexpr (do_sub) {
-      data3_ = data1_ - data2_;
+      data3_.equal_a_sub_b(data1_, data2_);
     }
 
     if constexpr (do_mul) {
-      data3_ = data1_ * data2_;
+      data3_.equal_a_mul_b(data1_, data2_);
     }
 
     if constexpr (do_div) {
-      data3_ = data1_ / data2_;
+      data3_.equal_a_div_b(data1_, data2_);
     }
   }
 }

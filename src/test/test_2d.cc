@@ -16,7 +16,7 @@ constexpr bool do_sub = true;
 constexpr bool do_mul = true;
 constexpr bool do_div = true;
 
-size_t loop = 10000000;
+size_t loop = 1000000;
 size_t dim1 = 3;
 size_t dim2 = 59;
 size_t total_element = dim1 * dim2;
@@ -236,19 +236,19 @@ void test_mdvector_fun() {
   size_t k = 0;
   while (k++ < loop) {
     if constexpr (do_add) {
-      data3_.equal_a_plus_b(data1_, data2_);
+      data3_.equal_a_add_b(data1_, data2_);
     }
 
     if constexpr (do_sub) {
-      data3_ = data1_ - data2_;
+      data3_.equal_a_sub_b(data1_, data2_);
     }
 
     if constexpr (do_mul) {
-      data3_ = data1_ * data2_;
+      data3_.equal_a_mul_b(data1_, data2_);
     }
 
     if constexpr (do_div) {
-      data3_ = data1_ / data2_;
+      data3_.equal_a_div_b(data1_, data2_);
     }
   }
 }
