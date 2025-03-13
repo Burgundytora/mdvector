@@ -8,20 +8,6 @@
 #include <vector>
 
 // ========================================================
-// 表达式模板
-template <typename Derived>
-class Expr {
- public:
-  const Derived& derived() const { return static_cast<const Derived&>(*this); }
-
-  // 关键方法：直接操作目标内存
-  template <typename T>
-  void eval_to(T* __restrict dest) const {
-    derived().eval_to_impl(dest);
-  }
-};
-
-// ========================================================
 // SIMD内存对齐配置模板
 template <typename T>
 struct SimdConfig;
@@ -36,35 +22,6 @@ struct SimdConfig<double> {
   static constexpr size_t alignment = 32;
   static constexpr size_t pack_size = 4;
   using simd_type = __m256d;
-};
-// ========================================================
-
-// ========================================================
-// 内存对齐分配器
-template <typename T>
-class AlignedAllocator {
- public:
-  using value_type = T;
-  static T* allocate(size_t n) {
-    void* ptr =
-#ifdef _WIN32
-        _aligned_malloc(n * sizeof(T), SimdConfig<T>::alignment);
-#else
-        aligned_alloc(SimdConfig<T>::alignment, aligned_size * sizeof(T));
-#endif
-    if (!ptr) throw std::bad_alloc();
-    return static_cast<T*>(ptr);
-  }
-
-  static void deallocate(T* p, size_t _ = 0) noexcept {
-    if (p) {
-#ifdef _WIN32
-      _aligned_free(p);
-#else
-      free(p);
-#endif
-    }
-  }
 };
 // ========================================================
 
@@ -552,18 +509,6 @@ void avx2_fnms_c_abc(const T* a, const T* b, T* c, T* d, size_t n) {
 }
 // ========================================================
 
-/// 记录操作对象与运算符内容
-
-// 可变参数模板+可变参数函数 实现一次性树状操作
-template <class... T>
-void avx2_complete_operator(size_t n, T* destine, T*... other) {
-  // for循环
-  //  加载成avx2类型
-  //  (可能)进行指令顺序重拍 如乘加融合 除法优化等
-  //    +-*/操作
-  //  储存
-}
-
 // ========================================================
 // 辅助AVX2复制函数
 template <class T>
@@ -581,6 +526,20 @@ void avx2_copy(const T* src, T* dest, size_t n) {
 }
 // ... 其他融合指令
 // ========================================================
+
+// ========================================================
+// 表达式模板
+template <typename Derived>
+class Expr {
+ public:
+  const Derived& derived() const { return static_cast<const Derived&>(*this); }
+
+  // 关键方法：直接操作目标内存
+  template <typename T>
+  void eval_to(T* __restrict dest) const {
+    derived().eval_to_impl(dest);
+  }
+};
 
 // ========================================================
 // 表达式模板惰性计算  张量-张量

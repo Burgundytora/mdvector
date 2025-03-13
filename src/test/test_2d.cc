@@ -11,8 +11,8 @@ using std::vector;
 
 #include "Eigen/Dense"
 
-constexpr bool do_add = false;
-constexpr bool do_sub = true;
+constexpr bool do_add = true;
+constexpr bool do_sub = false;
 constexpr bool do_mul = false;
 constexpr bool do_div = false;
 
@@ -166,24 +166,20 @@ void test_mdvector_expr() {
   size_t k = 0;
   while (k++ < loop) {
     if constexpr (do_add) {
-      data3_ = data1_ + data2_;
-      data3_ = data3_ + data4_;
+      data3_ = data1_ + data2_ + data4_;
     }
 
-    if constexpr (do_sub) {
-      data3_ = data1_ - data2_;
-      data3_ -= data4_;
-    }
+    // if constexpr (do_sub) {
+    //   data3_ = data1_ - data2_ - data4_;
+    // }
 
-    if constexpr (do_mul) {
-      data3_ = data1_ * data2_;
-      data3_ *= data4_;
-    }
+    // if constexpr (do_mul) {
+    //   data3_ = data1_ * data2_ * data4_;
+    // }
 
-    if constexpr (do_div) {
-      data3_ = data1_ / data2_;
-      data3_ /= data4_;
-    }
+    // if constexpr (do_div) {
+    //   data3_ = data1_ / data2_ / data4_;
+    // }
   }
 }
 

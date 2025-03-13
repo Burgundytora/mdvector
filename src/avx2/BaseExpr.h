@@ -1,52 +1,47 @@
-// ========================================================
-// 表达式模板
+#ifndef AVX2_BASEEXPR_H_
+#define AVX2_BASEEXPR_H_
+
+#include "SimdConfig.h"
+
+namespace AVX2 {
+
+// ======================== 表达式模板基类 ========================
 template <typename Derived>
 class Expr {
  public:
   const Derived& derived() const { return static_cast<const Derived&>(*this); }
 
-  // 关键方法：直接操作目标内存
-  template <typename T>
-  void eval_to(T* __restrict dest) const {
-    derived().eval_to_impl(dest);
-  }
-};
+  size_t size() const { return derived().size(); }
 
-// 标量表达式模板
-template <typename T>
-class ScalarExpr : public Expr<ScalarExpr<T>> {
-  T value_;
+  template <typename Dest>
+  void eval_to(Dest* dest) const {
+    const size_t n = size();
+    constexpr size_t pack_size = SimdConfig<std::remove_const_t<Dest>>::pack_size;
+    size_t i = 0;
 
- public:
-  explicit ScalarExpr(T value) : value_(value) {}
+    for (; i <= n - pack_size; i += pack_size) {
+      auto simd_val = derived().template eval_simd<std::remove_const_t<Dest>>(i);
+      if constexpr (std::is_same_v<std::remove_const_t<Dest>, float>) {
+        _mm256_store_ps(dest + i, simd_val);
+      } else {
+        _mm256_store_pd(dest + i, simd_val);
+      }
+    }
 
-  template <typename U>
-  void eval_to_impl(U* dest) const {
-    const size_t n = /* 获取目标数组大小 */;
-    avx2_set_scalar(value_, dest, n);
-  }
-
-  T value() const { return value_; }
-};
-
-// 标量设置函数
-template <typename T>
-void avx2_set_scalar(T scalar, T* dest, size_t n) {
-  constexpr size_t pack_size = SimdConfig<T>::pack_size;
-  typename SimdConfig<T>::simd_type scalar_vec;
-  if constexpr (std::is_same_v<T, float>) {
-    scalar_vec = _mm256_set1_ps(scalar);
-  } else {
-    scalar_vec = _mm256_set1_pd(scalar);
-  }
-
-  size_t i = 0;
-  for (; i <= n - pack_size; i += pack_size) {
-    if constexpr (std::is_same_v<T, float>) {
-      _mm256_store_ps(dest + i, scalar_vec);
-    } else {
-      _mm256_store_pd(dest + i, scalar_vec);
+    // 处理尾部元素
+    if (i < n) {
+      alignas(SimdConfig<std::remove_const_t<Dest>>::alignment) std::remove_const_t<Dest> temp[pack_size] = {0};
+      auto simd_val = derived().template eval_simd<std::remove_const_t<Dest>>(i);
+      if constexpr (std::is_same_v<std::remove_const_t<Dest>, float>) {
+        _mm256_store_ps(temp, simd_val);
+      } else {
+        _mm256_store_pd(temp, simd_val);
+      }
+      std::memcpy(dest + i, temp, (n - i) * sizeof(std::remove_const_t<Dest>));
     }
   }
-  // 处理尾部元素...
-}
+};
+
+}  // namespace AVX2
+
+#endif  // AVX2_BASEEXPR_H_
