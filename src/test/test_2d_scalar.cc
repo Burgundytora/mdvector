@@ -11,14 +11,14 @@ using std::vector;
 
 #include "Eigen/Dense"
 
-constexpr bool do_add = false;
+constexpr bool do_add = true;
 constexpr bool do_sub = true;
-constexpr bool do_mul = false;
-constexpr bool do_div = false;
+constexpr bool do_mul = true;
+constexpr bool do_div = true;
 
 size_t loop = 1000000;
-size_t dim1 = 10;
-size_t dim2 = 50;
+size_t dim1 = 3;
+size_t dim2 = 100;
 size_t total_element = dim1 * dim2;
 
 template <class T>
@@ -26,13 +26,11 @@ void test_norm() {
   T** data1_ = new T*[dim1];
   T** data2_ = new T*[dim1];
   T** data3_ = new T*[dim1];
-  T** data4_ = new T*[dim1];
 
   for (size_t i = 0; i < dim1; i++) {
     data1_[i] = new T[dim2];
     data2_[i] = new T[dim2];
     data3_[i] = new T[dim2];
-    data4_[i] = new T[dim2];
   }
 
   // 赋值
@@ -50,7 +48,7 @@ void test_norm() {
     if constexpr (do_add) {
       for (size_t i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
-          data3_[i][j] = data1_[i][j] + data2_[i][j] + data4_[i][j];
+          data3_[i][j] = data1_[i][j] + 0.1;
         }
       }
     }
@@ -58,7 +56,7 @@ void test_norm() {
     if constexpr (do_sub) {
       for (size_t i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
-          data3_[i][j] = data1_[i][j] - data2_[i][j] - data4_[i][j];
+          data3_[i][j] = data1_[i][j] - 0.1;
         }
       }
     }
@@ -66,7 +64,7 @@ void test_norm() {
     if constexpr (do_mul) {
       for (size_t i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
-          data3_[i][j] = data1_[i][j] * data2_[i][j] * data4_[i][j];
+          data3_[i][j] = data1_[i][j] * 0.1;
         }
       }
     }
@@ -74,7 +72,7 @@ void test_norm() {
     if constexpr (do_div) {
       for (size_t i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
-          data3_[i][j] = data1_[i][j] / data2_[i][j] / data4_[i][j];
+          data3_[i][j] = data1_[i][j] / 0.1;
         }
       }
     }
@@ -90,13 +88,11 @@ void test_vector() {
   vector<vector<T>> data1_;
   vector<vector<T>> data2_;
   vector<vector<T>> data3_;
-  vector<vector<T>> data4_;
 
   for (size_t i = 0; i < dim1; i++) {
     data1_.push_back(vector<T>(dim2, 1));
     data2_.push_back(vector<T>(dim2, 2));
     data3_.push_back(vector<T>(dim2, 0));
-    data4_.push_back(vector<T>(dim2, 3));
   }
 
   // 赋值
@@ -104,7 +100,6 @@ void test_vector() {
     for (size_t j = 0; j < dim2; j++) {
       data1_[i][j] = 1;
       data2_[i][j] = 2;
-      data4_[i][j] = 3;
     }
   }
 
@@ -115,7 +110,7 @@ void test_vector() {
     if constexpr (do_add) {
       for (size_t i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
-          data3_[i][j] = data1_[i][j] + data2_[i][j] + data4_[i][j];
+          data3_[i][j] = data1_[i][j] + 0.1;
         }
       }
     }
@@ -123,7 +118,7 @@ void test_vector() {
     if constexpr (do_sub) {
       for (size_t i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
-          data3_[i][j] = data1_[i][j] - data2_[i][j] - data4_[i][j];
+          data3_[i][j] = data1_[i][j] - 0.1;
         }
       }
     }
@@ -131,7 +126,7 @@ void test_vector() {
     if constexpr (do_mul) {
       for (size_t i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
-          data3_[i][j] = data1_[i][j] * data2_[i][j] * data4_[i][j];
+          data3_[i][j] = data1_[i][j] * 0.1;
         }
       }
     }
@@ -139,7 +134,7 @@ void test_vector() {
     if constexpr (do_div) {
       for (size_t i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
-          data3_[i][j] = data1_[i][j] / data2_[i][j] / data4_[i][j];
+          data3_[i][j] = data1_[i][j] / 0.1;
         }
       }
     }
@@ -152,13 +147,11 @@ void test_mdvector_expr() {
   MDVector<T, 2> data1_(test_shape);
   MDVector<T, 2> data2_(test_shape);
   MDVector<T, 2> data3_(test_shape);
-  MDVector<T, 2> data4_(test_shape);
 
   // 赋值
   for (size_t i = 0; i < total_element; i++) {
     data1_.data_[i] = 1;
     data2_.data_[i] = 2;
-    data4_.data_[i] = 3;
   }
 
   TimerRecorder a(std::string(typeid(T).name()) + ": mdvector expr");
@@ -166,23 +159,19 @@ void test_mdvector_expr() {
   size_t k = 0;
   while (k++ < loop) {
     if constexpr (do_add) {
-      data3_ = data1_ + data2_;
-      data3_ = data3_ + data4_;
+      data3_ = data1_ + 0.1;
     }
 
     if constexpr (do_sub) {
-      data3_ = data1_ - data2_;
-      data3_ -= data4_;
+      data3_ = data1_ - 0.1;
     }
 
     if constexpr (do_mul) {
-      data3_ = data1_ * data2_;
-      data3_ *= data4_;
+      data3_ = data1_ * 0.1;
     }
 
     if constexpr (do_div) {
-      data3_ = data1_ / data2_;
-      data3_ /= data4_;
+      data3_ = data1_ / 0.1;
     }
   }
 }
@@ -193,13 +182,11 @@ void test_mdvector_fun() {
   MDVector<T, 2> data1_(test_shape);
   MDVector<T, 2> data2_(test_shape);
   MDVector<T, 2> data3_(test_shape);
-  MDVector<T, 2> data4_(test_shape);
 
   // 赋值
   for (size_t i = 0; i < total_element; i++) {
     data1_.data_[i] = 1;
     data2_.data_[i] = 2;
-    data4_.data_[i] = 3;
   }
 
   TimerRecorder a(std::string(typeid(T).name()) + ": mdvector fun");
@@ -207,23 +194,19 @@ void test_mdvector_fun() {
   size_t k = 0;
   while (k++ < loop) {
     if constexpr (do_add) {
-      data3_.equal_a_add_b(data1_, data2_);
-      data3_.equal_a_add_b(data3_, data4_);
+      data3_.equal_a_add_b(0.1, data1_);
     }
 
     if constexpr (do_sub) {
-      data3_.equal_a_sub_b(data1_, data2_);
-      data3_.equal_a_sub_b(data3_, data4_);
+      data3_.equal_a_sub_b(data1_, 0.1);
     }
 
     if constexpr (do_mul) {
-      data3_.equal_a_mul_b(data1_, data2_);
-      data3_.equal_a_mul_b(data3_, data4_);
+      data3_.equal_a_mul_b(data1_, 0.1);
     }
 
     if constexpr (do_div) {
-      data3_.equal_a_div_b(data1_, data2_);
-      data3_.equal_a_div_b(data3_, data4_);
+      data3_.equal_a_div_b(data1_, 0.1);
     }
   }
 }
@@ -235,13 +218,11 @@ void test_avx2() {
   T* data1_ = allocator_.allocate(total_element);
   T* data2_ = allocator_.allocate(total_element);
   T* data3_ = allocator_.allocate(total_element);
-  T* data4_ = allocator_.allocate(total_element);
 
   // 赋值
   for (size_t i = 0; i < total_element; i++) {
     data1_[i] = 1;
     data2_[i] = 2;
-    data4_[i] = 4;
   }
 
   TimerRecorder a(std::string(typeid(T).name()) + ": avx2");
@@ -249,23 +230,19 @@ void test_avx2() {
   size_t k = 0;
   while (k++ < loop) {
     if constexpr (do_add) {
-      avx2_add<T>(data1_, data2_, data3_, total_element);
-      avx2_add<T>(data4_, data3_, data3_, total_element);
+      avx2_add_scalar<T>(data1_, 0.1, data3_, total_element);
     }
 
     if constexpr (do_sub) {
-      avx2_sub<T>(data1_, data2_, data3_, total_element);
-      avx2_sub<T>(data4_, data3_, data3_, total_element);
+      avx2_sub_scalar<T>(data1_, 0.1, data3_, total_element);
     }
 
     if constexpr (do_mul) {
-      avx2_mul<T>(data1_, data2_, data3_, total_element);
-      avx2_mul<T>(data4_, data3_, data3_, total_element);
+      avx2_mul_scalar<T>(data1_, 0.1, data3_, total_element);
     }
 
     if constexpr (do_div) {
-      avx2_div<T>(data1_, data2_, data3_, total_element);
-      avx2_div<T>(data4_, data3_, data3_, total_element);
+      avx2_div_scalar<T>(data1_, 0.1, data3_, total_element);
     }
   }
 
@@ -278,14 +255,12 @@ void test_eigen_matrixd() {
   Eigen::MatrixXd data1_ = Eigen::MatrixXd::Zero(dim1, dim2);
   Eigen::MatrixXd data2_ = Eigen::MatrixXd::Zero(dim1, dim2);
   Eigen::MatrixXd data3_ = Eigen::MatrixXd::Zero(dim1, dim2);
-  Eigen::MatrixXd data4_ = Eigen::MatrixXd::Zero(dim1, dim2);
 
   // 赋值
   for (size_t i = 0; i < dim1; i++) {
     for (size_t j = 0; j < dim2; j++) {
       data1_(i, j) = 1;
       data2_(i, j) = 2;
-      data4_(i, j) = 3;
     }
   }
 
@@ -295,19 +270,19 @@ void test_eigen_matrixd() {
   size_t k = 0;
   while (k++ < loop) {
     if constexpr (do_add) {
-      data3_ = data1_ + data2_ + data4_;
+      data3_ = data1_ + data2_;
     }
 
     if constexpr (do_sub) {
-      data3_ = data1_ - data2_ - data4_;
+      data3_ = data1_ - data2_;
     }
 
     if constexpr (do_mul) {
-      data3_ = data1_.cwiseProduct(data2_).cwiseProduct(data4_);
+      data3_ = data1_.cwiseProduct(data2_);
     }
 
     if constexpr (do_div) {
-      data3_ = data1_.cwiseQuotient(data2_).cwiseQuotient(data4_);
+      data3_ = data1_.cwiseQuotient(data2_);
     }
   }
 
@@ -315,7 +290,7 @@ void test_eigen_matrixd() {
 }
 
 int main(int args, char* argv[]) {
-  std::cout << "2d matrix ? matrix: " << dim1 << "*" << dim2 << "\n";
+  std::cout << "2d matrix ? scalar: " << dim1 << "*" << dim2 << "\n";
 
   // double
   test_vector<double>();

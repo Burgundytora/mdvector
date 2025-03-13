@@ -173,11 +173,23 @@ class MDVector : public Expr<MDVector<T, Dims>> {
   void equal_a_add_b(const MDVector& a, const MDVector& b) {
     avx2_add(a.data(), b.data(), this->data(), this->total_elements_);
   }
+  void equal_a_add_b(const MDVector& a, const T& b) {
+    avx2_add_scalar(a.data(), b, this->data(), this->total_elements_);
+  }
+  void equal_a_add_b(const T& a, const MDVector& b) {
+    avx2_add_scalar(b.data(), a, this->data(), this->total_elements_);
+  }
 
   // c = a - b
   // c.equal_a_sub_b(a, b)
   void equal_a_sub_b(const MDVector& a, const MDVector& b) {
     avx2_sub(a.data(), b.data(), this->data(), this->total_elements_);
+  }
+  void equal_a_sub_b(const MDVector& a, const T& b) {
+    avx2_sub_scalar(a.data(), b, this->data(), this->total_elements_);
+  }
+  void equal_a_sub_b(const T& a, const MDVector& b) {
+    avx2_sub_scalar(b.data(), a, this->data(), this->total_elements_);
   }
 
   // c = a * b
@@ -185,11 +197,23 @@ class MDVector : public Expr<MDVector<T, Dims>> {
   void equal_a_mul_b(const MDVector& a, const MDVector& b) {
     avx2_mul(a.data(), b.data(), this->data(), this->total_elements_);
   }
+  void equal_a_mul_b(const MDVector& a, const T& b) {
+    avx2_mul_scalar(a.data(), b, this->data(), this->total_elements_);
+  }
+  void equal_a_mul_b(const T& a, const MDVector& b) {
+    avx2_mul_scalar(b.data(), a, this->data(), this->total_elements_);
+  }
 
   // c = a / b
   // c.equal_a_div_b(a, b)
   void equal_a_div_b(const MDVector& a, const MDVector& b) {
     avx2_div(a.data(), b.data(), this->data(), this->total_elements_);
+  }
+  void equal_a_div_b(const MDVector& a, const T& b) {
+    avx2_div_scalar(a.data(), b, this->data(), this->total_elements_);
+  }
+  void equal_a_div_b(const T& a, const MDVector& b) {
+    avx2_mul_scalar(b.data(), 1.0 / a, this->data(), this->total_elements_);
   }
   // ========================================================
 
