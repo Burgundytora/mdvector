@@ -1,8 +1,6 @@
 #ifndef AVX2_ALLOCATOR_H_
 #define AVX2_ALLOCATOR_H_
 
-namespace AVX2 {
-
 // ======================== 内存分配器 ========================
 template <typename T>
 class AlignedAllocator {
@@ -29,7 +27,5 @@ class AlignedAllocator {
     }
   }
 };
-
-}  // namespace AVX2
 
 #endif  // AVX2_ALLOCATOR_H_

@@ -3,8 +3,6 @@
 
 #include <immintrin.h>
 
-namespace AVX2 {
-
 // ======================== SIMD配置 ========================
 template <typename T>
 struct SimdConfig;
@@ -20,7 +18,5 @@ struct SimdConfig<double> {
   static constexpr size_t pack_size = 4;
   using simd_type = __m256d;
 };
-
-}  // namespace AVX2
 
 #endif  // AVX2_SIMDCONFIG_H_

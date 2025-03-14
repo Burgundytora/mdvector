@@ -49,7 +49,7 @@ void test_norm() {
     if constexpr (do_add) {
       for (size_t i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
-          data3_[i][j] = data1_[i][j] + data2_[i][j];
+          data3_[i][j] = data1_[i][j] + data2_[i][j] + data4_[i][j];
         }
       }
     }
@@ -114,7 +114,7 @@ void test_vector() {
     if constexpr (do_add) {
       for (size_t i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
-          data3_[i][j] = data1_[i][j] + data2_[i][j];
+          data3_[i][j] = data1_[i][j] + data2_[i][j] + data4_[i][j];
         }
       }
     }
@@ -165,7 +165,7 @@ void test_mdvector_expr() {
   size_t k = 0;
   while (k++ < loop) {
     if constexpr (do_add) {
-      data3_ = data1_ + data2_;
+      data3_ = data1_ + data2_ + data4_;
     }
 
     if constexpr (do_sub) {
@@ -203,7 +203,7 @@ void test_mdvector_fun() {
   while (k++ < loop) {
     if constexpr (do_add) {
       data3_.equal_a_add_b(data1_, data2_);
-      // data3_.equal_a_add_b(data3_, data4_);
+      data3_.equal_a_add_b(data3_, data4_);
     }
 
     if constexpr (do_sub) {
@@ -245,7 +245,7 @@ void test_avx2() {
   while (k++ < loop) {
     if constexpr (do_add) {
       avx2_add<T>(data1_, data2_, data3_, total_element);
-      // avx2_add<T>(data4_, data3_, data3_, total_element);
+      avx2_add<T>(data4_, data3_, data3_, total_element);
     }
 
     if constexpr (do_sub) {
@@ -290,7 +290,7 @@ void test_eigen_matrixd() {
   size_t k = 0;
   while (k++ < loop) {
     if constexpr (do_add) {
-      data3_ = data1_ + data2_;
+      data3_ = data1_ + data2_ + data4_;
     }
 
     if constexpr (do_sub) {
