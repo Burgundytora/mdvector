@@ -2,8 +2,8 @@
 #define HEADER_TIME_COST_H_
 
 #include <chrono>
-#include <string>
 #include <iostream>
+#include <string>
 
 struct TimerRecorder {
   TimerRecorder(const std::string &name) {
@@ -23,7 +23,11 @@ struct TimerRecorder {
   }
 
   std::string name_ = "";
+#ifdef _WIN32
   std::chrono::steady_clock::time_point start_;
+#else
+  std::chrono::_V2::system_clock::time_point start_;
+#endif
 };
 
 #endif  // HEADER_TIME_COST_H_

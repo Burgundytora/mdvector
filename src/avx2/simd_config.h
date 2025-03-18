@@ -3,6 +3,12 @@
 
 #include <immintrin.h>
 
+#ifdef _WIN32
+#define FORCE_INLINE __forceinline  // MSVC强制内联宏
+#else
+#define FORCE_INLINE __attribute__((always_inline))  // GCC强制内联宏
+#endif
+
 // ======================== SIMD配置 ========================
 template <typename T>
 struct SimdConfig;

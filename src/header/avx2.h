@@ -3,9 +3,10 @@
 
 #include <immintrin.h>
 
-#include <mdspan>
 #include <array>
+#include <mdspan>
 #include <vector>
+
 
 // ========================================================
 // SIMD内存对齐配置模板
@@ -49,20 +50,20 @@ alignas(32) static const __m256i mask_table_8[8] = {
 // ========================================================
 // 双精度除法
 // 近似倒数（精度：~单精度）
-_forceinline __m256d _mm256_rcp_pd_approx(__m256d v) {
-  __m128 v_low = _mm256_cvtpd_ps(v);
-  __m128 recip_ps = _mm_rcp_ps(v_low);
-  return _mm256_cvtps_pd(recip_ps);
-}
+// _forceinline __m256d _mm256_rcp_pd_approx(__m256d v) {
+//   __m128 v_low = _mm256_cvtpd_ps(v);
+//   __m128 recip_ps = _mm_rcp_ps(v_low);
+//   return _mm256_cvtps_pd(recip_ps);
+// }
 
-// 高精度倒数（通过牛顿迭代）
-_forceinline __m256d _mm256_rcp_pd(__m256d v, int iterations = 2) {
-  __m256d recip = _mm256_rcp_pd_approx(v);
-  for (int i = 0; i < iterations; ++i) {
-    recip = _mm256_mul_pd(recip, _mm256_sub_pd(_mm256_set1_pd(2.0), _mm256_mul_pd(v, recip)));
-  }
-  return recip;
-}
+// // 高精度倒数（通过牛顿迭代）
+// _forceinline __m256d _mm256_rcp_pd(__m256d v, int iterations = 2) {
+//   __m256d recip = _mm256_rcp_pd_approx(v);
+//   for (int i = 0; i < iterations; ++i) {
+//     recip = _mm256_mul_pd(recip, _mm256_sub_pd(_mm256_set1_pd(2.0), _mm256_mul_pd(v, recip)));
+//   }
+//   return recip;
+// }
 // ========================================================
 
 // ========================================================

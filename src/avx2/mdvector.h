@@ -2,12 +2,14 @@
 #define HEADER_MDVECTOR_HPP_
 
 #include <array>
-#include <vector>
+#include <iostream>
 #include <numeric>
+#include <vector>
 
-#include "operator.h"
 #include "allocator.h"
 #include "function.h"
+#include "operator.h"
+
 
 // 维度数量设置
 using MDShape_1d = std::array<size_t, 1>;
@@ -57,49 +59,52 @@ class MDVector : public Expr<MDVector<T, Dims>> {
     }
   }
 
-  // 计算索引 行优先
-  template <typename... Indices>
-  FORCE_INLINE size_t compute_offset(Indices... indices) const {
-    const std::array<size_t, sizeof...(Indices)> idxs = {static_cast<size_t>(indices)...};
-    size_t offset = 0;
-    for (size_t i = 0; i < Dims; i++) {
-      offset += idxs[i] * strides_[i];
-    }
-    return offset;
-  }
-
-  // 特化 1D 访问
-  template <>
-  FORCE_INLINE size_t compute_offset<size_t>(size_t i) const {
-    return i;
-  }
-
-  // 特化 2D 访问
-  template <>
-  FORCE_INLINE size_t compute_offset<size_t, size_t>(size_t i, size_t j) const {
-    return i * strides_[0] + j * strides_[1];
-  }
-
-  // 特化 3D 访问
-  template <>
-  FORCE_INLINE size_t compute_offset<size_t, size_t, size_t>(size_t i, size_t j, size_t k) const {
-    return i * strides_[0] + j * strides_[1] + k * strides_[2];
-  }
-
   // ========================================================
   // 访问运算符 提供safe 和 unsafe两种方式
   // (i, j, k) unsafe style
   template <typename... Indices>
   T& operator()(Indices... indices) {
     static_assert(sizeof...(Indices) == Dims, "mdvector dimension subscript wrong");
-    return data_[compute_offset(Indices... indices)];
+    const std::array<size_t, sizeof...(Indices)> idxs = {static_cast<size_t>(indices)...};
+    if constexpr (Dims == 1) {
+      return data_[idxs[0]];
+
+    } else if constexpr (Dims == 2) {
+      return data_[idxs[0] * strides_[0] + idxs[1]];
+
+    } else if constexpr (Dims == 3) {
+      return data_[idxs[0] * strides_[0] + idxs[1] * strides_[1] + idxs[2]];
+
+    } else {
+      size_t offset = 0;
+      for (size_t i = 0; i < Dims; i++) {
+        offset += idxs[i] * strides_[i];
+      }
+      return data_[offset];
+    }
   }
 
   // [i, j, k] unsafe style
   template <typename... Indices>
   T& operator[](Indices... indices) {
     static_assert(sizeof...(Indices) == Dims, "mdvector dimension subscript wrong");
-    return data_[compute_offset(Indices... indices)];
+    const std::array<size_t, sizeof...(Indices)> idxs = {static_cast<size_t>(indices)...};
+    if constexpr (Dims == 1) {
+      return data_[idxs[0]];
+
+    } else if constexpr (Dims == 2) {
+      return data_[idxs[0] * strides_[0] + idxs[1]];
+
+    } else if constexpr (Dims == 3) {
+      return data_[idxs[0] * strides_[0] + idxs[1] * strides_[1] + idxs[2]];
+
+    } else {
+      size_t offset = 0;
+      for (size_t i = 0; i < Dims; i++) {
+        offset += idxs[i] * strides_[i];
+      }
+      return data_[offset];
+    }
   }
 
   // .at(i, j, k) safe style
@@ -114,7 +119,23 @@ class MDVector : public Expr<MDVector<T, Dims>> {
       }
       i++;
     }
-    return data_[compute_offset(Indices... indices)];
+    const std::array<size_t, sizeof...(Indices)> idxs = {static_cast<size_t>(indices)...};
+    if constexpr (Dims == 1) {
+      return data_[idxs[0]];
+
+    } else if constexpr (Dims == 2) {
+      return data_[idxs[0] * strides_[0] + idxs[1]];
+
+    } else if constexpr (Dims == 3) {
+      return data_[idxs[0] * strides_[0] + idxs[1] * strides_[1] + idxs[2]];
+
+    } else {
+      size_t offset = 0;
+      for (size_t i = 0; i < Dims; i++) {
+        offset += idxs[i] * strides_[i];
+      }
+      return data_[offset];
+    }
   }
 
   // ========================================================
@@ -155,14 +176,11 @@ class MDVector : public Expr<MDVector<T, Dims>> {
       : dimensions_(other.dimensions_),
         total_elements_(other.total_elements_),
         data_(other.data_),  // 直接复制数据
-        strides_(data_.strides_) {
-    std::cout << "???\n";
-  }
+        strides_(other.strides_) {}
 
   // 添加深拷贝赋值运算符
   MDVector& operator=(const MDVector& other) {
     if (this != &other) {
-      std::cout << "???\n";
       dimensions_ = other.dimensions_;
       total_elements_ = other.total_elements_;
       data_ = other.data_;  // 复制数据
@@ -176,13 +194,10 @@ class MDVector : public Expr<MDVector<T, Dims>> {
       : dimensions_(std::move(other.dimensions_)),
         total_elements_(other.total_elements_),
         data_(std::move(other.data_)),
-        strides_(std::move(data_.strides_)) {
-    std::cout << "???\n";
-  }
+        strides_(std::move(data_.strides_)) {}
 
   // 添加移动赋值运算符
   MDVector& operator=(MDVector&& other) noexcept {
-    std::cout << "???\n";
     if (this != &other) {
       dimensions_ = std::move(other.dimensions_);
       total_elements_ = other.total_elements_;

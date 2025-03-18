@@ -1,3 +1,7 @@
+#ifndef AVX2_FUNCTION_H_
+#define AVX2_FUNCTION_H_
+
+#include "mask.h"
 #include "simd_config.h"
 
 // ========================================================
@@ -43,7 +47,7 @@ void avx2_add(const T* __restrict a, const T* __restrict b, T* __restrict c, siz
 
 // c = a - b
 template <class T>
-void avx2_sub(const T* a, const T* b, T* c, size_t n) {
+FORCE_INLINE void avx2_sub(const T* a, const T* b, T* c, size_t n) {
   static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "type must be float or double!");
   constexpr size_t pack_size = SimdConfig<T>::pack_size;
 
@@ -150,22 +154,22 @@ void avx2_div(const T* a, const T* b, T* c, size_t n) {
       __m256d va = _mm256_load_pd(a + i);
       __m256d vb = _mm256_load_pd(b + i);
 
-      // 将双精度数视为整数处理，调整指数部分快速近似倒数
-      const __m256d magic = _mm256_set1_pd(1.9278640450003146e-284);  // 魔法常数
-      const __m256i exp_mask = _mm256_set1_epi64x(0x7FF0000000000000);
+      // // 将双精度数视为整数处理，调整指数部分快速近似倒数
+      // const __m256d magic = _mm256_set1_pd(1.9278640450003146e-284);  // 魔法常数
+      // const __m256i exp_mask = _mm256_set1_epi64x(0x7FF0000000000000);
 
-      __m256d x = _mm256_or_pd(vb, magic);  // 防止除零
-      __m256i xi = _mm256_castpd_si256(x);
-      xi = _mm256_sub_epi64(_mm256_set1_epi64x(0x7FE0000000000000), xi);
-      xi = _mm256_and_si256(xi, exp_mask);  // 保留指数部分
-      __m256d recip = _mm256_castsi256_pd(xi);
+      // __m256d x = _mm256_or_pd(vb, magic);  // 防止除零
+      // __m256i xi = _mm256_castpd_si256(x);
+      // xi = _mm256_sub_epi64(_mm256_set1_epi64x(0x7FE0000000000000), xi);
+      // xi = _mm256_and_si256(xi, exp_mask);  // 保留指数部分
+      // __m256d recip = _mm256_castsi256_pd(xi);
 
-      // __m256d recip = _mm256_rcp_pd_approx(vb);
-      const __m256d two = _mm256_set1_pd(2.0);
-      recip = _mm256_mul_pd(recip, _mm256_fnmadd_pd(vb, recip, two));  // FMA计算 (2 - v*recip)
-      recip = _mm256_mul_pd(recip, _mm256_fnmadd_pd(vb, recip, two));  // FMA计算 (2 - v*recip)
+      // // __m256d recip = _mm256_rcp_pd_approx(vb);
+      // const __m256d two = _mm256_set1_pd(2.0);
+      // recip = _mm256_mul_pd(recip, _mm256_fnmadd_pd(vb, recip, two));  // FMA计算 (2 - v*recip)
+      // recip = _mm256_mul_pd(recip, _mm256_fnmadd_pd(vb, recip, two));  // FMA计算 (2 - v*recip)
 
-      __m256d vc = _mm256_mul_pd(va, recip);
+      __m256d vc = _mm256_div_pd(va, vb);
       _mm256_store_pd(c + i, vc);
     }
     size_t remaining = n - i;
@@ -174,22 +178,22 @@ void avx2_div(const T* a, const T* b, T* c, size_t n) {
       __m256d va = _mm256_maskload_pd(a + i, mask);
       __m256d vb = _mm256_maskload_pd(b + i, mask);
 
-      // 将双精度数视为整数处理，调整指数部分快速近似倒数
-      const __m256d magic = _mm256_set1_pd(1.9278640450003146e-284);  // 魔法常数
-      const __m256i exp_mask = _mm256_set1_epi64x(0x7FF0000000000000);
+      // // 将双精度数视为整数处理，调整指数部分快速近似倒数
+      // const __m256d magic = _mm256_set1_pd(1.9278640450003146e-284);  // 魔法常数
+      // const __m256i exp_mask = _mm256_set1_epi64x(0x7FF0000000000000);
 
-      __m256d x = _mm256_or_pd(vb, magic);  // 防止除零
-      __m256i xi = _mm256_castpd_si256(x);
-      xi = _mm256_sub_epi64(_mm256_set1_epi64x(0x7FE0000000000000), xi);
-      xi = _mm256_and_si256(xi, exp_mask);  // 保留指数部分
-      __m256d recip = _mm256_castsi256_pd(xi);
+      // __m256d x = _mm256_or_pd(vb, magic);  // 防止除零
+      // __m256i xi = _mm256_castpd_si256(x);
+      // xi = _mm256_sub_epi64(_mm256_set1_epi64x(0x7FE0000000000000), xi);
+      // xi = _mm256_and_si256(xi, exp_mask);  // 保留指数部分
+      // __m256d recip = _mm256_castsi256_pd(xi);
 
-      // __m256d recip = _mm256_rcp_pd_approx(vb);
-      const __m256d two = _mm256_set1_pd(2.0);
-      recip = _mm256_mul_pd(recip, _mm256_fnmadd_pd(vb, recip, two));  // FMA计算 (2 - v*recip)
-      recip = _mm256_mul_pd(recip, _mm256_fnmadd_pd(vb, recip, two));  // FMA计算 (2 - v*recip)
+      // // __m256d recip = _mm256_rcp_pd_approx(vb);
+      // const __m256d two = _mm256_set1_pd(2.0);
+      // recip = _mm256_mul_pd(recip, _mm256_fnmadd_pd(vb, recip, two));  // FMA计算 (2 - v*recip)
+      // recip = _mm256_mul_pd(recip, _mm256_fnmadd_pd(vb, recip, two));  // FMA计算 (2 - v*recip)
 
-      _mm256_maskstore_pd(c + i, mask, _mm256_mul_pd(va, recip));
+      _mm256_maskstore_pd(c + i, mask, _mm256_div_pd(va, vb));
     }
   }
 }
@@ -459,3 +463,5 @@ void avx2_copy(const T* src, T* dest, size_t n) {
     }
   }
 }
+
+#endif  // AVX2_FUNCTION_H_

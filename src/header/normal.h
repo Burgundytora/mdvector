@@ -1,6 +1,10 @@
 #ifndef HEADER_NORMAL_H_
 #define HEADER_NORMAL_H_
 
+#include <type_traits>
+
+using std::size_t;
+
 template <class T>
 void norm_add(const T* a, const T* b, T* c, size_t n) {
   // float double int
