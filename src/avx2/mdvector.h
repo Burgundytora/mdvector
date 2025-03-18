@@ -1,9 +1,9 @@
 #ifndef HEADER_MDVECTOR_HPP_
 #define HEADER_MDVECTOR_HPP_
 
-#include <mdspan>
 #include <array>
 #include <vector>
+#include <numeric>
 
 #include "operator.h"
 #include "allocator.h"
@@ -15,46 +15,76 @@ using MDShape_2d = std::array<size_t, 2>;
 using MDShape_3d = std::array<size_t, 3>;
 using MDShape_4d = std::array<size_t, 4>;
 
+// 行优先/列优先
+struct layout_right {};
+struct layout_left {};
+
 // // 表达式模板基类 eigen设置思想
 // // 抽象类封装后 相比手写avx2性能下降10%~20% 小数据损失更多
 
 // 核心MDVector类
-template <class T, size_t Dims>
+template <class T, size_t Dims, class LayoutPolicy = layout_right>
 class MDVector : public Expr<MDVector<T, Dims>> {
  public:
   // ========================================================
-  // mdspan类型别名定义
-  using extents_type = std::dextents<size_t, Dims>;
-  using layout_type = std::layout_right;
-  using mdspan_type = std::mdspan<T, extents_type, layout_type>;
-
- public:
-  // ========================================================
   // 类成员
-  std::vector<T, AlignedAllocator<T>> data_;  // 数据
-  mdspan_type view_;                          // 一维vector的多维视图
   std::array<size_t, Dims> dimensions_;       // 维度信息
+  std::array<size_t, Dims> strides_;          // 索引偏置量
   size_t total_elements_ = 0;                 // 元素总数
-
-  template <size_t... I>
-  extents_type CreateExtents(std::index_sequence<I...>) {
-    return extents_type{dimensions_[I]...};
-  }
+  std::vector<T, AlignedAllocator<T>> data_;  // 数据
 
  public:
   // ========================================================
   // 构造函数  使用array静态维度数量
   MDVector(std::array<size_t, Dims> dim_set) : dimensions_{dim_set} {
+    // 检查类型
     static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "Type must be float or double!");
-    total_elements_ = 1;
-    for (auto d : dimensions_) {
-      total_elements_ *= d;
-    }
+    calculate_strides();
     data_.resize(total_elements_);
-    view_ = mdspan_type(data_.data(), CreateExtents(std::make_index_sequence<Dims>{}));
   }
+
   // 析构函数
   ~MDVector() = default;
+
+  // ========================================================
+  // 计算偏置 行优先
+  void calculate_strides() {
+    total_elements_ = std::reduce(dimensions_.begin(), dimensions_.end(), 1.0, std::multiplies<>());
+    size_t stride = 1;
+    for (size_t i = Dims - 1; i < Dims; --i) {  // 行优先倒序计算
+      strides_[i] = stride;
+      stride *= dimensions_[i];
+    }
+  }
+
+  // 计算索引 行优先
+  template <typename... Indices>
+  FORCE_INLINE size_t compute_offset(Indices... indices) const {
+    const std::array<size_t, sizeof...(Indices)> idxs = {static_cast<size_t>(indices)...};
+    size_t offset = 0;
+    for (size_t i = 0; i < Dims; i++) {
+      offset += idxs[i] * strides_[i];
+    }
+    return offset;
+  }
+
+  // 特化 1D 访问
+  template <>
+  FORCE_INLINE size_t compute_offset<size_t>(size_t i) const {
+    return i;
+  }
+
+  // 特化 2D 访问
+  template <>
+  FORCE_INLINE size_t compute_offset<size_t, size_t>(size_t i, size_t j) const {
+    return i * strides_[0] + j * strides_[1];
+  }
+
+  // 特化 3D 访问
+  template <>
+  FORCE_INLINE size_t compute_offset<size_t, size_t, size_t>(size_t i, size_t j, size_t k) const {
+    return i * strides_[0] + j * strides_[1] + k * strides_[2];
+  }
 
   // ========================================================
   // 访问运算符 提供safe 和 unsafe两种方式
@@ -62,14 +92,14 @@ class MDVector : public Expr<MDVector<T, Dims>> {
   template <typename... Indices>
   T& operator()(Indices... indices) {
     static_assert(sizeof...(Indices) == Dims, "mdvector dimension subscript wrong");
-    return view_[static_cast<size_t>(indices)...];
+    return data_[compute_offset(Indices... indices)];
   }
 
   // [i, j, k] unsafe style
   template <typename... Indices>
   T& operator[](Indices... indices) {
     static_assert(sizeof...(Indices) == Dims, "mdvector dimension subscript wrong");
-    return view_[static_cast<size_t>(indices)...];
+    return data_[compute_offset(Indices... indices)];
   }
 
   // .at(i, j, k) safe style
@@ -78,32 +108,31 @@ class MDVector : public Expr<MDVector<T, Dims>> {
     static_assert(sizeof...(Indices) == Dims, "mdvector dimension subscript wrong");
     size_t i = 0;
     for (auto len : std::array<size_t, Dims>{static_cast<size_t>(indices)...}) {
-      if (len > view_.extent(i)) {
-        std::cerr << "mdspan out-of-range error: " << len << ">" << view_.extent(i) << "\n";
+      if (len > dimensions_[i]) {
+        std::cerr << "mdspan out-of-range error: " << len << ">" << dimensions_[i] << "\n";
         std::abort();
       }
       i++;
     }
-    return view_[indices...];
+    return data_[compute_offset(Indices... indices)];
   }
-  // ========================================================
 
+  // ========================================================
   // 基础功能函数
   T* data() const { return const_cast<T*>(data_.data()); }
 
   size_t size() const { return total_elements_; }
 
-  void SetValue(T val) { std::fill(data_.begin(), data_.end(), val); }
+  void set_value(T val) { std::fill(data_.begin(), data_.end(), val); }
 
-  void ShowDataArrayStyle() {
-    // std::cout << "data in array style:\n";
+  void show_data_array_style() {
     for (const auto& it : this->data_) {
       std::cout << it << " ";
     }
     std::cout << "\n";
   }
 
-  void ShowDataMatrixStyle() {
+  void show_data_matrix_style() {
     if (Dims == 0) return;
 
     const size_t cols = dimensions_.back();
@@ -126,15 +155,18 @@ class MDVector : public Expr<MDVector<T, Dims>> {
       : dimensions_(other.dimensions_),
         total_elements_(other.total_elements_),
         data_(other.data_),  // 直接复制数据
-        view_(data_.data(), CreateExtents(std::make_index_sequence<Dims>{})) {}
+        strides_(data_.strides_) {
+    std::cout << "???\n";
+  }
 
   // 添加深拷贝赋值运算符
   MDVector& operator=(const MDVector& other) {
     if (this != &other) {
+      std::cout << "???\n";
       dimensions_ = other.dimensions_;
       total_elements_ = other.total_elements_;
       data_ = other.data_;  // 复制数据
-      view_ = mdspan_type(data_, CreateExtents(std::make_index_sequence<Dims>{}));
+      strides_ = other.strides_;
     }
     return *this;
   }
@@ -144,16 +176,18 @@ class MDVector : public Expr<MDVector<T, Dims>> {
       : dimensions_(std::move(other.dimensions_)),
         total_elements_(other.total_elements_),
         data_(std::move(other.data_)),
-        view_(data_.data(), CreateExtents(std::make_index_sequence<Dims>{})) {}
+        strides_(std::move(data_.strides_)) {
+    std::cout << "???\n";
+  }
 
   // 添加移动赋值运算符
   MDVector& operator=(MDVector&& other) noexcept {
+    std::cout << "???\n";
     if (this != &other) {
       dimensions_ = std::move(other.dimensions_);
       total_elements_ = other.total_elements_;
       data_ = std::move(other.data_);
-      data_ = other.data_;
-      view_ = mdspan_type(data_.data(), CreateExtents(std::make_index_sequence<Dims>{}));
+      strides_ = std::move(other.strides_);
     }
     return *this;
   }

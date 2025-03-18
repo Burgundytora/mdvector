@@ -4,7 +4,7 @@
 // 基础运算赋值 c = a ? b
 // c = a + b
 template <class T>
-void avx2_add(const T* a, const T* b, T* c, size_t n) {
+void avx2_add(const T* __restrict a, const T* __restrict b, T* __restrict c, size_t n) {
   static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "type must be float or double!");
   constexpr size_t pack_size = SimdConfig<T>::pack_size;
 
@@ -12,30 +12,30 @@ void avx2_add(const T* a, const T* b, T* c, size_t n) {
     size_t i = 0;
     for (; i <= n - pack_size; i += pack_size) {
       // float
-      __m256 va = _mm256_load_ps(a + i);
-      __m256 vb = _mm256_load_ps(b + i);
+      const __m256 va = _mm256_load_ps(a + i);
+      const __m256 vb = _mm256_load_ps(b + i);
       _mm256_store_ps(c + i, _mm256_add_ps(va, vb));
     }
     size_t remaining = n - i;
     if (remaining > 0) {
-      __m256i mask = mask_table_8[remaining];
-      __m256 va = _mm256_maskload_ps(a + i, mask);
-      __m256 vb = _mm256_maskload_ps(b + i, mask);
+      const __m256i mask = mask_table_8[remaining];
+      const __m256 va = _mm256_maskload_ps(a + i, mask);
+      const __m256 vb = _mm256_maskload_ps(b + i, mask);
       _mm256_maskstore_ps(c + i, mask, _mm256_add_ps(va, vb));
     }
   } else {
     size_t i = 0;
     for (; i <= n - pack_size; i += pack_size) {
       // double
-      __m256d va = _mm256_load_pd(a + i);
-      __m256d vb = _mm256_load_pd(b + i);
+      const __m256d va = _mm256_load_pd(a + i);
+      const __m256d vb = _mm256_load_pd(b + i);
       _mm256_store_pd(c + i, _mm256_add_pd(va, vb));
     }
     size_t remaining = n - i;
     if (remaining > 0) {
-      __m256i mask = mask_table_4[remaining];
-      __m256d va = _mm256_maskload_pd(a + i, mask);
-      __m256d vb = _mm256_maskload_pd(b + i, mask);
+      const __m256i mask = mask_table_4[remaining];
+      const __m256d va = _mm256_maskload_pd(a + i, mask);
+      const __m256d vb = _mm256_maskload_pd(b + i, mask);
       _mm256_maskstore_pd(c + i, mask, _mm256_add_pd(va, vb));
     }
   }

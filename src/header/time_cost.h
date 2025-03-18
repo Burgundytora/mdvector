@@ -18,7 +18,7 @@ struct TimerRecorder {
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start_);
 
     // 输出结果
-    std::cout << name_ << "\t" << duration << "\n";
+    std::cout << name_ << "\t" << duration.count() << "\n";
     start_ = std::chrono::high_resolution_clock::now();
   }
 

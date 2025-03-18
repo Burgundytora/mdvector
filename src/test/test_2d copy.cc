@@ -1,6 +1,5 @@
 ﻿
 #include <iostream>
-#include <format>
 #include <vector>
 using std::vector;
 

@@ -91,9 +91,9 @@ class MDVector : public Expr<MDVector<T, Dims>> {
 
   size_t size() const { return total_elements_; }
 
-  void SetValue(T val) { std::fill(data_.begin(), data_.end(), val); }
+  void set_value(T val) { std::fill(data_.begin(), data_.end(), val); }
 
-  void ShowDataArrayStyle() {
+  void show_data_array_style() {
     // std::cout << "data in array style:\n";
     for (const auto& it : this->data_) {
       std::cout << it << " ";
@@ -101,7 +101,7 @@ class MDVector : public Expr<MDVector<T, Dims>> {
     std::cout << "\n";
   }
 
-  void ShowDataMatrixStyle() {
+  void show_data_matrix_style() {
     if (Dims == 0) return;
 
     const size_t cols = dimensions_.back();

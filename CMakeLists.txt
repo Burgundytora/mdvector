@@ -1,21 +1,19 @@
-﻿cmake_minimum_required(VERSION 3.11.0)
-project(mdvector VERSION 0.1.0)
+﻿cmake_minimum_required(VERSION 3.15)
+project(mdvector VERSION 0.1.0 LANGUAGES CXX)
 
 # 设置标准
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 指令集开关 预留 测试阶段全开启
-option(USE_MKL "Enable Intel MKL acceleration" ON)
-option(USE_AVX2 "Enable AVX2 optimizations" ON)
+# 用于对比
+if(WIN32)
+    set(EIGEN_DIR "E:/dependency/include/eigen-3.4.0")
+else()
+    set(EIGEN_DIR "mnt/goldflex/dependency/include/eigen-3.4.0")
+endif()
 
-# set(MKL_DIR "C:/Program Files (x86)/Intel/oneAPI/mkl/latest")
-set(MKL_DIR "E:/oneAPI/mkl/latest")
-set(EIGEN_DIR "E:/dependency/include/eigen-3.4.0")
 include_directories("${EIGEN_DIR}")
-include_directories("${MKL_DIR}/include")
-add_definitions(-DMDVECTOR_USE_MKL)
 
 # 平台信息
 if(WIN32)
@@ -41,7 +39,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 
 # vs 编译时关闭 msvc 自定义的 max/min 宏，使用标准库中的函数
 if(MSVC)
-    add_compile_options(/W3)
+    add_compile_options(/w)
     add_compile_options(/bigobj)
     add_compile_options(/arch:AVX2)
     add_definitions("-D_CRT_SECURE_NO_DEPRECATE") # avoids deprecation warnings

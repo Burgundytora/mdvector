@@ -192,7 +192,7 @@ class MDVector : public Expr<MDVector<T, Dims>> {
     return avx2_load<T2>(data_.data() + i);
   }
 
-  void SetValue(T val) { std::fill(data_.begin(), data_.end(), val); }
+  void set_value(T val) { std::fill(data_.begin(), data_.end(), val); }
 };
 
 // ======================== 性能测试 ========================
@@ -202,10 +202,10 @@ void benchmark() {
 
   for (auto size : sizes) {
     MDVector<float, 1> a(size), b(size), c(size), d(size), e(size);
-    a.SetValue(1.0f);
-    b.SetValue(2.0f);
-    c.SetValue(3.0f);
-    d.SetValue(4.0f);
+    a.set_value(1.0f);
+    b.set_value(2.0f);
+    c.set_value(3.0f);
+    d.set_value(4.0f);
 
     auto t1 = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < trials; ++i) {

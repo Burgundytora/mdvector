@@ -1,6 +1,5 @@
 ﻿
 #include <iostream>
-#include <format>
 
 #include "src/header/avx2.h"
 #include "src/header/normal.h"

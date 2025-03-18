@@ -12,7 +12,7 @@ double* ttt = new double[4];
 template <typename Derived>
 class Expr {
  public:
-  const Derived& derived() const { return static_cast<const Derived&>(*this); }
+  FORCE_INLINE const Derived& derived() const { return static_cast<const Derived&>(*this); }
 
   FORCE_INLINE size_t size() const { return derived().size(); }
 
@@ -62,7 +62,7 @@ class AddExpr : public Expr<AddExpr<L, R>> {
   const R& rhs;
 
  public:
-  AddExpr(const L& l, const R& r) : lhs(l), rhs(r) {}
+  FORCE_INLINE AddExpr(const L& l, const R& r) : lhs(l), rhs(r) {}
 
   FORCE_INLINE size_t size() const { return lhs.size(); }
 
