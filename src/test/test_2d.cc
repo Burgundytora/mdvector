@@ -11,6 +11,7 @@ using std::vector;
 #include "src/avx2/mdvector.h"
 #include "src/header/normal.h"
 #include "src/header/time_cost.h"
+#include "src/highway/function.h"
 
 //
 #include "test_set.h"
@@ -219,6 +220,52 @@ void test_mdvector_fun() {
 }
 
 template <class T>
+void test_highway() {
+  AlignedAllocator<T> allocator_;
+
+  T* data1_ = allocator_.allocate(total_element);
+  T* data2_ = allocator_.allocate(total_element);
+  T* data3_ = allocator_.allocate(total_element);
+  T* data4_ = allocator_.allocate(total_element);
+
+  // 赋值
+  for (size_t i = 0; i < total_element; i++) {
+    data1_[i] = 1;
+    data2_[i] = 2;
+    data4_[i] = 4;
+  }
+
+  TimerRecorder a("hwy 1d");
+
+  size_t k = 0;
+  while (k++ < loop) {
+    if constexpr (do_add) {
+      hwy_add(data1_, data2_, data3_, total_element);
+      // hwy_add<T>(data4_, data3_, data3_, total_element);
+    }
+
+    if constexpr (do_sub) {
+      hwy_sub<T>(data1_, data2_, data3_, total_element);
+      hwy_sub<T>(data4_, data3_, data3_, total_element);
+    }
+
+    if constexpr (do_mul) {
+      hwy_mul<T>(data1_, data2_, data3_, total_element);
+      hwy_mul<T>(data4_, data3_, data3_, total_element);
+    }
+
+    if constexpr (do_div) {
+      hwy_div<T>(data1_, data2_, data3_, total_element);
+      hwy_div<T>(data4_, data3_, data3_, total_element);
+    }
+  }
+
+  allocator_.deallocate(data1_);
+  allocator_.deallocate(data2_);
+  allocator_.deallocate(data3_);
+}
+
+template <class T>
 void test_avx2() {
   AlignedAllocator<T> allocator_;
 
@@ -384,14 +431,15 @@ int main(int args, char* argv[]) {
   std::cout << "2d matrix ? matrix: " << dim1 << "*" << dim2 << "\n";
 
   // double
-  test_vector<double>();
-  test_norm<double>();
   test_eigen_matrixd();
-  test_xarray<double>();
-  test_xtensor<double>();
+  test_highway<double>();
   test_avx2<double>();
   test_mdvector_expr<double>();
   test_mdvector_fun<double>();
+  test_xarray<double>();
+  test_xtensor<double>();
+  test_vector<double>();
+  test_norm<double>();
 
   std::cout << "test complete" << std::endl;
 
