@@ -10,7 +10,6 @@
 #include "function.h"
 #include "operator.h"
 
-
 // 维度数量设置
 using MDShape_1d = std::array<size_t, 1>;
 using MDShape_2d = std::array<size_t, 2>;
