@@ -53,7 +53,7 @@ void test_norm() {
     if constexpr (do_sub) {
       for (size_t i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
-          data3_[i][j] = data1_[i][j] - data2_[i][j] - data4_[i][j];
+          data3_[i][j] = data1_[i][j] - data2_[i][j];
         }
       }
     }
@@ -61,7 +61,7 @@ void test_norm() {
     if constexpr (do_mul) {
       for (size_t i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
-          data3_[i][j] = data1_[i][j] * data2_[i][j] * data4_[i][j];
+          data3_[i][j] = data1_[i][j] * data2_[i][j];
         }
       }
     }
@@ -69,7 +69,7 @@ void test_norm() {
     if constexpr (do_div) {
       for (size_t i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
-          data3_[i][j] = data1_[i][j] / data2_[i][j] / data4_[i][j];
+          data3_[i][j] = data1_[i][j] / data2_[i][j];
         }
       }
     }
@@ -118,7 +118,7 @@ void test_vector() {
     if constexpr (do_sub) {
       for (size_t i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
-          data3_[i][j] = data1_[i][j] - data2_[i][j] - data4_[i][j];
+          data3_[i][j] = data1_[i][j] - data2_[i][j];
         }
       }
     }
@@ -126,7 +126,7 @@ void test_vector() {
     if constexpr (do_mul) {
       for (size_t i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
-          data3_[i][j] = data1_[i][j] * data2_[i][j] * data4_[i][j];
+          data3_[i][j] = data1_[i][j] * data2_[i][j];
         }
       }
     }
@@ -134,7 +134,7 @@ void test_vector() {
     if constexpr (do_div) {
       for (size_t i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
-          data3_[i][j] = data1_[i][j] / data2_[i][j] / data4_[i][j];
+          data3_[i][j] = data1_[i][j] / data2_[i][j];
         }
       }
     }
@@ -165,15 +165,15 @@ void test_mdvector_expr() {
     }
 
     if constexpr (do_sub) {
-      data3_ = data1_ - data2_ - data4_;
+      data3_ = data1_ - data2_;
     }
 
     if constexpr (do_mul) {
-      data3_ = data1_ * data2_ * data4_;
+      data3_ = data1_ * data2_;
     }
 
     if constexpr (do_div) {
-      data3_ = data1_ / data2_ / data4_;
+      data3_ = data1_ / data2_;
     }
   }
 }
@@ -199,22 +199,18 @@ void test_mdvector_fun() {
   while (k++ < loop) {
     if constexpr (do_add) {
       data3_.equal_a_add_b(data1_, data2_);
-      // data3_.equal_a_add_b(data3_, data4_);
     }
 
     if constexpr (do_sub) {
       data3_.equal_a_sub_b(data1_, data2_);
-      data3_.equal_a_sub_b(data3_, data4_);
     }
 
     if constexpr (do_mul) {
       data3_.equal_a_mul_b(data1_, data2_);
-      data3_.equal_a_mul_b(data3_, data4_);
     }
 
     if constexpr (do_div) {
       data3_.equal_a_div_b(data1_, data2_);
-      data3_.equal_a_div_b(data3_, data4_);
     }
   }
 }
@@ -241,22 +237,18 @@ void test_highway() {
   while (k++ < loop) {
     if constexpr (do_add) {
       hwy_add(data1_, data2_, data3_, total_element);
-      // hwy_add<T>(data4_, data3_, data3_, total_element);
     }
 
     if constexpr (do_sub) {
       hwy_sub<T>(data1_, data2_, data3_, total_element);
-      hwy_sub<T>(data4_, data3_, data3_, total_element);
     }
 
     if constexpr (do_mul) {
       hwy_mul<T>(data1_, data2_, data3_, total_element);
-      hwy_mul<T>(data4_, data3_, data3_, total_element);
     }
 
     if constexpr (do_div) {
       hwy_div<T>(data1_, data2_, data3_, total_element);
-      hwy_div<T>(data4_, data3_, data3_, total_element);
     }
   }
 
@@ -287,22 +279,18 @@ void test_avx2() {
   while (k++ < loop) {
     if constexpr (do_add) {
       avx2_add<T>(data1_, data2_, data3_, total_element);
-      // avx2_add<T>(data4_, data3_, data3_, total_element);
     }
 
     if constexpr (do_sub) {
       avx2_sub<T>(data1_, data2_, data3_, total_element);
-      avx2_sub<T>(data4_, data3_, data3_, total_element);
     }
 
     if constexpr (do_mul) {
       avx2_mul<T>(data1_, data2_, data3_, total_element);
-      avx2_mul<T>(data4_, data3_, data3_, total_element);
     }
 
     if constexpr (do_div) {
       avx2_div<T>(data1_, data2_, data3_, total_element);
-      avx2_div<T>(data4_, data3_, data3_, total_element);
     }
   }
 
@@ -336,15 +324,15 @@ void test_eigen_matrixd() {
     }
 
     if constexpr (do_sub) {
-      data3_ = data1_ - data2_ - data4_;
+      data3_ = data1_ - data2_;
     }
 
     if constexpr (do_mul) {
-      data3_ = data1_.cwiseProduct(data2_).cwiseProduct(data4_);
+      data3_ = data1_.cwiseProduct(data2_);
     }
 
     if constexpr (do_div) {
-      data3_ = data1_.cwiseQuotient(data2_).cwiseQuotient(data4_);
+      data3_ = data1_.cwiseQuotient(data2_);
     }
   }
 
@@ -376,15 +364,15 @@ void test_xarray() {
     }
 
     if constexpr (do_sub) {
-      data3_ = data1_ - data2_ - data4_;
+      data3_ = data1_ - data2_;
     }
 
     if constexpr (do_mul) {
-      data3_ = data1_ * data2_ * data4_;
+      data3_ = data1_ * data2_;
     }
 
     if constexpr (do_div) {
-      data3_ = data1_ / data2_ / data4_;
+      data3_ = data1_ / data2_;
     }
   }
 }
@@ -414,15 +402,15 @@ void test_xtensor() {
     }
 
     if constexpr (do_sub) {
-      data3_ = data1_ - data2_ - data4_;
+      data3_ = data1_ - data2_;
     }
 
     if constexpr (do_mul) {
-      data3_ = data1_ * data2_ * data4_;
+      data3_ = data1_ * data2_;
     }
 
     if constexpr (do_div) {
-      data3_ = data1_ / data2_ / data4_;
+      data3_ = data1_ / data2_;
     }
   }
 }
