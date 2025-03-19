@@ -1,6 +1,6 @@
 #include <vector>
 
-#include "test_set.h"
+#include "src/test/test_set.h"
 
 using std::vector;
 
@@ -66,12 +66,8 @@ void test_vector() {
 }
 
 int main(int args, char* argv[]) {
-  std::cout << "2d matrix ? matrix: " << dim1 << "*" << dim2 << "\n";
-
   // double
   test_vector<double>();
-
-  std::cout << "test complete" << std::endl;
 
   return 0;
 }

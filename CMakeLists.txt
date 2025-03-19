@@ -6,14 +6,17 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 用于对比
 if(WIN32)
-    set(EIGEN_DIR "E:/dependency/include/eigen-3.4.0")
+    set(INCLUDE_DIR "D:/code/include")
+    # set(INCLUDE_DIR "E:/dependency/include")
 else()
-    set(EIGEN_DIR "/mnt/goldflex/dependency/include/eigen-3.4.0")
+    set(INCLUDE_DIR "/mnt/goldflex/dependency/include")
 endif()
 
-include_directories("${EIGEN_DIR}")
+include_directories("${INCLUDE_DIR}/eigen-3.4.0")
+include_directories("${INCLUDE_DIR}/highway")
+include_directories("${INCLUDE_DIR}/xtensor/include")
+include_directories("${INCLUDE_DIR}/xtl/include")
 
 # 平台信息
 if(WIN32)

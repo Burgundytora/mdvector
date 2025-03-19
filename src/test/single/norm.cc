@@ -1,6 +1,6 @@
 #include "src/header/normal.h"
 #include "src/header/time_cost.h"
-#include "test_set.h"
+#include "src/test/test_set.h"
 
 template <class T>
 void test_norm() {
@@ -67,12 +67,8 @@ void test_norm() {
 }
 
 int main(int args, char* argv[]) {
-  std::cout << "2d matrix ? matrix: " << dim1 << "*" << dim2 << "\n";
-
   // double
   test_norm<double>();
-
-  std::cout << "test complete" << std::endl;
 
   return 0;
 }

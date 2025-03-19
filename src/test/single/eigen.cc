@@ -1,7 +1,5 @@
 #include "Eigen/Dense"
-//
-
-#include "test_set.h"
+#include "src/test/test_set.h"
 
 void test_eigen_matrixd() {
   Eigen::MatrixXd data1_ = Eigen::MatrixXd::Zero(dim1, dim2);
@@ -44,12 +42,8 @@ void test_eigen_matrixd() {
 }
 
 int main(int args, char* argv[]) {
-  std::cout << "2d matrix ? matrix: " << dim1 << "*" << dim2 << "\n";
-
   // double
   test_eigen_matrixd();
-
-  std::cout << "test complete" << std::endl;
 
   return 0;
 }

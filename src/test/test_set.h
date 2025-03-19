@@ -2,8 +2,8 @@
 
 #include "src/header/time_cost.h"
 
-constexpr bool do_add = true;
-constexpr bool do_sub = false;
+constexpr bool do_add = false;
+constexpr bool do_sub = true;
 constexpr bool do_mul = false;
 constexpr bool do_div = false;
 

@@ -4,6 +4,9 @@
 using std::vector;
 
 #include "Eigen/Dense"
+#include "xtensor/xarray.hpp"
+#include "xtensor/xtensor.hpp"
+
 //
 #include "src/avx2/mdvector.h"
 #include "src/header/normal.h"
@@ -34,7 +37,7 @@ void test_norm() {
     }
   }
 
-  TimerRecorder a(std::string(typeid(T).name()) + ": norm");
+  TimerRecorder a("** 2d");
 
   size_t k = 0;
   while (k++ < loop) {
@@ -99,7 +102,7 @@ void test_vector() {
     }
   }
 
-  TimerRecorder a(std::string(typeid(T).name()) + ": vector");
+  TimerRecorder a("vector");
 
   size_t k = 0;
   while (k++ < loop) {
@@ -152,7 +155,7 @@ void test_mdvector_expr() {
     data4_.data_[i] = 3;
   }
 
-  TimerRecorder a(std::string(typeid(T).name()) + ": mdvector expr");
+  TimerRecorder a("md expr");
 
   size_t k = 0;
   while (k++ < loop) {
@@ -189,7 +192,7 @@ void test_mdvector_fun() {
     data4_.data_[i] = 3;
   }
 
-  TimerRecorder a(std::string(typeid(T).name()) + ": mdvector fun");
+  TimerRecorder a("md fun");
 
   size_t k = 0;
   while (k++ < loop) {
@@ -231,7 +234,7 @@ void test_avx2() {
     data4_[i] = 4;
   }
 
-  TimerRecorder a(std::string(typeid(T).name()) + ": avx2");
+  TimerRecorder a("avx2 1d");
 
   size_t k = 0;
   while (k++ < loop) {
@@ -276,7 +279,7 @@ void test_eigen_matrixd() {
     }
   }
 
-  TimerRecorder a("double: eigen matrix");
+  TimerRecorder a("eigen");
 
   double temp;
   size_t k = 0;
@@ -301,6 +304,82 @@ void test_eigen_matrixd() {
   return;
 }
 
+template <class T>
+void test_xarray() {
+  xt::xarray<T> data1_ = xt::zeros<T>({dim1, dim2});
+  xt::xarray<T> data2_ = xt::zeros<T>({dim1, dim2});
+  xt::xarray<T> data3_ = xt::zeros<T>({dim1, dim2});
+  xt::xarray<T> data4_ = xt::zeros<T>({dim1, dim2});
+
+  // 赋值
+  for (size_t i = 0; i < dim1; i++) {
+    for (size_t j = 0; j < dim2; j++) {
+      data1_(i, j) = 1;
+      data2_(i, j) = 2;
+      data4_(i, j) = 3;
+    }
+  }
+
+  TimerRecorder a("xarray");
+
+  size_t k = 0;
+  while (k++ < loop) {
+    if constexpr (do_add) {
+      data3_ = data1_ + data2_;
+    }
+
+    if constexpr (do_sub) {
+      data3_ = data1_ - data2_ - data4_;
+    }
+
+    if constexpr (do_mul) {
+      data3_ = data1_ * data2_ * data4_;
+    }
+
+    if constexpr (do_div) {
+      data3_ = data1_ / data2_ / data4_;
+    }
+  }
+}
+
+template <class T>
+void test_xtensor() {
+  xt::xtensor<T, 2> data1_ = xt::zeros<T>({dim1, dim2});
+  xt::xtensor<T, 2> data2_ = xt::zeros<T>({dim1, dim2});
+  xt::xtensor<T, 2> data3_ = xt::zeros<T>({dim1, dim2});
+  xt::xtensor<T, 2> data4_ = xt::zeros<T>({dim1, dim2});
+
+  // 赋值
+  for (size_t i = 0; i < dim1; i++) {
+    for (size_t j = 0; j < dim2; j++) {
+      data1_(i, j) = 1;
+      data2_(i, j) = 2;
+      data4_(i, j) = 3;
+    }
+  }
+
+  TimerRecorder a("xtensor");
+
+  size_t k = 0;
+  while (k++ < loop) {
+    if constexpr (do_add) {
+      data3_ = data1_ + data2_;
+    }
+
+    if constexpr (do_sub) {
+      data3_ = data1_ - data2_ - data4_;
+    }
+
+    if constexpr (do_mul) {
+      data3_ = data1_ * data2_ * data4_;
+    }
+
+    if constexpr (do_div) {
+      data3_ = data1_ / data2_ / data4_;
+    }
+  }
+}
+
 int main(int args, char* argv[]) {
   std::cout << "2d matrix ? matrix: " << dim1 << "*" << dim2 << "\n";
 
@@ -308,6 +387,8 @@ int main(int args, char* argv[]) {
   test_vector<double>();
   test_norm<double>();
   test_eigen_matrixd();
+  test_xarray<double>();
+  test_xtensor<double>();
   test_avx2<double>();
   test_mdvector_expr<double>();
   test_mdvector_fun<double>();

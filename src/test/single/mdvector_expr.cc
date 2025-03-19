@@ -1,8 +1,8 @@
 #include "src/avx2/mdvector.h"
-#include "test_set.h"
+#include "src/test/test_set.h"
 
 template <class T>
-void test_mdvector_fun() {
+void test_mdvector_expr() {
   MDShape_2d test_shape = {dim1, dim2};
   MDVector<T, 2> data1_(test_shape);
   MDVector<T, 2> data2_(test_shape);
@@ -16,39 +16,31 @@ void test_mdvector_fun() {
     data4_.data_[i] = 3;
   }
 
-  TimerRecorder a(std::string(typeid(T).name()) + ": mdvector fun");
+  TimerRecorder a(std::string(typeid(T).name()) + ": mdvector expr");
 
   size_t k = 0;
   while (k++ < loop) {
     if constexpr (do_add) {
-      data3_.equal_a_add_b(data1_, data2_);
-      // data3_.equal_a_add_b(data3_, data4_);
+      data3_ = data1_ + data2_;
     }
 
     if constexpr (do_sub) {
-      data3_.equal_a_sub_b(data1_, data2_);
-      data3_.equal_a_sub_b(data3_, data4_);
+      data3_ = data1_ - data2_ - data4_;
     }
 
     if constexpr (do_mul) {
-      data3_.equal_a_mul_b(data1_, data2_);
-      data3_.equal_a_mul_b(data3_, data4_);
+      data3_ = data1_ * data2_ * data4_;
     }
 
     if constexpr (do_div) {
-      data3_.equal_a_div_b(data1_, data2_);
-      data3_.equal_a_div_b(data3_, data4_);
+      data3_ = data1_ / data2_ / data4_;
     }
   }
 }
 
 int main(int args, char* argv[]) {
-  std::cout << "2d matrix ? matrix: " << dim1 << "*" << dim2 << "\n";
-
   // double
-  test_mdvector_fun<double>();
-
-  std::cout << "test complete" << std::endl;
+  test_mdvector_expr<double>();
 
   return 0;
 }

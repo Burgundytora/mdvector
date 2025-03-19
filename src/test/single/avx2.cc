@@ -1,5 +1,5 @@
 #include "src/avx2/mdvector.h"
-#include "test_set.h"
+#include "src/test/test_set.h"
 
 template <class T>
 void test_avx2() {
@@ -48,12 +48,8 @@ void test_avx2() {
 }
 
 int main(int args, char* argv[]) {
-  std::cout << "2d matrix ? matrix: " << dim1 << "*" << dim2 << "\n";
-
   // double
   test_avx2<double>();
-
-  std::cout << "test complete" << std::endl;
 
   return 0;
 }
