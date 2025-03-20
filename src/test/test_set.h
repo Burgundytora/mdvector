@@ -9,5 +9,5 @@ constexpr bool do_div = true;
 
 size_t loop = 10000000;
 size_t dim1 = 1;
-size_t dim2 = 59;
+size_t dim2 = 50;
 size_t total_element = dim1 * dim2;

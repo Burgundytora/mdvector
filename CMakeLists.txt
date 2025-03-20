@@ -56,7 +56,7 @@ else()
 
     # add_compile_options("-Werror")
     # add_definitions("-pthread -march=native -mavx2")
-    add_definitions("-mavx2 -mfma")
+    add_definitions("-mavx2 -mfma -flto")
 endif()
 
 add_subdirectory(src)

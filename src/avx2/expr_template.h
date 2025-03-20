@@ -4,8 +4,6 @@
 #include "mask.h"
 #include "simd_config.h"
 
-double* ttt = new double[4];
-
 // ======================== 表达式模板基类 ========================
 template <typename Derived>
 class Expr {
@@ -22,7 +20,6 @@ class Expr {
     constexpr size_t pack_size = SimdConfig<Dest>::pack_size;
     size_t i = 0;
 
-    __m256d simd_val = _mm256_load_pd(ttt);
     for (; i <= n - pack_size; i += pack_size) {
       // 虚函数开销在这？？
       auto simd_val = derived().template eval_simd<Dest>(i);

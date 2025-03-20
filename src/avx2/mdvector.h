@@ -208,14 +208,14 @@ class MDVector : public Expr<MDVector<T, Dims>> {
 
   // 实现表达式赋值
   template <typename E>
-  FORCE_INLINE MDVector& operator=(const Expr<E>& expr) {
+  MDVector& operator=(const Expr<E>& expr) {
     expr.eval_to(this->data());  // 直接计算到目标内存
     return *this;
   }
 
   // 取值
   template <typename T2>
-  FORCE_INLINE typename SimdConfig<T2>::simd_type eval_simd(size_t i) const {
+  typename SimdConfig<T2>::simd_type eval_simd(size_t i) const {
     if constexpr (std::is_same_v<T, float>) {
       return _mm256_load_ps(data_.data() + i);
     } else {
@@ -225,7 +225,7 @@ class MDVector : public Expr<MDVector<T, Dims>> {
 
   // 取值
   template <typename T2>
-  FORCE_INLINE typename SimdConfig<T2>::simd_type eval_simd_mask(size_t i) const {
+  typename SimdConfig<T2>::simd_type eval_simd_mask(size_t i) const {
     if constexpr (std::is_same_v<T, float>) {
       return _mm256_maskload_ps(data_.data() + i, mask_table_8[total_elements_ - i]);
     } else {
