@@ -2,9 +2,12 @@
 #define HEADER_TIME_COST_H_
 
 #include <chrono>
+#include <fstream>
 #include <iostream>
 #include <map>
+#include <numeric>
 #include <string>
+
 
 using std::map;
 using std::string;
@@ -17,8 +20,9 @@ struct TimerRecorder {
   TimerRecorder(const std::string &name) {
     this->name_ = name;
 
-    if (speed_recorder_.find(name) != speed_recorder_.end()) {
+    if (speed_recorder_.find(name) == speed_recorder_.end()) {
       speed_recorder_.insert({name, vector<double>{}});
+      method_name_.push_back(name);
     }
 
     if (test_name_.size() == 0) {
@@ -45,6 +49,25 @@ struct TimerRecorder {
     speed_recorder_[name_].push_back(speed);
   }
 
+  static inline void SaveSpeedResult(const string &path) {
+    std::ofstream res(path);
+    res << "speed";
+    for (const auto test : test_name_) {
+      res << "," << test;
+    }
+    res << ",average\n";
+    for (const auto &name : method_name_) {
+      res << name;
+
+      for (const auto &perf : speed_recorder_[name]) {
+        res << "," << perf;
+      }
+      res << ","
+          << std::reduce(speed_recorder_[name].begin(), speed_recorder_[name].end()) / speed_recorder_[name].size();
+      res << "\n";
+    }
+  }
+
   string name_ = "";
 #ifdef _WIN32
   std::chrono::steady_clock::time_point start_;
@@ -53,6 +76,7 @@ struct TimerRecorder {
 #endif
 
   static inline vector<string> test_name_;
+  static inline vector<string> method_name_;
   static inline map<string, vector<double>> speed_recorder_;
 };
 

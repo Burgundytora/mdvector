@@ -465,18 +465,18 @@ int main(int args, char* argv[]) {
     std::cout << "2d matrix ? matrix: " << dim1 << "*" << dim2 << "\n";
 
     // double
-    test_eigen_matrixd();
-    test_highway<double>();
     test_avx2<double>();
     test_mdvector_fun<double>();
+    test_highway<double>();
     test_mdvector_expr<double>();
-    test_base_expr<double>();
-    test_xarray<double>();
-    test_xtensor<double>();
+    test_eigen_matrixd();
     test_vector<double>();
     test_norm<double>();
+    test_base_expr<double>();
+    test_xtensor<double>();
+    test_xarray<double>();
   }
-
+  TimerRecorder::SaveSpeedResult("speed_result.csv");
   std::cout << "test complete" << std::endl;
 
   return 0;
