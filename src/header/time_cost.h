@@ -5,6 +5,9 @@
 #include <iostream>
 #include <string>
 
+//
+#include "src/test/test_set.h"
+
 struct TimerRecorder {
   TimerRecorder(const std::string &name) {
     this->name_ = name;
@@ -18,7 +21,7 @@ struct TimerRecorder {
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start_);
 
     // 输出结果
-    std::cout << name_ << "," << 10000.0 / duration.count() << "\n";
+    std::cout << name_ << "\t\t" << total_cal * 1e-5 / duration.count() << "\n";
     start_ = std::chrono::high_resolution_clock::now();
   }
 

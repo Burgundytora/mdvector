@@ -19,7 +19,7 @@ class Expr {
     const size_t n = size();
     constexpr size_t pack_size = SimdConfig<Dest>::pack_size;
     size_t i = 0;
-
+#pragma omp simd  // 启用编译器 SIMD 向量化（需编译器支持）
     for (; i <= n - pack_size; i += pack_size) {
       // 虚函数开销在这？？
       auto simd_val = derived().template eval_simd<Dest>(i);

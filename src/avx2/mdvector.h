@@ -20,8 +20,7 @@ using MDShape_4d = std::array<size_t, 4>;
 struct layout_right {};
 struct layout_left {};
 
-// // 表达式模板基类 eigen设置思想
-// // 抽象类封装后 相比手写avx2性能下降10%~20% 小数据损失更多
+// 表达式模板带来15%性能损失(对比avx2函数)
 
 // 核心MDVector类
 template <class T, size_t Dims, class LayoutPolicy = layout_right>
