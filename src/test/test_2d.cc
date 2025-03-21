@@ -339,10 +339,14 @@ void test_avx2() {
 }
 
 void test_eigen_matrixd() {
-  Eigen::MatrixXd data1_ = Eigen::MatrixXd::Zero(dim1, dim2);
-  Eigen::MatrixXd data2_ = Eigen::MatrixXd::Zero(dim1, dim2);
-  Eigen::MatrixXd data3_ = Eigen::MatrixXd::Zero(dim1, dim2);
-  Eigen::MatrixXd data4_ = Eigen::MatrixXd::Zero(dim1, dim2);
+  // 定义对齐的动态矩阵类型
+  using AlignedMatrixXd =
+      Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor, Eigen::Dynamic, Eigen::Dynamic>;
+
+  AlignedMatrixXd data1_(dim1, dim2);
+  AlignedMatrixXd data2_(dim1, dim2);
+  AlignedMatrixXd data3_(dim1, dim2);
+  AlignedMatrixXd data4_(dim1, dim2);
 
   // 赋值
   for (size_t i = 0; i < dim1; i++) {
