@@ -455,21 +455,27 @@ void test_xtensor() {
 }
 
 int main(int args, char* argv[]) {
-  // set_mkl_avx2_sequential_mode();
+  for (const auto& test : all_test_points) {
+    loop = test.loop_;
+    dim1 = test.dim1_;
+    dim2 = test.dim2_;
+    total_element = test.total_element_;
+    total_cal = test.total_cal_;
 
-  std::cout << "2d matrix ? matrix: " << dim1 << "*" << dim2 << "\n";
+    std::cout << "2d matrix ? matrix: " << dim1 << "*" << dim2 << "\n";
 
-  // double
-  test_eigen_matrixd();
-  test_highway<double>();
-  test_avx2<double>();
-  test_mdvector_fun<double>();
-  test_mdvector_expr<double>();
-  test_base_expr<double>();
-  test_xarray<double>();
-  test_xtensor<double>();
-  test_vector<double>();
-  test_norm<double>();
+    // double
+    test_eigen_matrixd();
+    test_highway<double>();
+    test_avx2<double>();
+    test_mdvector_fun<double>();
+    test_mdvector_expr<double>();
+    test_base_expr<double>();
+    test_xarray<double>();
+    test_xtensor<double>();
+    test_vector<double>();
+    test_norm<double>();
+  }
 
   std::cout << "test complete" << std::endl;
 
