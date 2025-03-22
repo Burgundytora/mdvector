@@ -1,5 +1,5 @@
-#ifndef AVX2_BASEEXPR_H_
-#define AVX2_BASEEXPR_H_
+#ifndef __MDVECTOR_BASEEXPR_H__
+#define __MDVECTOR_BASEEXPR_H__
 
 #include "mask.h"
 #include "simd_config.h"
@@ -19,7 +19,7 @@ class Expr {
     const size_t n = size();
     constexpr size_t pack_size = SimdConfig<Dest>::pack_size;
     size_t i = 0;
-#pragma omp simd  // 启用编译器 SIMD 向量化（需编译器支持）
+
     for (; i <= n - pack_size; i += pack_size) {
       // 虚函数开销在这？？
       auto simd_val = derived().template eval_simd<Dest>(i);
@@ -167,21 +167,6 @@ class DivExpr : public Expr<DivExpr<L, R>> {
     if constexpr (std::is_same_v<T, float>) {
       return _mm256_div_ps(l, r);
     } else {
-      // // 双精度除法加速处理
-      // // 将双精度数视为整数处理，调整指数部分快速近似倒数
-      // const __m256d magic = _mm256_set1_pd(1.9278640450003146e-284);  // 魔法常数
-      // const __m256i exp_mask = _mm256_set1_epi64x(0x7FF0000000000000);
-
-      // __m256d x = _mm256_or_pd(r, magic);  // 防止除零
-      // __m256i xi = _mm256_castpd_si256(x);
-      // xi = _mm256_sub_epi64(_mm256_set1_epi64x(0x7FE0000000000000), xi);
-      // xi = _mm256_and_si256(xi, exp_mask);  // 保留指数部分
-      // __m256d recip = _mm256_castsi256_pd(xi);
-
-      // const __m256d two = _mm256_set1_pd(2.0);
-      // recip = _mm256_mul_pd(recip, _mm256_fnmadd_pd(r, recip, two));  // FMA计算 (2 - v*recip)
-      // recip = _mm256_mul_pd(recip, _mm256_fnmadd_pd(r, recip, two));  // FMA计算 (2 - v*recip)
-
       return _mm256_div_pd(l, r);
     }
   }
@@ -193,24 +178,9 @@ class DivExpr : public Expr<DivExpr<L, R>> {
     if constexpr (std::is_same_v<T, float>) {
       return _mm256_maskdiv_ps(l, mask_table_8[l.size() - i], r);
     } else {
-      // // 双精度除法加速处理
-      // // 将双精度数视为整数处理，调整指数部分快速近似倒数
-      // const __m256d magic = _mm256_set1_pd(1.9278640450003146e-284);  // 魔法常数
-      // const __m256i exp_mask = _mm256_set1_epi64x(0x7FF0000000000000);
-
-      // __m256d x = _mm256_or_pd(r, magic);  // 防止除零
-      // __m256i xi = _mm256_castpd_si256(x);
-      // xi = _mm256_sub_epi64(_mm256_set1_epi64x(0x7FE0000000000000), xi);
-      // xi = _mm256_and_si256(xi, exp_mask);  // 保留指数部分
-      // __m256d recip = _mm256_castsi256_pd(xi);
-
-      // const __m256d two = _mm256_set1_pd(2.0);
-      // recip = _mm256_mul_pd(recip, _mm256_fnmadd_pd(r, recip, two));  // FMA计算 (2 - v*recip)
-      // recip = _mm256_mul_pd(recip, _mm256_fnmadd_pd(r, recip, two));  // FMA计算 (2 - v*recip)
-
       return _mm256_div_pd(l, r);
     }
   }
 };
 
-#endif  // AVX2_BASEEXPR_H_
+#endif  // __MDVECTOR_BASEEXPR_H__

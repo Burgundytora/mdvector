@@ -13,7 +13,7 @@ constexpr bool do_sub = true;
 constexpr bool do_mul = true;
 constexpr bool do_div = true;
 
-constexpr size_t points = 1e11;
+constexpr size_t points = 1E9;
 
 struct TestPoint {
   TestPoint(size_t dim1, size_t dim2) : dim1_(dim1), dim2_(dim2) {

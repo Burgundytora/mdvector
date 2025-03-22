@@ -57,6 +57,9 @@ class MDVector : public Expr<MDVector<T, Dims>> {
     }
   }
 
+  // 获取元素
+  size_t GetIndex() {}
+
   // ========================================================
   // 访问运算符 提供safe 和 unsafe两种方式
   // (i, j, k) unsafe style
@@ -66,13 +69,8 @@ class MDVector : public Expr<MDVector<T, Dims>> {
     const std::array<size_t, sizeof...(Indices)> idxs = {static_cast<size_t>(indices)...};
     if constexpr (Dims == 1) {
       return data_[idxs[0]];
-
     } else if constexpr (Dims == 2) {
       return data_[idxs[0] * strides_[0] + idxs[1]];
-
-    } else if constexpr (Dims == 3) {
-      return data_[idxs[0] * strides_[0] + idxs[1] * strides_[1] + idxs[2]];
-
     } else {
       size_t offset = 0;
       for (size_t i = 0; i < Dims; i++) {
@@ -89,13 +87,8 @@ class MDVector : public Expr<MDVector<T, Dims>> {
     const std::array<size_t, sizeof...(Indices)> idxs = {static_cast<size_t>(indices)...};
     if constexpr (Dims == 1) {
       return data_[idxs[0]];
-
     } else if constexpr (Dims == 2) {
       return data_[idxs[0] * strides_[0] + idxs[1]];
-
-    } else if constexpr (Dims == 3) {
-      return data_[idxs[0] * strides_[0] + idxs[1] * strides_[1] + idxs[2]];
-
     } else {
       size_t offset = 0;
       for (size_t i = 0; i < Dims; i++) {
@@ -120,13 +113,8 @@ class MDVector : public Expr<MDVector<T, Dims>> {
     const std::array<size_t, sizeof...(Indices)> idxs = {static_cast<size_t>(indices)...};
     if constexpr (Dims == 1) {
       return data_[idxs[0]];
-
     } else if constexpr (Dims == 2) {
       return data_[idxs[0] * strides_[0] + idxs[1]];
-
-    } else if constexpr (Dims == 3) {
-      return data_[idxs[0] * strides_[0] + idxs[1] * strides_[1] + idxs[2]];
-
     } else {
       size_t offset = 0;
       for (size_t i = 0; i < Dims; i++) {
@@ -205,6 +193,8 @@ class MDVector : public Expr<MDVector<T, Dims>> {
     return *this;
   }
 
+  // ========================================================
+  // 用于表达式模板
   // 实现表达式赋值
   template <typename E>
   MDVector& operator=(const Expr<E>& expr) {
@@ -231,6 +221,29 @@ class MDVector : public Expr<MDVector<T, Dims>> {
       return _mm256_maskload_pd(data_.data() + i, mask_table_4[total_elements_ - i]);
     }
   }
+
+  // ========================================================
+  // b ?= a
+  MDVector& operator+=(const MDVector& other) {
+    avx2_add_inplace(other.data_.data(), this->data_.data(), this->total_elements_);
+    return *this;
+  }
+
+  MDVector& operator-=(const MDVector& other) {
+    avx2_sub_inplace(other.data_.data(), this->data_.data(), this->total_elements_);
+    return *this;
+  }
+
+  MDVector& operator*=(const MDVector& other) {
+    avx2_mul_inplace(other.data_.data(), this->data_.data(), this->total_elements_);
+    return *this;
+  }
+
+  MDVector& operator/=(const MDVector& other) {
+    avx2_div_inplace(other.data_.data(), this->data_.data(), this->total_elements_);
+    return *this;
+  }
+  // ========================================================
 
   // ========================================================
   // 函数形式 有时候比表达式模板快一些
@@ -280,29 +293,6 @@ class MDVector : public Expr<MDVector<T, Dims>> {
   }
   void equal_a_div_b(const T& a, const MDVector& b) {
     avx2_mul_scalar(b.data(), 1.0 / a, this->data(), this->total_elements_);
-  }
-  // ========================================================
-
-  // ========================================================
-  // b ?= a
-  MDVector& operator+=(const MDVector& other) {
-    avx2_add_inplace(other.data_.data(), this->data_.data(), this->total_elements_);
-    return *this;
-  }
-
-  MDVector& operator-=(const MDVector& other) {
-    avx2_sub_inplace(other.data_.data(), this->data_.data(), this->total_elements_);
-    return *this;
-  }
-
-  MDVector& operator*=(const MDVector& other) {
-    avx2_mul_inplace(other.data_.data(), this->data_.data(), this->total_elements_);
-    return *this;
-  }
-
-  MDVector& operator/=(const MDVector& other) {
-    avx2_div_inplace(other.data_.data(), this->data_.data(), this->total_elements_);
-    return *this;
   }
   // ========================================================
 

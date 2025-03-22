@@ -1,5 +1,5 @@
-#ifndef AVX2_ALLOCATOR_H_
-#define AVX2_ALLOCATOR_H_
+#ifndef __MDVECTOR_ALLOCATOR_H__
+#define __MDVECTOR_ALLOCATOR_H__
 
 #include "simd_config.h"
 
@@ -30,4 +30,4 @@ class AlignedAllocator {
   }
 };
 
-#endif  // AVX2_ALLOCATOR_H_
+#endif  // __MDVECTOR_ALLOCATOR_H__
