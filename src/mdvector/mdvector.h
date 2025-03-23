@@ -6,8 +6,7 @@
 #include <numeric>
 #include <vector>
 
-#include "allocator.h"
-#include "function.h"
+#include "aligned_allocator.h"
 #include "operator.h"
 
 // 维度数量设置

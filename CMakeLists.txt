@@ -7,13 +7,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(WIN32)
-    # set(INCLUDE_DIR "D:/code/include")
-    set(INCLUDE_DIR "G:/dependency/include")
+    set(INCLUDE_DIR "D:/dependency/include")
 else()
     set(INCLUDE_DIR "/mnt/goldflex/dependency/include")
 endif()
-
-set(BLAS_DIR "${INCLUDE_DIR}/openblas/win32")
 
 include_directories("${INCLUDE_DIR}/eigen-3.4.0")
 include_directories("${INCLUDE_DIR}/highway")
@@ -23,11 +20,6 @@ include_directories("${INCLUDE_DIR}/xtl/include")
 # 指令集选项: X86: AVX2 / AVX512   ARM: NEON
 set(MY_OPTION "AVX2" CACHE STRING "Choose between AVX2, AVX512, NEON")
 set_property(CACHE MY_OPTION PROPERTY STRINGS "AVX2" "AVX512" "NEON")
-
-# 验证输入是否合法
-if(NOT MY_OPTION IN_LIST AVX2;AVX512;NEON)
-    message(FATAL_ERROR "Invalid option: ${MY_OPTION}. Valid options are AVX2, AVX512, NEON")
-endif()
 
 # 根据选项定义宏
 if(MY_OPTION STREQUAL "AVX2")

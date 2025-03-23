@@ -6,8 +6,6 @@
 
 using std::vector;
 
-#include "src/header/time_cost.h"
-
 constexpr bool do_add = true;
 constexpr bool do_sub = true;
 constexpr bool do_mul = true;

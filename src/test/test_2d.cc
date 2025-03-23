@@ -9,11 +9,12 @@ using std::vector;
 #include "xtensor/xtensor.hpp"
 
 //
-#include "src/avx2/mdvector.h"
+#include "src/mdvector/mdvector.h"
 #include "src/base_expr/base_expr.h"
 #include "src/header/normal.h"
 #include "src/header/time_cost.h"
 #include "src/highway/function.h"
+#include "src/avx2/function.h"
 
 //
 #include "test_set.h"
