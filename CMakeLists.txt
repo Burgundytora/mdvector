@@ -68,7 +68,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 if(MSVC)
     add_compile_options(/w)
     add_compile_options(/bigobj)
-    add_compile_options(/arch:AVX2)
+    add_compile_options(/arch:AVX512)
     add_definitions("-D_CRT_SECURE_NO_DEPRECATE") # avoids deprecation warnings
     add_definitions("-D_SCL_SECURE_NO_DEPRECATE") # avoids deprecation warnings
     add_definitions("-DNOMINMAX") # do not use MSVC's min/max macros
@@ -77,7 +77,7 @@ if(MSVC)
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /MANIFEST:NO")
 else()
     add_compile_options("-Werror")
-    add_definitions("-mavx2 -mfma -flto")
+    add_definitions("-march=native -mavx2 -flto")
 endif()
 
 add_subdirectory(src)
