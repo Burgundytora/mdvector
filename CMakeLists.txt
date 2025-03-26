@@ -17,17 +17,29 @@ include_directories("${INCLUDE_DIR}/highway")
 include_directories("${INCLUDE_DIR}/xtensor/include")
 include_directories("${INCLUDE_DIR}/xtl/include")
 
-# 指令集选项: X86: AVX2 / AVX512   ARM: NEON
-set(MY_OPTION "AVX2" CACHE STRING "Choose between AVX2, AVX512, NEON")
-set_property(CACHE MY_OPTION PROPERTY STRINGS "AVX2" "AVX512" "NEON")
+# 指令集选项: X86: AVX2 / AVX512 / SSE      ARM: NEON     other: RISC-V
+set(SIMD_OPTION "AVX512" CACHE STRING "Choose between AVX2, AVX512, SSE, NEON, RISC-V")
+set_property(CACHE SIMD_OPTION PROPERTY STRINGS "AVX2" "AVX512" "SSE" "NEON" "RISC-V")
+message(STATUS "Selected SIMD type: ${SIMD_OPTION}")
 
 # 根据选项定义宏
-if(MY_OPTION STREQUAL "AVX2")
+if(SIMD_OPTION STREQUAL "AVX2")
     add_compile_definitions(USE_AVX2)
-elseif(MY_OPTION STREQUAL "AVX512")
+    message(STATUS "Enabled AVX2 instructions")
+elseif(SIMD_OPTION STREQUAL "AVX512")
     add_compile_definitions(USE_AVX512)
-elseif(MY_OPTION STREQUAL "NEON")
+    message(STATUS "Enabled AVX512 instructions")
+elseif(SIMD_OPTION STREQUAL "SSE")
+    add_compile_definitions(USE_SSE)
+    message(STATUS "Enabled SSE instructions")
+elseif(SIMD_OPTION STREQUAL "NEON")
     add_compile_definitions(USE_NEON)
+    message(STATUS "Enabled NEON instructions")
+elseif(SIMD_OPTION STREQUAL "RISC-V")
+    add_compile_definitions(USE_RVV) # 通常RISC-V向量扩展用USE_RVV
+    message(STATUS "Enabled RISC-V Vector instructions")
+else()
+    message(FATAL_ERROR "Unknown SIMD option: ${SIMD_OPTION}")
 endif()
 
 # 平台信息

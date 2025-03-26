@@ -1,8 +1,45 @@
 #ifndef AVX2_FUNCTION_H_
 #define AVX2_FUNCTION_H_
 
-#include "mask.h"
-#include "simd_config.h"
+#include <immintrin.h>
+
+// ==================== 尾部元素使用AVX2掩码 =======================
+
+// 预生成所有可能的掩码（针对 pack_size=4 double）
+alignas(32) static const __m256i avx2_mask_table_4[4] = {
+    _mm256_set_epi64x(0, 0, 0, 0),    // 0元素
+    _mm256_set_epi64x(0, 0, 0, -1),   // 1元素
+    _mm256_set_epi64x(0, 0, -1, -1),  // 2元素
+    _mm256_set_epi64x(0, -1, -1, -1)  // 3元素
+};
+
+// 预生成所有可能的掩码（针对 pack_size=8 float）
+alignas(32) static const __m256i avx2_mask_table_8[8] = {
+    _mm256_set_epi32(0, 0, 0, 0, 0, 0, 0, 0),         // 0元素
+    _mm256_set_epi32(0, 0, 0, 0, 0, 0, 0, -1),        // 1元素
+    _mm256_set_epi32(0, 0, 0, 0, 0, 0, -1, -1),       // 2元素
+    _mm256_set_epi32(0, 0, 0, 0, -1, -1, -1, -1),     // 3元素
+    _mm256_set_epi32(0, 0, 0, -1, -1, -1, -1, -1),    // 4元素
+    _mm256_set_epi32(0, 0, -1, -1, -1, -1, -1, -1),   // 5元素
+    _mm256_set_epi32(0, 0, -1, -1, -1, -1, -1, -1),   // 6元素
+    _mm256_set_epi32(0, -1, -1, -1, -1, -1, -1, -1),  // 7元素
+};
+
+// ======================== SIMD配置 ========================
+template <typename T>
+struct Avx2Config;
+template <>
+struct Avx2Config<float> {
+  static constexpr size_t alignment = 32;
+  static constexpr size_t pack_size = 8;
+  using simd_type = __m256;
+};
+template <>
+struct Avx2Config<double> {
+  static constexpr size_t alignment = 32;
+  static constexpr size_t pack_size = 4;
+  using simd_type = __m256d;
+};
 
 // ========================================================
 // 基础运算赋值 c = a ? b
@@ -10,7 +47,7 @@
 template <class T>
 void avx2_add(const T* __restrict a, const T* __restrict b, T* __restrict c, size_t n) {
   static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "type must be float or double!");
-  constexpr size_t pack_size = SimdConfig<T>::pack_size;
+  constexpr size_t pack_size = Avx2Config<T>::pack_size;
 
   if constexpr (std::is_same_v<T, float>) {
     size_t i = 0;
@@ -22,7 +59,7 @@ void avx2_add(const T* __restrict a, const T* __restrict b, T* __restrict c, siz
     }
     size_t remaining = n - i;
     if (remaining > 0) {
-      const __m256i mask = mask_table_8[remaining];
+      const __m256i mask = avx2_mask_table_8[remaining];
       const __m256 va = _mm256_maskload_ps(a + i, mask);
       const __m256 vb = _mm256_maskload_ps(b + i, mask);
       _mm256_maskstore_ps(c + i, mask, _mm256_add_ps(va, vb));
@@ -37,7 +74,7 @@ void avx2_add(const T* __restrict a, const T* __restrict b, T* __restrict c, siz
     }
     size_t remaining = n - i;
     if (remaining > 0) {
-      const __m256i mask = mask_table_4[remaining];
+      const __m256i mask = avx2_mask_table_4[remaining];
       const __m256d va = _mm256_maskload_pd(a + i, mask);
       const __m256d vb = _mm256_maskload_pd(b + i, mask);
       _mm256_maskstore_pd(c + i, mask, _mm256_add_pd(va, vb));
@@ -49,7 +86,7 @@ void avx2_add(const T* __restrict a, const T* __restrict b, T* __restrict c, siz
 template <class T>
 void avx2_sub(const T* a, const T* b, T* c, size_t n) {
   static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "type must be float or double!");
-  constexpr size_t pack_size = SimdConfig<T>::pack_size;
+  constexpr size_t pack_size = Avx2Config<T>::pack_size;
 
   if constexpr (std::is_same_v<T, float>) {
     size_t i = 0;
@@ -62,7 +99,7 @@ void avx2_sub(const T* a, const T* b, T* c, size_t n) {
     }
     size_t remaining = n - i;
     if (remaining > 0) {
-      __m256i mask = mask_table_8[remaining];
+      __m256i mask = avx2_mask_table_8[remaining];
       __m256 va = _mm256_maskload_ps(a + i, mask);
       __m256 vb = _mm256_maskload_ps(b + i, mask);
       _mm256_maskstore_ps(c + i, mask, _mm256_sub_ps(va, vb));
@@ -78,7 +115,7 @@ void avx2_sub(const T* a, const T* b, T* c, size_t n) {
     }
     size_t remaining = n - i;
     if (remaining > 0) {
-      __m256i mask = mask_table_4[remaining];
+      __m256i mask = avx2_mask_table_4[remaining];
       __m256d va = _mm256_maskload_pd(a + i, mask);
       __m256d vb = _mm256_maskload_pd(b + i, mask);
       _mm256_maskstore_pd(c + i, mask, _mm256_sub_pd(va, vb));
@@ -90,7 +127,7 @@ void avx2_sub(const T* a, const T* b, T* c, size_t n) {
 template <class T>
 void avx2_mul(const T* a, const T* b, T* c, size_t n) {
   static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "type must be float or double!");
-  constexpr size_t pack_size = SimdConfig<T>::pack_size;
+  constexpr size_t pack_size = Avx2Config<T>::pack_size;
 
   if constexpr (std::is_same_v<T, float>) {
     size_t i = 0;
@@ -102,7 +139,7 @@ void avx2_mul(const T* a, const T* b, T* c, size_t n) {
     }
     size_t remaining = n - i;
     if (remaining > 0) {
-      __m256i mask = mask_table_8[remaining];
+      __m256i mask = avx2_mask_table_8[remaining];
       __m256 va = _mm256_maskload_ps(a + i, mask);
       __m256 vb = _mm256_maskload_ps(b + i, mask);
       _mm256_maskstore_ps(c + i, mask, _mm256_mul_ps(va, vb));
@@ -117,7 +154,7 @@ void avx2_mul(const T* a, const T* b, T* c, size_t n) {
     }
     size_t remaining = n - i;
     if (remaining > 0) {
-      __m256i mask = mask_table_4[remaining];
+      __m256i mask = avx2_mask_table_4[remaining];
       __m256d va = _mm256_maskload_pd(a + i, mask);
       __m256d vb = _mm256_maskload_pd(b + i, mask);
       _mm256_maskstore_pd(c + i, mask, _mm256_mul_pd(va, vb));
@@ -129,7 +166,7 @@ void avx2_mul(const T* a, const T* b, T* c, size_t n) {
 template <class T>
 void avx2_div(const T* a, const T* b, T* c, size_t n) {
   static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "type must be float or double!");
-  constexpr size_t pack_size = SimdConfig<T>::pack_size;
+  constexpr size_t pack_size = Avx2Config<T>::pack_size;
 
   if constexpr (std::is_same_v<T, float>) {
     size_t i = 0;
@@ -142,7 +179,7 @@ void avx2_div(const T* a, const T* b, T* c, size_t n) {
     }
     size_t remaining = n - i;
     if (remaining > 0) {
-      __m256i mask = mask_table_8[remaining];
+      __m256i mask = avx2_mask_table_8[remaining];
       __m256 va = _mm256_maskload_ps(a + i, mask);
       __m256 vb = _mm256_maskload_ps(b + i, mask);
       _mm256_maskstore_ps(c + i, mask, _mm256_div_ps(va, vb));
@@ -174,7 +211,7 @@ void avx2_div(const T* a, const T* b, T* c, size_t n) {
     }
     size_t remaining = n - i;
     if (remaining > 0) {
-      __m256i mask = mask_table_4[remaining];
+      __m256i mask = avx2_mask_table_4[remaining];
       __m256d va = _mm256_maskload_pd(a + i, mask);
       __m256d vb = _mm256_maskload_pd(b + i, mask);
 
@@ -204,7 +241,7 @@ void avx2_div(const T* a, const T* b, T* c, size_t n) {
 template <class T>
 void avx2_add_inplace(const T* a, T* c, size_t n) {
   static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "type must be float or double!");
-  constexpr size_t pack_size = SimdConfig<T>::pack_size;
+  constexpr size_t pack_size = Avx2Config<T>::pack_size;
 
   for (size_t i = 0; i < n; i += pack_size) {
     if constexpr (std::is_same_v<T, float>) {
@@ -223,7 +260,7 @@ void avx2_add_inplace(const T* a, T* c, size_t n) {
 template <class T>
 void avx2_sub_inplace(const T* a, T* c, size_t n) {
   static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "type must be float or double!");
-  constexpr size_t pack_size = SimdConfig<T>::pack_size;
+  constexpr size_t pack_size = Avx2Config<T>::pack_size;
 
   for (size_t i = 0; i < n; i += pack_size) {
     if constexpr (std::is_same_v<T, float>) {
@@ -242,7 +279,7 @@ void avx2_sub_inplace(const T* a, T* c, size_t n) {
 template <class T>
 void avx2_mul_inplace(const T* a, T* c, size_t n) {
   static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "type must be float or double!");
-  constexpr size_t pack_size = SimdConfig<T>::pack_size;
+  constexpr size_t pack_size = Avx2Config<T>::pack_size;
 
   for (size_t i = 0; i < n; i += pack_size) {
     if constexpr (std::is_same_v<T, float>) {
@@ -261,9 +298,9 @@ void avx2_mul_inplace(const T* a, T* c, size_t n) {
 template <class T>
 void avx2_div_inplace(const T* a, T* c, size_t n) {
   static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "type must be float or double!");
-  constexpr size_t pack_size = SimdConfig<T>::pack_size;
+  constexpr size_t pack_size = Avx2Config<T>::pack_size;
 
-  for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
+  for (size_t i = 0; i < n; i += Avx2Config<T>::pack_size) {
     if constexpr (std::is_same_v<T, float>) {
       __m256 va = _mm256_load_ps(a + i);
       __m256 vc = _mm256_load_ps(c + i);
@@ -283,7 +320,7 @@ void avx2_div_inplace(const T* a, T* c, size_t n) {
 template <class T>
 void avx2_fma_d_abc(const T* a, const T* b, T* c, T* d, size_t n) {
   static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "Type must be float or double!");
-  for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
+  for (size_t i = 0; i < n; i += Avx2Config<T>::pack_size) {
     if constexpr (std::is_same_v<T, float>) {
       __m256 va = _mm256_load_ps(a + i);
       __m256 vb = _mm256_load_ps(b + i);
@@ -304,7 +341,7 @@ void avx2_fma_d_abc(const T* a, const T* b, T* c, T* d, size_t n) {
 template <class T>
 void avx2_fma_c_abc(const T* a, const T* b, T* c, size_t n) {
   static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "Type must be float or double!");
-  for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
+  for (size_t i = 0; i < n; i += Avx2Config<T>::pack_size) {
     if constexpr (std::is_same_v<T, float>) {
       __m256 va = _mm256_load_ps(a + i);
       __m256 vb = _mm256_load_ps(b + i);
@@ -325,7 +362,7 @@ void avx2_fma_c_abc(const T* a, const T* b, T* c, size_t n) {
 template <class T>
 void avx2_fms_d_abc(const T* a, const T* b, T* c, T* d, size_t n) {
   static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "Type must be float or double!");
-  for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
+  for (size_t i = 0; i < n; i += Avx2Config<T>::pack_size) {
     if constexpr (std::is_same_v<T, float>) {
       __m256 va = _mm256_load_ps(a + i);
       __m256 vb = _mm256_load_ps(b + i);
@@ -346,7 +383,7 @@ void avx2_fms_d_abc(const T* a, const T* b, T* c, T* d, size_t n) {
 template <class T>
 void avx2_fms_c_abc(const T* a, const T* b, T* c, size_t n) {
   static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "Type must be float or double!");
-  for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
+  for (size_t i = 0; i < n; i += Avx2Config<T>::pack_size) {
     if constexpr (std::is_same_v<T, float>) {
       __m256 va = _mm256_load_ps(a + i);
       __m256 vb = _mm256_load_ps(b + i);
@@ -367,7 +404,7 @@ void avx2_fms_c_abc(const T* a, const T* b, T* c, size_t n) {
 template <class T>
 void avx2_fnma_d_abc(const T* a, const T* b, T* c, T* d, size_t n) {
   static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "Type must be float or double!");
-  for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
+  for (size_t i = 0; i < n; i += Avx2Config<T>::pack_size) {
     if constexpr (std::is_same_v<T, float>) {
       __m256 va = _mm256_load_ps(a + i);
       __m256 vb = _mm256_load_ps(b + i);
@@ -388,7 +425,7 @@ void avx2_fnma_d_abc(const T* a, const T* b, T* c, T* d, size_t n) {
 template <class T>
 void avx2_fnma_c_abc(const T* a, const T* b, T* c, size_t n) {
   static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "Type must be float or double!");
-  for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
+  for (size_t i = 0; i < n; i += Avx2Config<T>::pack_size) {
     if constexpr (std::is_same_v<T, float>) {
       __m256 va = _mm256_load_ps(a + i);
       __m256 vb = _mm256_load_ps(b + i);
@@ -409,7 +446,7 @@ void avx2_fnma_c_abc(const T* a, const T* b, T* c, size_t n) {
 template <class T>
 void avx2_fnms_d_abc(const T* a, const T* b, T* c, T* d, size_t n) {
   static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "Type must be float or double!");
-  for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
+  for (size_t i = 0; i < n; i += Avx2Config<T>::pack_size) {
     if constexpr (std::is_same_v<T, float>) {
       __m256 va = _mm256_load_ps(a + i);
       __m256 vb = _mm256_load_ps(b + i);
@@ -430,7 +467,7 @@ void avx2_fnms_d_abc(const T* a, const T* b, T* c, T* d, size_t n) {
 template <class T>
 void avx2_fnms_c_abc(const T* a, const T* b, T* c, T* d, size_t n) {
   static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "Type must be float or double!");
-  for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
+  for (size_t i = 0; i < n; i += Avx2Config<T>::pack_size) {
     if constexpr (std::is_same_v<T, float>) {
       __m256 va = _mm256_load_ps(a + i);
       __m256 vb = _mm256_load_ps(b + i);
@@ -454,11 +491,11 @@ template <class T>
 void avx2_copy(const T* src, T* dest, size_t n) {
   static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "Type must be float or double!");
   if constexpr (std::is_same_v<T, float>) {
-    for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
+    for (size_t i = 0; i < n; i += Avx2Config<T>::pack_size) {
       _mm256_store_ps(dest + i, _mm256_load_ps(src + i));
     }
   } else {
-    for (size_t i = 0; i < n; i += SimdConfig<T>::pack_size) {
+    for (size_t i = 0; i < n; i += Avx2Config<T>::pack_size) {
       _mm256_store_pd(dest + i, _mm256_load_pd(src + i));
     }
   }

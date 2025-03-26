@@ -203,22 +203,14 @@ class MDVector : public Expr<MDVector<T, Dims>> {
 
   // 取值
   template <typename T2>
-  typename SimdConfig<T2>::simd_type eval_simd(size_t i) const {
-    if constexpr (std::is_same_v<T, float>) {
-      return _mm256_load_ps(data_.data() + i);
-    } else {
-      return _mm256_load_pd(data_.data() + i);
-    }
+  typename simd<T2>::type eval_simd(size_t i) const {
+    return simd<T2>::load(data_.data() + i);
   }
 
   // 取值
   template <typename T2>
-  typename SimdConfig<T2>::simd_type eval_simd_mask(size_t i) const {
-    if constexpr (std::is_same_v<T, float>) {
-      return _mm256_maskload_ps(data_.data() + i, mask_table_8[total_elements_ - i]);
-    } else {
-      return _mm256_maskload_pd(data_.data() + i, mask_table_4[total_elements_ - i]);
-    }
+  typename simd<T2>::type eval_simd_mask(size_t i) const {
+    return simd<T2>::mask_load(data_.data() + i, total_elements_ - i);
   }
 
   // ========================================================
@@ -243,73 +235,6 @@ class MDVector : public Expr<MDVector<T, Dims>> {
     return *this;
   }
   // ========================================================
-
-  // ========================================================
-  // 函数形式 有时候比表达式模板快一些
-  // c = a + b
-  // c.equal_a_add_b(a, b)
-  void equal_a_add_b(const MDVector& a, const MDVector& b) {
-    avx2_add(a.data(), b.data(), this->data(), this->total_elements_);
-  }
-  void equal_a_add_b(const MDVector& a, const T& b) {
-    avx2_add_scalar(a.data(), b, this->data(), this->total_elements_);
-  }
-  void equal_a_add_b(const T& a, const MDVector& b) {
-    avx2_add_scalar(b.data(), a, this->data(), this->total_elements_);
-  }
-
-  // c = a - b
-  // c.equal_a_sub_b(a, b)
-  void equal_a_sub_b(const MDVector& a, const MDVector& b) {
-    avx2_sub(a.data(), b.data(), this->data(), this->total_elements_);
-  }
-  void equal_a_sub_b(const MDVector& a, const T& b) {
-    avx2_sub_scalar(a.data(), b, this->data(), this->total_elements_);
-  }
-  void equal_a_sub_b(const T& a, const MDVector& b) {
-    avx2_sub_scalar(b.data(), a, this->data(), this->total_elements_);
-  }
-
-  // c = a * b
-  // c.equal_a_mul_b(a, b)
-  void equal_a_mul_b(const MDVector& a, const MDVector& b) {
-    avx2_mul(a.data(), b.data(), this->data(), this->total_elements_);
-  }
-  void equal_a_mul_b(const MDVector& a, const T& b) {
-    avx2_mul_scalar(a.data(), b, this->data(), this->total_elements_);
-  }
-  void equal_a_mul_b(const T& a, const MDVector& b) {
-    avx2_mul_scalar(b.data(), a, this->data(), this->total_elements_);
-  }
-
-  // c = a / b
-  // c.equal_a_div_b(a, b)
-  void equal_a_div_b(const MDVector& a, const MDVector& b) {
-    avx2_div(a.data(), b.data(), this->data(), this->total_elements_);
-  }
-  void equal_a_div_b(const MDVector& a, const T& b) {
-    avx2_div_scalar(a.data(), b, this->data(), this->total_elements_);
-  }
-  void equal_a_div_b(const T& a, const MDVector& b) {
-    avx2_mul_scalar(b.data(), 1.0 / a, this->data(), this->total_elements_);
-  }
-  // ========================================================
-
-  // FMA加乘融合
-  // ?=a*b+c
-  // MDVector new = fma_abc(a, b, c)
-  MDVector fma_abc(const MDVector& a, const MDVector& b, const MDVector& c) {
-    MDVector d(a);
-    avx2_fma(a.data_.data(), b.data_.data(), c.data_.data(), d.data_.data(), this->total_elements_);
-    return d;
-  }
-
-  // c=a*b+c
-  // c.fma_c_abc(a, b)
-  MDVector& fma_c_abc(const MDVector& a, const MDVector& b) {
-    avx2_fma(a.data_.data(), b.data_.data(), this->data_.data(), this->total_elements_);
-    return *this;
-  }
 
  private:
 };

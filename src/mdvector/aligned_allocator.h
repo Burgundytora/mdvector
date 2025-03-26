@@ -1,7 +1,7 @@
 #ifndef __MDVECTOR_ALLOCATOR_H__
 #define __MDVECTOR_ALLOCATOR_H__
 
-#include "simd_config.h"
+#include "simd/simd.h"
 
 // ======================== 内存分配器 ========================
 template <typename T>
@@ -11,9 +11,9 @@ class AlignedAllocator {
   static T* allocate(size_t n) {
     void* ptr =
 #ifdef _WIN32
-        _aligned_malloc(n * sizeof(T), SimdConfig<T>::alignment);
+        _aligned_malloc(n * sizeof(T), simd<T>::alignment);
 #else
-        aligned_alloc(SimdConfig<T>::alignment, n * sizeof(T));
+        aligned_alloc(simd<T>::alignment, n * sizeof(T));
 #endif
     if (!ptr) throw std::bad_alloc();
     return static_cast<T*>(ptr);

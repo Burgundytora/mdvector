@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 using std::vector;
+#include <valarray>
 
 //
 #include "Eigen/Dense"
@@ -9,15 +10,49 @@ using std::vector;
 #include "xtensor/xtensor.hpp"
 
 //
-#include "src/mdvector/mdvector.h"
+#include "src/avx2/function.h"
 #include "src/base_expr/base_expr.h"
 #include "src/header/normal.h"
 #include "src/header/time_cost.h"
 #include "src/highway/function.h"
-#include "src/avx2/function.h"
+#include "src/mdvector/mdvector.h"
 
 //
 #include "test_set.h"
+
+template <class T>
+void test_valarray() {
+  std::valarray<T> data1_(1.0, total_element);
+  std::valarray<T> data2_(2.0, total_element);
+  std::valarray<T> data3_(0.0, total_element);
+  std::valarray<T> data4_(3.0, total_element);
+
+  TimerRecorder a("valarr");
+
+  size_t k = 0;
+  while (k++ < loop) {
+    if constexpr (do_add) {
+      data3_ = data1_ + data2_;
+    }
+
+    if constexpr (do_sub) {
+      data3_ = data1_ - data2_;
+    }
+
+    if constexpr (do_mul) {
+      data3_ = data1_ * data2_;
+    }
+
+    if constexpr (do_div) {
+      data3_ = data1_ / data2_;
+    }
+  }
+
+  data1_.~valarray();
+  data2_.~valarray();
+  data3_.~valarray();
+  data4_.~valarray();
+}
 
 template <class T>
 void test_norm() {
@@ -38,6 +73,7 @@ void test_norm() {
     for (size_t j = 0; j < dim2; j++) {
       data1_[i][j] = 1;
       data2_[i][j] = 2;
+      data4_[i][j] = 3;
     }
   }
 
@@ -141,43 +177,6 @@ void test_vector() {
           data3_[i][j] = data1_[i][j] / data2_[i][j];
         }
       }
-    }
-  }
-}
-
-template <class T>
-void test_mdvector_fun() {
-  MDShape_2d test_shape = {dim1, dim2};
-  MDVector<T, 2> data1_(test_shape);
-  MDVector<T, 2> data2_(test_shape);
-  MDVector<T, 2> data3_(test_shape);
-  MDVector<T, 2> data4_(test_shape);
-
-  // 赋值
-  for (size_t i = 0; i < total_element; i++) {
-    data1_.data_[i] = 1;
-    data2_.data_[i] = 2;
-    data4_.data_[i] = 3;
-  }
-
-  TimerRecorder a("md fun");
-
-  size_t k = 0;
-  while (k++ < loop) {
-    if constexpr (do_add) {
-      data3_.equal_a_add_b(data1_, data2_);
-    }
-
-    if constexpr (do_sub) {
-      data3_.equal_a_sub_b(data1_, data2_);
-    }
-
-    if constexpr (do_mul) {
-      data3_.equal_a_mul_b(data1_, data2_);
-    }
-
-    if constexpr (do_div) {
-      data3_.equal_a_div_b(data1_, data2_);
     }
   }
 }
@@ -469,14 +468,33 @@ int main(int args, char* argv[]) {
 
     std::cout << "2d matrix ? matrix: " << dim1 << "*" << dim2 << "\n";
 
+#if defined(USE_AVX2)
+    std::cout << "avx2...\n";
+
+#elif defined(USE_AVX512)
+    std::cout << "avx512...\n";
+
+#elif defined(USE_SSE)
+    std::cout << "sse...\n";
+
+#elif defined(USE_NEON)
+    std::cout << "neon...\n";
+
+#elif defined(USE_RVV)
+    std::cout << "risc_v...\n";
+
+#else
+    std::cout << "default avx2...\n";
+#endif
+
     // double
     test_avx2<double>();
-    test_mdvector_fun<double>();
     test_highway<double>();
     test_mdvector_expr<double>();
     test_eigen_matrixd();
     test_vector<double>();
     test_norm<double>();
+    test_valarray<double>();
     test_base_expr<double>();
     test_xtensor<double>();
     test_xarray<double>();

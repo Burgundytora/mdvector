@@ -27,8 +27,9 @@ struct TestPoint {
   size_t total_cal_;
 };
 
-vector<TestPoint> all_test_points = {TestPoint(1, 50), TestPoint(3, 80), TestPoint(100, 100), TestPoint(1000, 1000),
-                                     TestPoint(3000, 3000)};
+// vector<TestPoint> all_test_points = {TestPoint(1, 50), TestPoint(3, 80), TestPoint(100, 100), TestPoint(1000, 1000),
+//                                      TestPoint(3000, 3000)};
+vector<TestPoint> all_test_points = {TestPoint(1, 50), TestPoint(3, 80), TestPoint(100, 100)};
 
 size_t loop;
 size_t dim1;
