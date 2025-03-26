@@ -6,24 +6,18 @@
 #include <numeric>
 #include <vector>
 
-#include "aligned_allocator.h"
-#include "operator.h"
+#include "allocator/aligned_allocator.h"
+#include "exper_template/operator.h"
+#include "span/mdspan.h"
+#include "span/subspan.h"
 
-// 维度数量设置
-using MDShape_1d = std::array<size_t, 1>;
-using MDShape_2d = std::array<size_t, 2>;
-using MDShape_3d = std::array<size_t, 3>;
-using MDShape_4d = std::array<size_t, 4>;
-
-// 行优先/列优先
+// TODO: 行优先/列优先
 struct layout_right {};
 struct layout_left {};
 
-// 表达式模板带来15%性能损失(对比avx2函数)
-
-// 核心MDVector类
-template <class T, size_t Dims, class LayoutPolicy = layout_right>
-class MDVector : public Expr<MDVector<T, Dims>> {
+// 核心mdvector类
+template <class T, size_t Dims>
+class mdvector : public Expr<mdvector<T, Dims>> {
  public:
   // ========================================================
   // 类成员
@@ -35,7 +29,7 @@ class MDVector : public Expr<MDVector<T, Dims>> {
  public:
   // ========================================================
   // 构造函数  使用array静态维度数量
-  MDVector(std::array<size_t, Dims> dim_set) : dimensions_{dim_set} {
+  mdvector(std::array<size_t, Dims> dim_set) : dimensions_{dim_set} {
     // 检查类型
     static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "Type must be float or double!");
     calculate_strides();
@@ -43,7 +37,7 @@ class MDVector : public Expr<MDVector<T, Dims>> {
   }
 
   // 析构函数
-  ~MDVector() = default;
+  ~mdvector() = default;
 
   // ========================================================
   // 计算偏置 行优先
@@ -55,9 +49,6 @@ class MDVector : public Expr<MDVector<T, Dims>> {
       stride *= dimensions_[i];
     }
   }
-
-  // 获取元素
-  size_t GetIndex() {}
 
   // ========================================================
   // 访问运算符 提供safe 和 unsafe两种方式
@@ -157,14 +148,14 @@ class MDVector : public Expr<MDVector<T, Dims>> {
 
   // TODO: 需要检查
   // 修改后的拷贝构造函数
-  MDVector(const MDVector& other)
+  mdvector(const mdvector& other)
       : dimensions_(other.dimensions_),
         total_elements_(other.total_elements_),
         data_(other.data_),  // 直接复制数据
         strides_(other.strides_) {}
 
   // 添加深拷贝赋值运算符
-  MDVector& operator=(const MDVector& other) {
+  mdvector& operator=(const mdvector& other) {
     if (this != &other) {
       dimensions_ = other.dimensions_;
       total_elements_ = other.total_elements_;
@@ -175,14 +166,14 @@ class MDVector : public Expr<MDVector<T, Dims>> {
   }
 
   // 添加移动构造函数
-  MDVector(MDVector&& other) noexcept
+  mdvector(mdvector&& other) noexcept
       : dimensions_(std::move(other.dimensions_)),
         total_elements_(other.total_elements_),
         data_(std::move(other.data_)),
         strides_(std::move(data_.strides_)) {}
 
   // 添加移动赋值运算符
-  MDVector& operator=(MDVector&& other) noexcept {
+  mdvector& operator=(mdvector&& other) noexcept {
     if (this != &other) {
       dimensions_ = std::move(other.dimensions_);
       total_elements_ = other.total_elements_;
@@ -196,7 +187,7 @@ class MDVector : public Expr<MDVector<T, Dims>> {
   // 用于表达式模板
   // 实现表达式赋值
   template <typename E>
-  MDVector& operator=(const Expr<E>& expr) {
+  mdvector& operator=(const Expr<E>& expr) {
     expr.eval_to(this->data());  // 直接计算到目标内存
     return *this;
   }
@@ -215,28 +206,52 @@ class MDVector : public Expr<MDVector<T, Dims>> {
 
   // ========================================================
   // b ?= a
-  MDVector& operator+=(const MDVector& other) {
-    avx2_add_inplace(other.data_.data(), this->data_.data(), this->total_elements_);
+  mdvector& operator+=(const mdvector& other) {
+    simd_add_inplace(other.data_.data(), this->data_.data(), this->total_elements_);
     return *this;
   }
 
-  MDVector& operator-=(const MDVector& other) {
-    avx2_sub_inplace(other.data_.data(), this->data_.data(), this->total_elements_);
+  mdvector& operator-=(const mdvector& other) {
+    simd_sub_inplace(other.data_.data(), this->data_.data(), this->total_elements_);
     return *this;
   }
 
-  MDVector& operator*=(const MDVector& other) {
-    avx2_mul_inplace(other.data_.data(), this->data_.data(), this->total_elements_);
+  mdvector& operator*=(const mdvector& other) {
+    simd_mul_inplace(other.data_.data(), this->data_.data(), this->total_elements_);
     return *this;
   }
 
-  MDVector& operator/=(const MDVector& other) {
-    avx2_div_inplace(other.data_.data(), this->data_.data(), this->total_elements_);
+  mdvector& operator/=(const mdvector& other) {
+    simd_div_inplace(other.data_.data(), this->data_.data(), this->total_elements_);
     return *this;
   }
   // ========================================================
 
  private:
 };
+
+// 常用维度别名 1D~6D
+
+// 常用维度shape
+using mdshape_1d = std::array<size_t, 1>;
+using mdshape_2d = std::array<size_t, 2>;
+using mdshape_3d = std::array<size_t, 3>;
+using mdshape_4d = std::array<size_t, 4>;
+using mdshape_5d = std::array<size_t, 5>;
+using mdshape_6d = std::array<size_t, 6>;
+
+// 常用维度mdvector
+template <class T>
+using mdvector_1d = mdvector<T, 1>;
+template <class T>
+using mdvector_2d = mdvector<T, 2>;
+template <class T>
+using mdvector_3d = mdvector<T, 3>;
+template <class T>
+using mdvector_4d = mdvector<T, 4>;
+template <class T>
+using mdvector_5d = mdvector<T, 5>;
+template <class T>
+using mdvector_6d = mdvector<T, 6>;
 
 #endif  // HEADER_MDVECTOR_HPP_

@@ -1,7 +1,7 @@
 #ifndef __MDVECTOR_ALLOCATOR_H__
 #define __MDVECTOR_ALLOCATOR_H__
 
-#include "simd/simd.h"
+#include "../simd/simd.h"
 
 // ======================== 内存分配器 ========================
 template <typename T>

@@ -11,7 +11,7 @@ constexpr bool do_sub = true;
 constexpr bool do_mul = true;
 constexpr bool do_div = true;
 
-constexpr size_t points = 1E9;
+constexpr size_t points = 0.5E9;
 
 struct TestPoint {
   TestPoint(size_t dim1, size_t dim2) : dim1_(dim1), dim2_(dim2) {
@@ -29,7 +29,8 @@ struct TestPoint {
 
 // vector<TestPoint> all_test_points = {TestPoint(1, 50), TestPoint(3, 80), TestPoint(100, 100), TestPoint(1000, 1000),
 //                                      TestPoint(3000, 3000)};
-vector<TestPoint> all_test_points = {TestPoint(1, 50), TestPoint(3, 80), TestPoint(100, 100)};
+vector<TestPoint> all_test_points = {TestPoint(1, 20), TestPoint(1, 50),   TestPoint(2, 60),
+                                     TestPoint(3, 70), TestPoint(10, 100), TestPoint(100, 100)};
 
 size_t loop;
 size_t dim1;

@@ -10,12 +10,11 @@ using std::vector;
 #include "xtensor/xtensor.hpp"
 
 //
-#include "src/avx2/function.h"
-#include "src/base_expr/base_expr.h"
-#include "src/header/normal.h"
-#include "src/header/time_cost.h"
-#include "src/highway/function.h"
 #include "src/mdvector/mdvector.h"
+#include "src/mdvector/simd/simd_function.h"
+#include "src/other_method/base_expr/base_expr.h"
+#include "src/other_method/highway/function.h"
+#include "time_cost.h"
 
 //
 #include "test_set.h"
@@ -183,11 +182,11 @@ void test_vector() {
 
 template <class T>
 void test_mdvector_expr() {
-  MDShape_2d test_shape = {dim1, dim2};
-  MDVector<T, 2> data1_(test_shape);
-  MDVector<T, 2> data2_(test_shape);
-  MDVector<T, 2> data3_(test_shape);
-  MDVector<T, 2> data4_(test_shape);
+  mdshape_2d test_shape = {dim1, dim2};
+  mdvector_2d<T> data1_(test_shape);
+  mdvector_2d<T> data2_(test_shape);
+  mdvector_2d<T> data3_(test_shape);
+  mdvector_2d<T> data4_(test_shape);
 
   // 赋值
   for (size_t i = 0; i < total_element; i++) {
@@ -297,7 +296,7 @@ void test_highway() {
 }
 
 template <class T>
-void test_avx2() {
+void test_simd() {
   AlignedAllocator<T> allocator_;
 
   T* data1_ = allocator_.allocate(total_element);
@@ -312,24 +311,24 @@ void test_avx2() {
     data4_[i] = 4;
   }
 
-  TimerRecorder a("avx2 1d");
+  TimerRecorder a("simd 1d");
 
   size_t k = 0;
   while (k++ < loop) {
     if constexpr (do_add) {
-      avx2_add<T>(data1_, data2_, data3_, total_element);
+      simd_add<T>(data1_, data2_, data3_, total_element);
     }
 
     if constexpr (do_sub) {
-      avx2_sub<T>(data1_, data2_, data3_, total_element);
+      simd_sub<T>(data1_, data2_, data3_, total_element);
     }
 
     if constexpr (do_mul) {
-      avx2_mul<T>(data1_, data2_, data3_, total_element);
+      simd_mul<T>(data1_, data2_, data3_, total_element);
     }
 
     if constexpr (do_div) {
-      avx2_div<T>(data1_, data2_, data3_, total_element);
+      simd_div<T>(data1_, data2_, data3_, total_element);
     }
   }
 
@@ -458,7 +457,30 @@ void test_xtensor() {
   }
 }
 
+void pinrt_simd_type() {
+#if defined(USE_AVX2)
+  std::cout << "avx2...\n";
+
+#elif defined(USE_AVX512)
+  std::cout << "avx512...\n";
+
+#elif defined(USE_SSE)
+  std::cout << "sse...\n";
+
+#elif defined(USE_NEON)
+  std::cout << "neon...\n";
+
+#elif defined(USE_RVV)
+  std::cout << "risc_v...\n";
+
+#else
+  std::cout << "default avx2...\n";
+#endif
+}
+
 int main(int args, char* argv[]) {
+  pinrt_simd_type();
+
   for (const auto& test : all_test_points) {
     loop = test.loop_;
     dim1 = test.dim1_;
@@ -468,27 +490,8 @@ int main(int args, char* argv[]) {
 
     std::cout << "2d matrix ? matrix: " << dim1 << "*" << dim2 << "\n";
 
-#if defined(USE_AVX2)
-    std::cout << "avx2...\n";
-
-#elif defined(USE_AVX512)
-    std::cout << "avx512...\n";
-
-#elif defined(USE_SSE)
-    std::cout << "sse...\n";
-
-#elif defined(USE_NEON)
-    std::cout << "neon...\n";
-
-#elif defined(USE_RVV)
-    std::cout << "risc_v...\n";
-
-#else
-    std::cout << "default avx2...\n";
-#endif
-
     // double
-    test_avx2<double>();
+    test_simd<double>();
     test_highway<double>();
     test_mdvector_expr<double>();
     test_eigen_matrixd();

@@ -1,7 +1,7 @@
 #ifndef __MDVECTOR_BASEEXPR_H__
 #define __MDVECTOR_BASEEXPR_H__
 
-#include "simd/simd.h"
+#include "../simd/simd.h"
 
 // ======================== 表达式模板基类 ========================
 template <typename Derived>
