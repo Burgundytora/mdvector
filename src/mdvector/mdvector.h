@@ -28,6 +28,9 @@ class mdvector : public Expr<mdvector<T, Dims>> {
   std::vector<T, AlignedAllocator<T>> data_;  // 数据
 
  public:
+  // 默认构造
+  mdvector() = default;
+
   // ========================================================
   // 构造函数  使用array静态维度数量
   mdvector(std::array<size_t, Dims> dim_set) : dimensions_{dim_set} {
@@ -36,6 +39,8 @@ class mdvector : public Expr<mdvector<T, Dims>> {
     calculate_strides();
     data_.resize(total_elements_);
   }
+
+  void SetShape(std::array<size_t, Dims> dim_set) { *this = mdvector(dim_set); }
 
   // 析构函数
   ~mdvector() = default;
