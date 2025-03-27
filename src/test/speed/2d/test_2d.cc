@@ -502,7 +502,7 @@ int main(int args, char* argv[]) {
     test_xtensor<double>();
     test_xarray<double>();
   }
-  TimerRecorder::SaveSpeedResult("speed_result.csv");
+  TimerRecorder::SaveSpeedResult("2d_speed_result.csv");
   std::cout << "test complete" << std::endl;
 
   return 0;

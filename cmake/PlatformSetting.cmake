@@ -1,0 +1,22 @@
+# 平台信息
+if(WIN32)
+	if(CMAKE_CL_64)
+		set(PLATFORM_INFO "Win64")
+	else()
+		set(PLATFORM_INFO "Win32")
+	endif()
+elseif(UNIX)
+	set(PLATFORM_INFO "Linux")
+elseif(IOS)
+	set(PLATFORM_INFO "macOS")
+endif()
+
+message(STATUS "platform info: ${PLATFORM_INFO}")
+message(STATUS "build type: ${CMAKE_BUILD_TYPE}")
+
+set(GENERATOR_PATH "${PLATFORM_INFO}_${CMAKE_BUILD_TYPE}")
+set(PROJECT_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/out/${GENERATOR_PATH}")
+
+# 设置输出目录
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})

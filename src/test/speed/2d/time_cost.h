@@ -8,13 +8,12 @@
 #include <numeric>
 #include <string>
 
-
 using std::map;
 using std::string;
 using std::to_string;
 
 //
-#include "src/test/test_set.h"
+#include "test_set.h"
 
 struct TimerRecorder {
   TimerRecorder(const std::string &name) {
