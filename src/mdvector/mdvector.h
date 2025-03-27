@@ -8,6 +8,7 @@
 
 #include "allocator/aligned_allocator.h"
 #include "exper_template/operator.h"
+#include "simd/simd_function.h"
 #include "span/mdspan.h"
 #include "span/subspan.h"
 

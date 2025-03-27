@@ -26,7 +26,7 @@ struct TimerRecorder {
 
     if (test_name_.size() == 0) {
       for (const auto &it : all_test_points) {
-        test_name_.push_back(to_string(it.dim1_) + "*" + to_string(it.dim2_));
+        test_name_.push_back(to_string(it.dim1_) + "*" + to_string(it.dim2_) + "*" + to_string(it.dim3_));
       }
     }
 
