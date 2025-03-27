@@ -20,14 +20,14 @@ struct simd<float> {
   static inline type div(type a, type b) { return _mm256_div_ps(a, b); }
 
   static inline const __m256i mask_table[8] = {
-      _mm256_set_epi32(0, 0, 0, 0, 0, 0, 0, 0),         // 0元素
-      _mm256_set_epi32(0, 0, 0, 0, 0, 0, 0, -1),        // 1元素
-      _mm256_set_epi32(0, 0, 0, 0, 0, 0, -1, -1),       // 2元素
-      _mm256_set_epi32(0, 0, 0, 0, -1, -1, -1, -1),     // 3元素
-      _mm256_set_epi32(0, 0, 0, -1, -1, -1, -1, -1),    // 4元素
-      _mm256_set_epi32(0, 0, -1, -1, -1, -1, -1, -1),   // 5元素
-      _mm256_set_epi32(0, 0, -1, -1, -1, -1, -1, -1),   // 6元素
-      _mm256_set_epi32(0, -1, -1, -1, -1, -1, -1, -1),  // 7元素
+      _mm256_set_epi32(0, 0, 0, 0, 0, 0, 0, 0),        // 0个元素（全掩码关闭）
+      _mm256_set_epi32(-1, 0, 0, 0, 0, 0, 0, 0),       // 1个元素（仅最低位 e0 启用）
+      _mm256_set_epi32(-1, -1, 0, 0, 0, 0, 0, 0),      // 2个元素（e0, e1 启用）
+      _mm256_set_epi32(-1, -1, -1, 0, 0, 0, 0, 0),     // 3个元素（e0, e1, e2 启用）
+      _mm256_set_epi32(-1, -1, -1, -1, 0, 0, 0, 0),    // 4个元素（e0, e1, e2, e3 启用）
+      _mm256_set_epi32(-1, -1, -1, -1, -1, 0, 0, 0),   // 5个元素（e0, e1, e2, e3, e4 启用）
+      _mm256_set_epi32(-1, -1, -1, -1, -1, -1, 0, 0),  // 6个元素（e0, e1, e2, e3, e4, e5 启用）
+      _mm256_set_epi32(-1, -1, -1, -1, -1, -1, -1, 0)  // 7个元素（e0, e1, e2, e3, e4, e5, e6 启用）
   };
 
   static inline type mask_load(const float* p, const size_t& remaining) {
@@ -53,9 +53,9 @@ struct simd<double> {
 
   static inline const __m256i mask_table[4] = {
       _mm256_set_epi64x(0, 0, 0, 0),    // 0元素
-      _mm256_set_epi64x(0, 0, 0, -1),   // 1元素
-      _mm256_set_epi64x(0, 0, -1, -1),  // 2元素
-      _mm256_set_epi64x(0, -1, -1, -1)  // 3元素
+      _mm256_set_epi64x(-1, 0, 0, 0),   // 1元素
+      _mm256_set_epi64x(-1, -1, 0, 0),  // 2元素
+      _mm256_set_epi64x(-1, -1, -1, 0)  // 3元素
   };
 
   static inline type mask_load(const double* p, const size_t& remaining) {

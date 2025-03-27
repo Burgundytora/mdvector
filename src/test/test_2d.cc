@@ -457,7 +457,7 @@ void test_xtensor() {
   }
 }
 
-void pinrt_simd_type() {
+void print_simd_type() {
 #if defined(USE_AVX2)
   std::cout << "avx2...\n";
 
@@ -479,7 +479,7 @@ void pinrt_simd_type() {
 }
 
 int main(int args, char* argv[]) {
-  pinrt_simd_type();
+  print_simd_type();
 
   for (const auto& test : all_test_points) {
     loop = test.loop_;
@@ -492,9 +492,9 @@ int main(int args, char* argv[]) {
 
     // double
     test_simd<double>();
-    test_highway<double>();
     test_mdvector_expr<double>();
     test_eigen_matrixd();
+    test_highway<double>();
     test_vector<double>();
     test_norm<double>();
     test_valarray<double>();

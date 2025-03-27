@@ -18,7 +18,7 @@ include_directories("${INCLUDE_DIR}/xtensor/include")
 include_directories("${INCLUDE_DIR}/xtl/include")
 
 # 指令集选项: X86: AVX2 / AVX512 / SSE      ARM: NEON     other: RISC-V
-set(SIMD_OPTION "AVX512" CACHE STRING "Choose between AVX2, AVX512, SSE, NEON, RISC-V")
+set(SIMD_OPTION "AVX2" CACHE STRING "Choose between AVX2, AVX512, SSE, NEON, RISC-V")
 set_property(CACHE SIMD_OPTION PROPERTY STRINGS "AVX2" "AVX512" "SSE" "NEON" "RISC-V")
 message(STATUS "Selected SIMD type: ${SIMD_OPTION}")
 
@@ -68,7 +68,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 if(MSVC)
     add_compile_options(/w)
     add_compile_options(/bigobj)
-    add_compile_options(/arch:AVX512)
+    add_compile_options(/arch:AVX2)
     add_definitions("-D_CRT_SECURE_NO_DEPRECATE") # avoids deprecation warnings
     add_definitions("-D_SCL_SECURE_NO_DEPRECATE") # avoids deprecation warnings
     add_definitions("-DNOMINMAX") # do not use MSVC's min/max macros
