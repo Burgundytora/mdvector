@@ -36,6 +36,8 @@ struct simd<float> {
   static inline void mask_store(float* p, const size_t& remaining, type v) {
     return _mm256_maskstore_ps(p, mask_table[remaining], v);
   }
+
+  static inline type set1(float val) { return _mm256_set1_ps(val); }
 };
 
 template <>
@@ -64,5 +66,7 @@ struct simd<double> {
   static inline void mask_store(double* p, const size_t& remaining, type v) {
     return _mm256_maskstore_pd(p, mask_table[remaining], v);
   }
+
+  static inline type set1(double val) { return _mm256_set1_pd(val); }
 };
 #endif  // __X86_AVX2_H__

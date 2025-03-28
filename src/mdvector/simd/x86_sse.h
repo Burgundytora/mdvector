@@ -32,6 +32,8 @@ struct simd<float> {
     _mm_store_ps(tmp, v);
     for (size_t i = 0; i < remaining; ++i) p[i] = tmp[i];
   }
+
+  static inline type set1(float val) { return _mm_set1_ps(val); }
 };
 
 template <>
@@ -57,5 +59,7 @@ struct simd<double> {
     _mm_store_pd(tmp, v);
     for (size_t i = 0; i < remaining; ++i) p[i] = tmp[i];
   }
+
+  static inline type set1(double val) { return _mm_set1_pd(val); }
 };
 #endif  // __X86_SSE_H__

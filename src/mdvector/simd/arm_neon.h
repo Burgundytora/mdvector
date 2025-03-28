@@ -36,6 +36,8 @@ struct simd<float> {
     float32x4_t new_val = vbslq_f32(mask, v, old_val);
     vst1q_f32(p, new_val);
   }
+
+  static inline type set1(float val) { return vdupq_n_f32(val); }
 };
 
 template <>
@@ -68,5 +70,7 @@ struct simd<double> {
     float64x2_t new_val = vbslq_f64(mask, v, old_val);
     vst1q_f64(p, new_val);
   }
+
+  static inline type set1(double val) { return vdupq_n_f64(val); }
 };
 #endif  // __ARM_NEON_H__

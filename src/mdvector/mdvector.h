@@ -231,6 +231,34 @@ class mdvector : public Expr<mdvector<T, Dims>> {
   }
   // ========================================================
 
+  // 标量操作
+  // 添加标量eval_scalar方法
+  template <typename T2>
+  T2 eval_scalar(size_t i) const {
+    return static_cast<T2>(data_[i]);
+  }
+
+  // 添加与标量的复合赋值运算符
+  mdvector& operator+=(T scalar) {
+    simd_add_inplace_scalar(this->data(), scalar, this->total_elements_);
+    return *this;
+  }
+
+  mdvector& operator-=(T scalar) {
+    simd_sub_inplace_scalar(this->data(), scalar, this->total_elements_);
+    return *this;
+  }
+
+  mdvector& operator*=(T scalar) {
+    simd_mul_inplace_scalar(this->data(), scalar, this->total_elements_);
+    return *this;
+  }
+
+  mdvector& operator/=(T scalar) {
+    simd_div_inplace_scalar(this->data(), scalar, this->total_elements_);
+    return *this;
+  }
+
  private:
 };
 

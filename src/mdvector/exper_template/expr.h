@@ -23,7 +23,7 @@ class Expr {
     size_t i = 0;
 
     for (; i + pack_size <= n; i += pack_size) {
-      auto simd_val = derived().template eval_simd<Dest>(i);
+      auto simd_val = derived().template eval_simd<std::remove_const_t<Dest>>(i);
       simd<std::remove_const_t<Dest>>::store(dest + i, simd_val);
     }
 

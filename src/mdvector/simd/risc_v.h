@@ -27,6 +27,8 @@ struct simd<float> {
     vbool32_t mask = vmset_m_b32(remaining, pack_size);
     vse32_v_f32m1_m(mask, p, v, pack_size);
   }
+
+  static inline type set1(float val) { return vfmv_v_f_f32m1(val, pack_size); }
 };
 
 template <>
@@ -50,5 +52,7 @@ struct simd<double> {
     vbool64_t mask = vmset_m_b64(remaining, pack_size);
     vse64_v_f64m1_m(mask, p, v, pack_size);
   }
+
+  static inline type set1(double val) { return vfmv_v_f_f64m1(val, pack_size); }
 };
 #endif  // __RISC_V_H__

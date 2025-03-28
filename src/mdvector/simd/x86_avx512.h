@@ -28,6 +28,8 @@ struct simd<float> {
     __mmask16 mask = (1u << remaining) - 1;
     _mm512_mask_store_ps(p, mask, v);
   }
+
+  static inline type set1(float val) { return _mm512_set1_ps(val); }
 };
 
 template <>
@@ -51,5 +53,7 @@ struct simd<double> {
     __mmask8 mask = (1u << remaining) - 1;
     _mm512_mask_store_pd(p, mask, v);
   }
+
+  static inline type set1(double val) { return _mm512_set1_pd(val); }
 };
 #endif  // __X86_AVX512_H__
