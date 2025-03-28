@@ -2,6 +2,7 @@
 #define __MDVECTOR_ALLOCATOR_H__
 
 #include <memory>
+#include <limits> 
 
 #include "../simd/simd.h"
 

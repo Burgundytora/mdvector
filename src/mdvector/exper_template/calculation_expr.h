@@ -1,73 +1,8 @@
-#ifndef __MDVECTOR_BASEEXPR_H__
-#define __MDVECTOR_BASEEXPR_H__
+#ifndef __MDVECTOR_CALCULATION_EXPR_H__
+#define __MDVECTOR_CALCULATION_EXPR_H__
 
-#include "../simd/simd.h"
+#include "scalar_expr.h"
 
-// ======================== 表达式模板基类 ========================
-template <typename Derived>
-class Expr {
- public:
-  const Derived& derived() const { return static_cast<const Derived&>(*this); }
-
-  size_t size() const { return derived().size(); }
-
-  auto shape() const { return derived().shape(); }
-
-  // 左值
-  auto eval_simd(size_t i) const { return static_cast<const Derived&>(*this).eval_simd(i); }
-
-  template <typename Dest>
-  void eval_to(Dest* dest) const {
-    const size_t n = size();
-    constexpr size_t pack_size = simd<Dest>::pack_size;
-    size_t i = 0;
-
-    for (; i + pack_size <= n; i += pack_size) {
-      auto simd_val = derived().template eval_simd<std::remove_const_t<Dest>>(i);
-      simd<std::remove_const_t<Dest>>::store(dest + i, simd_val);
-    }
-
-    // 使用掩码处理尾部元素
-    if (i < n) {
-      const size_t remaining = n - i;
-      auto simd_val = derived().template eval_simd_mask<std::remove_const_t<Dest>>(i);
-      simd<std::remove_const_t<Dest>>::mask_store(dest + i, remaining, simd_val);
-    }
-  }
-};
-
-// ======================== 标量包装类 ========================
-template <typename T>
-class ScalarWrapper : public Expr<ScalarWrapper<T>> {
-  T value_;
-  typename simd<T>::type simd_value_;
-
-  // 防止编译器过度优化
-  static void force_simd_store(typename simd<T>::type& dest, typename simd<T>::type src) {
-    volatile T* dummy = reinterpret_cast<volatile T*>(&dest);
-    simd<T>::store(const_cast<T*>(dummy), src);
-  }
-
- public:
-  explicit ScalarWrapper(T val) : value_(val) { force_simd_store(simd_value_, simd<T>::set1(value_)); }
-
-  // 允许拷贝
-  ScalarWrapper(const ScalarWrapper&) = default;
-
-  template <typename U>
-  typename simd<U>::type eval_simd(size_t) const {
-    return simd_value_;
-  }
-
-  template <typename U>
-  typename simd<U>::type eval_simd_mask(size_t) const {
-    return simd_value_;
-  }
-
-  size_t size() const { return 1; }
-
-  std::array<size_t, 1> shape() const { return std::array<size_t, 1>{1}; }
-};
 
 // ======================== 表达式类 ========================
 template <typename L, typename R>
@@ -178,4 +113,4 @@ class DivExpr : public Expr<DivExpr<L, R>> {
   }
 };
 
-#endif  // __MDVECTOR_BASEEXPR_H__
+#endif // __MDVECTOR_CALCULATION_EXPR_H__

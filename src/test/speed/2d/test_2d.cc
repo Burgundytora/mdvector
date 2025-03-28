@@ -46,11 +46,6 @@ void test_valarray() {
       data3_ = data1_ / data2_;
     }
   }
-
-  data1_.~valarray();
-  data2_.~valarray();
-  data3_.~valarray();
-  data4_.~valarray();
 }
 
 template <class T>

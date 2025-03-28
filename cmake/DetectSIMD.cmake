@@ -92,7 +92,7 @@ elseif(SIMD_OPTION STREQUAL "AVX512")
 	if(MSVC)
 		add_compile_options(/arch:AVX512)
 	else()
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx512f -mfma")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mavx512f -mfma")
 	endif()
 
 	message(STATUS "Enabled AVX512 instructions")

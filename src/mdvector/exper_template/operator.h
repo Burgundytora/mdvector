@@ -1,9 +1,7 @@
 #ifndef __OPERATOR_H__
 #define __OPERATOR_H__
 
-#include "expr.h"
-
-
+#include "calculation_expr.h"
 
 // ======================== 运算符重载 ========================
 // 向量 + 向量
