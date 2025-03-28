@@ -14,8 +14,7 @@ class ScalarWrapper : public Expr<ScalarWrapper<T>> {
   typename simd<T>::type simd_value_;
 
   // 防止编译器过度优化
-  static void force_simd_store(typename simd<T>::type& dest, 
-                           typename simd<T>::type src) {
+  static void force_simd_store(typename simd<T>::type& dest, typename simd<T>::type src) {
 #if defined(__GNUC__) || defined(__clang__)
     // GCC/Clang：内存屏障+强制内存写入
     asm volatile("" ::: "memory");
@@ -31,16 +30,17 @@ class ScalarWrapper : public Expr<ScalarWrapper<T>> {
 
  public:
 #if defined(__clang__)
-  __attribute__((noinline, used)) 
+  __attribute__((noinline, used))
 #endif
-  explicit ScalarWrapper(T val) : value_(val) {
+  explicit ScalarWrapper(T val)
+      : value_(val) {
     // 确保value_已初始化
     std::atomic_signal_fence(std::memory_order_seq_cst);
-    
+
     // 分步操作防止优化
     auto tmp = simd<T>::set1(value_);
     force_simd_store(simd_value_, tmp);
-    
+
     // 最终验证（调试用）
 #ifndef NDEBUG
     T verify[simd<T>::pack_size];
@@ -67,4 +67,4 @@ class ScalarWrapper : public Expr<ScalarWrapper<T>> {
   std::array<size_t, 1> shape() const { return std::array<size_t, 1>{1}; }
 };
 
-#endif // __MDVECTOR_SCALAR_EXPR_H__
+#endif  // __MDVECTOR_SCALAR_EXPR_H__
