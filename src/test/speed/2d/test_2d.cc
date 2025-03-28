@@ -189,11 +189,9 @@ void test_mdvector_expr() {
   mdvector_2d<T> data4_(test_shape);
 
   // 赋值
-  for (size_t i = 0; i < total_element; i++) {
-    data1_.data_[i] = 1;
-    data2_.data_[i] = 2;
-    data4_.data_[i] = 3;
-  }
+  data1_.set_value(1);
+  data2_.set_value(2);
+  data4_.set_value(3);
 
   TimerRecorder a("md expr");
 

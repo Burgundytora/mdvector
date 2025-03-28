@@ -8,7 +8,7 @@ void simd_add(const T* a, const T* b, T* c, const size_t n) {
   constexpr size_t pack_size = simd<T>::pack_size;
 
   size_t i = 0;
-  for (; i <= n - pack_size; i += pack_size) {
+  for (; i + pack_size <= n; i += pack_size) {
     // float
     const simd<T>::type va = simd<T>::load(a + i);
     const simd<T>::type vb = simd<T>::load(b + i);
@@ -26,7 +26,7 @@ void simd_sub(const T* a, const T* b, T* c, const size_t n) {
   constexpr size_t pack_size = simd<T>::pack_size;
 
   size_t i = 0;
-  for (; i <= n - pack_size; i += pack_size) {
+  for (; i + pack_size <= n; i += pack_size) {
     // float
     const simd<T>::type va = simd<T>::load(a + i);
     const simd<T>::type vb = simd<T>::load(b + i);
@@ -44,7 +44,7 @@ void simd_mul(const T* a, const T* b, T* c, const size_t n) {
   constexpr size_t pack_size = simd<T>::pack_size;
 
   size_t i = 0;
-  for (; i <= n - pack_size; i += pack_size) {
+  for (; i + pack_size <= n; i += pack_size) {
     // float
     const simd<T>::type va = simd<T>::load(a + i);
     const simd<T>::type vb = simd<T>::load(b + i);
@@ -62,7 +62,7 @@ void simd_div(const T* a, const T* b, T* c, const size_t n) {
   constexpr size_t pack_size = simd<T>::pack_size;
 
   size_t i = 0;
-  for (; i <= n - pack_size; i += pack_size) {
+  for (; i + pack_size <= n; i += pack_size) {
     // float
     const simd<T>::type va = simd<T>::load(a + i);
     const simd<T>::type vb = simd<T>::load(b + i);
@@ -76,75 +76,75 @@ void simd_div(const T* a, const T* b, T* c, const size_t n) {
 }
 
 template <class T>
-void simd_add_inplace(const T* a, T* b, const size_t n) {
+void simd_add_inplace(T* a, const T* b, const size_t n) {
   constexpr size_t pack_size = simd<T>::pack_size;
 
   size_t i = 0;
-  for (; i <= n - pack_size; i += pack_size) {
+  for (; i + pack_size <= n; i += pack_size) {
     // float
     const simd<T>::type va = simd<T>::load(a + i);
     const simd<T>::type vb = simd<T>::load(b + i);
-    simd<T>::store(b + i, simd<T>::add(va, vb));
+    simd<T>::store(a + i, simd<T>::add(va, vb));
   }
 
   size_t remaining = n - i;
   const simd<T>::type va = simd<T>::mask_load(a + i, remaining);
   const simd<T>::type vb = simd<T>::mask_load(b + i, remaining);
-  simd<T>::mask_store(b + i, remaining, simd<T>::add(va, vb));
+  simd<T>::mask_store(a + i, remaining, simd<T>::add(va, vb));
 }
 
 template <class T>
-void simd_sub_inplace(const T* a, T* b, const size_t n) {
+void simd_sub_inplace(T* a, const T* b, const size_t n) {
   constexpr size_t pack_size = simd<T>::pack_size;
 
   size_t i = 0;
-  for (; i <= n - pack_size; i += pack_size) {
+  for (; i + pack_size <= n; i += pack_size) {
     // float
     const simd<T>::type va = simd<T>::load(a + i);
     const simd<T>::type vb = simd<T>::load(b + i);
-    simd<T>::store(b + i, simd<T>::sub(va, vb));
+    simd<T>::store(a + i, simd<T>::sub(va, vb));
   }
 
   size_t remaining = n - i;
   const simd<T>::type va = simd<T>::mask_load(a + i, remaining);
   const simd<T>::type vb = simd<T>::mask_load(b + i, remaining);
-  simd<T>::mask_store(b + i, remaining, simd<T>::sub(va, vb));
+  simd<T>::mask_store(a + i, remaining, simd<T>::sub(va, vb));
 }
 
 template <class T>
-void simd_mul_inplace(const T* a, T* b, const size_t n) {
+void simd_mul_inplace(T* a, const T* b, const size_t n) {
   constexpr size_t pack_size = simd<T>::pack_size;
 
   size_t i = 0;
-  for (; i <= n - pack_size; i += pack_size) {
+  for (; i + pack_size <= n; i += pack_size) {
     // float
     const simd<T>::type va = simd<T>::load(a + i);
     const simd<T>::type vb = simd<T>::load(b + i);
-    simd<T>::store(b + i, simd<T>::mul(va, vb));
+    simd<T>::store(a + i, simd<T>::mul(va, vb));
   }
 
   size_t remaining = n - i;
   const simd<T>::type va = simd<T>::mask_load(a + i, remaining);
   const simd<T>::type vb = simd<T>::mask_load(b + i, remaining);
-  simd<T>::mask_store(b + i, remaining, simd<T>::mul(va, vb));
+  simd<T>::mask_store(a + i, remaining, simd<T>::mul(va, vb));
 }
 
 template <class T>
-void simd_div_inplace(const T* a, T* b, const size_t n) {
+void simd_div_inplace(T* a, const T* b, const size_t n) {
   constexpr size_t pack_size = simd<T>::pack_size;
 
   size_t i = 0;
-  for (; i <= n - pack_size; i += pack_size) {
+  for (; i + pack_size <= n; i += pack_size) {
     // float
     const simd<T>::type va = simd<T>::load(a + i);
     const simd<T>::type vb = simd<T>::load(b + i);
-    simd<T>::store(b + i, simd<T>::div(va, vb));
+    simd<T>::store(a + i, simd<T>::div(va, vb));
   }
 
   size_t remaining = n - i;
   const simd<T>::type va = simd<T>::mask_load(a + i, remaining);
   const simd<T>::type vb = simd<T>::mask_load(b + i, remaining);
-  simd<T>::mask_store(b + i, remaining, simd<T>::div(va, vb));
+  simd<T>::mask_store(a + i, remaining, simd<T>::div(va, vb));
 }
 
 #endif  // __SIMD_FUNCTION_H__
