@@ -3,38 +3,7 @@
 
 #include "expr.h"
 
-// ======================== 标量包装类 ========================
-template <typename T>
-class ScalarWrapper : public Expr<ScalarWrapper<T>> {
-  T value_;
-  typename simd<T>::type simd_value_;
 
-  // 防止编译器过度优化
-  static void force_simd_store(typename simd<T>::type& dest, typename simd<T>::type src) {
-    volatile T* dummy = reinterpret_cast<volatile T*>(&dest);
-    simd<T>::store(const_cast<T*>(dummy), src);
-  }
-
- public:
-  explicit ScalarWrapper(T val) : value_(val) { force_simd_store(simd_value_, simd<T>::set1(value_)); }
-
-  // 允许拷贝
-  ScalarWrapper(const ScalarWrapper&) = default;
-
-  template <typename U>
-  typename simd<U>::type eval_simd(size_t) const {
-    return simd_value_;
-  }
-
-  template <typename U>
-  typename simd<U>::type eval_simd_mask(size_t) const {
-    return simd_value_;
-  }
-
-  size_t size() const { return 1; }
-
-  std::array<size_t, 1> shape() const { return std::array<size_t, 1>{1}; }
-};
 
 // ======================== 运算符重载 ========================
 // 向量 + 向量
