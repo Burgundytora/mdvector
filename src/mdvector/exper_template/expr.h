@@ -11,6 +11,9 @@ class Expr {
 
   size_t size() const { return derived().size(); }
 
+  auto shape() const { return derived().shape(); }
+
+  // 左值
   auto eval_simd(size_t i) const { return static_cast<const Derived&>(*this).eval_simd(i); }
 
   template <typename Dest>
@@ -19,7 +22,7 @@ class Expr {
     constexpr size_t pack_size = simd<Dest>::pack_size;
     size_t i = 0;
 
-    for (; i <= n - pack_size; i += pack_size) {
+    for (; i + pack_size <= n; i += pack_size) {
       auto simd_val = derived().template eval_simd<Dest>(i);
       simd<std::remove_const_t<Dest>>::store(dest + i, simd_val);
     }
@@ -43,6 +46,8 @@ class AddExpr : public Expr<AddExpr<L, R>> {
   AddExpr(const L& l, const R& r) : lhs(l), rhs(r) {}
 
   size_t size() const { return lhs.size(); }
+
+  auto shape() const { return lhs.shape(); }
 
   template <typename T>
   typename simd<T>::type eval_simd(size_t i) const {
@@ -69,6 +74,8 @@ class SubExpr : public Expr<SubExpr<L, R>> {
 
   size_t size() const { return lhs.size(); }
 
+  auto shape() const { return lhs.shape(); }
+
   template <typename T>
   typename simd<T>::type eval_simd(size_t i) const {
     auto l = lhs.template eval_simd<T>(i);
@@ -94,6 +101,8 @@ class MulExpr : public Expr<MulExpr<L, R>> {
 
   size_t size() const { return lhs.size(); }
 
+  auto shape() const { return lhs.shape(); }
+
   template <typename T>
   typename simd<T>::type eval_simd(size_t i) const {
     auto l = lhs.template eval_simd<T>(i);
@@ -118,6 +127,8 @@ class DivExpr : public Expr<DivExpr<L, R>> {
   DivExpr(const L& l, const R& r) : lhs(l), rhs(r) {}
 
   size_t size() const { return lhs.size(); }
+
+  auto shape() const { return lhs.shape(); }
 
   template <typename T>
   typename simd<T>::type eval_simd(size_t i) const {
