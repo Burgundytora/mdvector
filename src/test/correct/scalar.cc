@@ -20,5 +20,8 @@ int main(int args, char *argv[]) {
   result = temp + 0.1;  // 应该得到0.3
   std::cout << "a*2 + 0.1 = " << result(0, 0) << " (expected 0.3)" << std::endl;
 
+  result = temp / 0.1;  // 应该得到2
+  std::cout << "a*2 / 0.1 = " << result(0, 0) << " (expected 2)" << std::endl;
+
   return 0;
 }
