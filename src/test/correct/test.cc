@@ -19,7 +19,7 @@ int main(int args, char *argv[]) {
   mdvector_2d<double> dat3(mdshape_2d{2, 3});         // 同data1
   mdvector_3d<double> dat4(mdshape_3d{3, 3, 3});      // 同data1
   mdvector_3d<double> dat5;                           // 先声明，后设置维度
-  dat5.Reset(mdshape_3d{3, 3, 3});
+  dat5.reset(mdshape_3d{3, 3, 3});
 
   // 输入参数
   std::cout << "data1(1,1):" << dat1(1, 1) << "\n";

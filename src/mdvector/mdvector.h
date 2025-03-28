@@ -12,77 +12,75 @@
 #include "span/mdspan.h"
 #include "span/subspan.h"
 
-// TODO: 行优先/列优先
-struct layout_right {};
-struct layout_left {};
-
 // 核心mdvector类
 template <class T, size_t Dims>
 class mdvector : public Expr<mdvector<T, Dims>> {
  private:
   // ========================================================
   // 类成员
-  std::array<size_t, Dims> dimensions_;       // 维度信息
-  std::array<size_t, Dims> strides_;          // 索引偏置量
-  size_t total_elements_ = 0;                 // 元素总数
+  mdspan<T, Dims> view_;                      // 多维视图
   std::vector<T, AlignedAllocator<T>> data_;  // 数据
 
  public:
   // 默认构造
   mdvector() = default;
 
-  // ========================================================
-  // 构造函数  使用array静态维度数量
-  explicit mdvector(std::array<size_t, Dims> dim_set)
-      : dimensions_(dim_set),
-        strides_(calculate_strides()),
-        total_elements_(calculate_total_elements()),
-        data_(calculate_total_elements())  // 初始化data_的大小
-  {
-    // 类型检查
-    static_assert(std::is_same_v<T, float> || std::is_same_v<T, double>, "mdvector Type must be float or double!");
+  // 从维度array构造
+  explicit mdvector(const std::array<std::size_t, Dims>& dims) : data_(calculate_size(dims)) {
+    view_ = mdspan<T, Dims>(data_.data(), dims);
   }
 
-  void Reset(std::array<size_t, Dims> dim_set) {
-    this->~mdvector();
-    *this = mdvector(dim_set);
+  // 重置维度
+  void reset(const std::array<std::size_t, Dims>& dims) {
+    data_.resize(calculate_size(dims));
+    view_ = mdspan<T, Dims>(data_.data(), dims);
   }
 
   // 析构函数 成员全部为STL 默认析构即可
   ~mdvector() = default;
 
   // ========================================================
+  // 多维访问
+  template <typename... Indices>
+  T& operator()(Indices... indices) {
+    return view_(indices...);
+  }
+
+  // 安全访问
+  template <typename... Indices>
+  T& at(Indices... indices) {
+    check_bounds(indices...);
+    return view_(indices...);
+  }
+
+  // ========================================================
 
   T* data() const { return const_cast<T*>(data_.data()); }
 
-  size_t size() const { return total_elements_; }
+  size_t size() const { return data_.size(); }
 
-  std::array<size_t, Dims> shape() const { return dimensions_; }
+  std::array<size_t, Dims> shape() const { return view_.shape(); }
 
   // ========================================================
 
   // TODO: 需要检查
-  // 拷贝构造函数
+  // 正确的拷贝构造函数
   mdvector(const mdvector& other)
-      : dimensions_(other.dimensions_),
-        total_elements_(other.total_elements_),
-        data_(other.data_),  // 直接复制数据
-        strides_(other.strides_) {}
+      : data_(other.data_)  // 初始化列表
+  {
+    view_ = mdspan<T, Dims>(data(), other.view_.extents());
+    std::cout << "!!!!\n";
+    // 构造函数体可以为空
+  }
 
   // 移动构造函数
-  mdvector(mdvector&& other) noexcept
-      : dimensions_(std::move(other.dimensions_)),
-        total_elements_(other.total_elements_),
-        data_(std::move(other.data_)),
-        strides_(std::move(data_.strides_)) {}
+  mdvector(mdvector&& other) noexcept : data_(std::move(other.data_)), view_(other.view_) {}
 
   // 深拷贝赋值运算符
   mdvector& operator=(const mdvector& other) {
     if (this != &other) {
-      dimensions_ = other.dimensions_;
-      total_elements_ = other.total_elements_;
-      data_ = other.data_;  // 复制数据
-      strides_ = other.strides_;
+      data_ = other.data_;                          // 复制数据
+      view_ = mdspan<T, Dims>(data_.data(), dims);  // 视图重新创建
     }
     return *this;
   }
@@ -90,10 +88,8 @@ class mdvector : public Expr<mdvector<T, Dims>> {
   // 移动赋值运算符
   mdvector& operator=(mdvector&& other) noexcept {
     if (this != &other) {
-      dimensions_ = std::move(other.dimensions_);
-      total_elements_ = other.total_elements_;
       data_ = std::move(other.data_);
-      strides_ = std::move(other.strides_);
+      view_ = other.view_;
     }
     return *this;
   }
@@ -103,7 +99,7 @@ class mdvector : public Expr<mdvector<T, Dims>> {
   // 表达式构造
   template <typename E>
   mdvector(const Expr<E>& expr) {
-    this->Reset(expr.shape());
+    this->reset(expr.shape());
     expr.eval_to(this->data());  // 直接计算到目标内存
   }
 
@@ -123,64 +119,30 @@ class mdvector : public Expr<mdvector<T, Dims>> {
   // 取值
   template <typename T2>
   typename simd<T2>::type eval_simd_mask(size_t i) const {
-    return simd<T2>::mask_load(data() + i, total_elements_ - i);
+    return simd<T2>::mask_load(data() + i, size() - i);
   }
 
   // ========================================================
-  // 计算总元素数和步长
-  size_t calculate_total_elements() const {
-    size_t total = 1;
-    for (auto dim : dimensions_) {
-      total *= dim;
+  static std::size_t calculate_size(const std::array<std::size_t, Dims>& dims) {
+    std::size_t size = 1;
+    for (auto d : dims) {
+      size *= d;
     }
-    return total;
+    return size;
   }
 
-  // 计算偏置 行优先
-  std::array<size_t, Dims> calculate_strides() const {
-    std::array<size_t, Dims> strides;
-    strides.back() = 1;  // 最后一个维度步长为1
-    for (int i = Dims - 2; i >= 0; --i) {
-      strides[i] = strides[i + 1] * dimensions_[i + 1];
-    }
-    return strides;
-  }
-
-  // ========================================================
-  // 访问运算符 提供safe 和 unsafe两种方式
-  // (i, j, k) unsafe style
   template <typename... Indices>
-  T& operator()(Indices... indices) {
-    static_assert(sizeof...(Indices) == Dims, "mdvector dimension subscript wrong");
-    const std::array<size_t, sizeof...(Indices)> idxs = {static_cast<size_t>(indices)...};
-    size_t offset = 0;
-    for (size_t i = 0; i < Dims; i++) {
-      offset += idxs[i] * strides_[i];
-    }
-    return data_[offset];
-  }
-
-  // .at(i, j, k) safe style
-  template <typename... Indices>
-  T& at(Indices... indices) {
-    static_assert(sizeof...(Indices) == Dims, "mdvector dimension subscript wrong");
-    const std::array<size_t, sizeof...(Indices)> idxs = {static_cast<size_t>(indices)...};
-    size_t i_temp = 0;
-    for (auto len : idxs) {
-      if (len > dimensions_[i_temp]) {
-        std::cerr << "mdvector subscript out-of-range error: " << len << ">" << dimensions_[i_temp] << "\n";
-        std::abort();
+  void check_bounds(Indices... indices) const {
+    constexpr std::size_t rank = sizeof...(Indices);
+    std::array<std::size_t, rank> idxs{static_cast<std::size_t>(indices)...};
+    for (std::size_t i = 0; i < rank; ++i) {
+      if (idxs[i] >= view_.extent(i)) {
+        throw std::out_of_range("mdvector subscript out of range");
       }
-      i_temp++;
     }
-
-    size_t offset = 0;
-    for (size_t i = 0; i < Dims; i++) {
-      offset += idxs[i] * strides_[i];
-    }
-    return data_[offset];
   }
 
+ public:
   // ========================================================
   // 基础功能函数
   void set_value(T val) { std::fill(data_.begin(), data_.end(), val); }
@@ -195,7 +157,7 @@ class mdvector : public Expr<mdvector<T, Dims>> {
   void show_data_matrix_style() {
     if (Dims == 0) return;
 
-    const size_t cols = dimensions_.back();
+    const size_t cols = view_.extent(Dims - 1);
     const size_t rows = size() / cols;
 
     // std::cout << "data in matrix style:\n";
@@ -211,22 +173,22 @@ class mdvector : public Expr<mdvector<T, Dims>> {
   // ========================================================
   // b ?= a
   mdvector& operator+=(const mdvector& other) {
-    simd_add_inplace(this->data(), other.data(), this->total_elements_);
+    simd_add_inplace(this->data(), other.data(), this->size());
     return *this;
   }
 
   mdvector& operator-=(const mdvector& other) {
-    simd_sub_inplace(this->data(), other.data(), this->total_elements_);
+    simd_sub_inplace(this->data(), other.data(), this->size());
     return *this;
   }
 
   mdvector& operator*=(const mdvector& other) {
-    simd_mul_inplace(this->data(), other.data(), this->total_elements_);
+    simd_mul_inplace(this->data(), other.data(), this->size());
     return *this;
   }
 
   mdvector& operator/=(const mdvector& other) {
-    simd_div_inplace(this->data(), other.data(), this->total_elements_);
+    simd_div_inplace(this->data(), other.data(), this->size());
     return *this;
   }
   // ========================================================
@@ -240,22 +202,22 @@ class mdvector : public Expr<mdvector<T, Dims>> {
 
   // 添加与标量的复合赋值运算符
   mdvector& operator+=(T scalar) {
-    simd_add_inplace_scalar(this->data(), scalar, this->total_elements_);
+    simd_add_inplace_scalar(this->data(), scalar, this->size());
     return *this;
   }
 
   mdvector& operator-=(T scalar) {
-    simd_sub_inplace_scalar(this->data(), scalar, this->total_elements_);
+    simd_sub_inplace_scalar(this->data(), scalar, this->size());
     return *this;
   }
 
   mdvector& operator*=(T scalar) {
-    simd_mul_inplace_scalar(this->data(), scalar, this->total_elements_);
+    simd_mul_inplace_scalar(this->data(), scalar, this->size());
     return *this;
   }
 
   mdvector& operator/=(T scalar) {
-    simd_div_inplace_scalar(this->data(), scalar, this->total_elements_);
+    simd_div_inplace_scalar(this->data(), scalar, this->size());
     return *this;
   }
 
