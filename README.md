@@ -1,40 +1,51 @@
-**MDVector设计思想**
+# mdvector - 多维高性能SIMD向量库
 
 
-1.多维支持：支持任意维度数组，通过std::mdspan(C++23标准库)，或者自定义mdspan(C++17可变参数模板结合预计算strides)，提供unsafe索引方式vec(d1, d2, d3)  vec[d1, d2, d3]，以及safe索引方式vec.at(d1, d2, d3)
+**mdvector** 是一个**轻量级头文件**形式基于现代C++的多维数组计算库，通过 **SIMD指令集优化** 和 **表达式模板技术**，在元素级运算（Element-wise）场景下达到**接近手写汇编极限性能**，同时支持**python风格切片操作**与切片的高性能计算。
+
+## 🚀 核心特性
+
+### 1. 极致性能优化
+- **SIMD 全指令集支持**：SSE/AVX2/AVX512（x86）、NEON（ARM）、RISV-v自动适配，内存对齐与尾部掩码处理，相比手写指令集基本无性能损失仅
+- **表达式模板**：复杂运算（如 `res = a + b - c * d / e`）零临时变量开销
+
+### 2. 多维灵活操作
+- **任意维度支持**：通过 `std::mdspan`（C++23）或自定义实现（C++17）
+- **安全索引**：`vec.at(d1,d2,d3)`（边界检查）与 **快速索引** `vec(d1,d2,d3)`
+- **惰性视图**：支持自定义指针偏移实现切片（`subspan`） 切片同样支持高性能表达式操作
+
+### 3. 内存安全设计
+- **Rust风格安全证明**：所有 `unsafe` 操作可以绑定维度类型来静态验证
+- **编译期形状检查**：通过类型系统确保维度一致性
+
+### 4. 跨平台兼容
+- **宏 自动适配**：x86/ARM/RISC-V 架构无缝切换
+- **编译器友好**：GCC/Clang/MSVC 全支持
+- **轻量级**：只需包含单个头文件
+- **兼容性**：需要C++17标准即可，无需C++23的标准库mdspan等特性
 
 
-2.高性能element-wise计算：基于SIMD指令集流水线计算，首地址内存对齐，尾部元素高性能掩码处理，小数据高频计算下，与avx2指令性能仅损失15%，显著高于绝大部分第三方库。相比eigen在windows下小元素计算优势较明显，其他情况下性能基本持平。相比STL或其他库，性能高度稳定，可在各个平台、编译器、指令集环境下实现性能最优计算。
+## 📊 性能对比
+<div align="center">
+  <img src="docs/images/win-2d.png" width="90%">
+  <p><em>性能对比(越高越好)</em></p>
+</div>
+<div align="center">
+  <img src="docs/images/linux-2d.png" width="90%">
+  <p><em>性能对比(越高越好)</em></p>
+</div>
+<div align="center">
+  <img src="docs/images/win-3d.png" width="90%">
+  <p><em>性能对比(越高越好)</em></p>
+</div>
+<div align="center">
+  <img src="docs/images/linux-3d.png" width="90%">
+  <p><em>性能对比(越高越好)</em></p>
+</div>
 
+## 📦 快速开始
 
-3.复杂表达式支持：基于CRTP静态多态思想，实现表达式模板嵌套SIMD指令集技术，支持复杂表达式（例如res=a+b-c*d/e），可对+-*/外操作符进行重载
-
-
-4.内存安全性：借鉴rust内存安全编程思想，进行unsafe操作前，需先给编译器"证明"这个操作是安全的，每个MDVector需要绑定一个shape类型，创建n个不同尺寸的MDVector前先定义n个shape类型，进行elementwise计算进行编译期shape静态类型检查
-
-
-5.跨平台：支持x86架构avx2，x86-avx512以及arm-neon需集成，各平台开发完后通过宏与constexpr可自动适配simd
-
-
-6.扩展性：针对性能热点/复杂数学运算，可拓展专用SIMD函数特例，或者表达式模板特例/偏特例，可达到手写汇编级别极限性能
-
-
-7.切片操作/部分视图：通过STL标准库submdspan(C++26 编译器未)实现多维数组原生切片视图，或自定义指针操作实现，另外可借助C++最新STL的ranges与view实现轻量级视图
-
-
-8.标量操作：表达式模板进行标量scalar特例，去除不必要性能开销
-
-
-9.除法速度优化：除法的cpu周期比其他运算高一个量级，使用魔法常数+两次牛顿迭代进行优化（理论误差1e-11），需核实
-
-
-10.基本算法：如reduce，transform，find等，可直接使用vector STL，对于部分切片的算法，如果切片内存连续，使用基于指针的迭代器结合STL，非内存连续切片的操作，需要单独适配
-
-
-11.三角函数：成员整体/内存连续切片使用SIMD指令实现（查表法、魔法公式、常用级数公式，可参考vectorclass），非连续切片遍历实现
-
-
-12.惰性计算：带实现，可通过C++20新特性view视图实现，需使用C++17以上，或自定义实现，通过指针+偏移。
-
-
-13.GEMM：不在考虑范围内，对于2d-shape，可通模板特例，结合eigen的map实现无开销映射，然后调用eigen进行GEMM
+### 使用
+```bash
+git clone https://github.com/Burgundytora/mdvector.git
+代码中include mdvector.h头文件即可 cmake指令集与编译选项参考附带cmake文件夹
