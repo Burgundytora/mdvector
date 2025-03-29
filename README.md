@@ -3,6 +3,9 @@
 
 **mdvector** 是一个**轻量级头文件**形式基于现代C++的多维数组计算库，通过 **SIMD指令集优化** 和 **表达式模板技术**，在元素级运算（Element-wise）场景下达到**接近手写汇编极限性能**，同时支持**python风格切片操作**与切片的高性能计算。
 
+**mdvector** is a **lightweight header-only** multidimensional array computing library based on modern C++. Through **SIMD instruction set optimization** and **expression template techniques**, it achieves **near hand-written assembly performance** in element-wise operations while supporting **Python-style slicing operations** and high-performance computation on slices.
+
+
 ## 🚀 核心特性
 
 ### 1. 极致性能优化
