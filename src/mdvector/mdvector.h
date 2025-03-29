@@ -53,6 +53,12 @@ class mdvector : public Expr<mdvector<T, Dims>> {
     return view_.at(indices...);
   }
 
+  // 计算多维索引的index偏移量
+  template <typename... Indices>
+  size_t& get_1d_index(Indices... indices) {
+    return view_.get_1d_index(indices...);
+  }
+
   // ========================================================
 
   template <typename... Slices>
@@ -90,7 +96,7 @@ class mdvector : public Expr<mdvector<T, Dims>> {
   // 深拷贝赋值运算符
   mdvector& operator=(const mdvector& other) {
     if (this != &other) {
-      data_ = other.data_;                          // 复制数据
+      data_ = other.data_;                                           // 复制数据
       view_ = mdspan<T, Dims>(data_.data(), other.view_.extents());  // 视图重新创建
     }
     return *this;
@@ -141,6 +147,15 @@ class mdvector : public Expr<mdvector<T, Dims>> {
     }
     return size;
   }
+
+  // ====================== 迭代器 ============================
+
+  T* begin() { return data_; }
+  T* end() { return data_ + size_; }  // 尾后指针
+
+  // const 重载
+  const T* begin() const { return data_; }
+  const T* end() const { return data_ + size_; }
 
  public:
   // ========================================================
@@ -220,6 +235,9 @@ class mdvector : public Expr<mdvector<T, Dims>> {
     simd_div_inplace_scalar(this->data(), scalar, this->size());
     return *this;
   }
+
+  // ========================================================
+  // 切片操作
 
   template <typename... Slices>
   std::array<detail::Slice, Dims> prepare_slices(Slices... slices) {

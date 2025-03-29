@@ -8,10 +8,12 @@
 #include "mdspan.h"
 
 template <class T, size_t Rank, class Layout = layout_right>
-class subspan : public mdspan<T, Rank, Layout> {
+class subspan : public mdspan<T, Rank, Layout>, public Expr<subspan<T, Rank, Layout>> {
  public:
-  subspan() = delete;
+  // 默认构造函数
+  constexpr subspan() noexcept = default;
 
+  // 详细构造函数
   subspan(T* data, const std::array<std::size_t, Rank>& extents, const std::array<detail::Slice, Rank>& slice_set)
       : mdspan<T, Rank, Layout>(nullptr, {}) {
     check_slice_bounds(slice_set, extents);
@@ -36,9 +38,120 @@ class subspan : public mdspan<T, Rank, Layout> {
     this->data_ = data + offset;
     this->extents_ = new_extents;
     this->strides_ = new_strides;
+
+    size_ = 1;
+    for (auto s : extents) {
+      size_ *= s;
+    }
   }
 
-  bool is_contiguous() const { return true; }
+  // 允许拷贝构造
+  subspan(const subspan& other) = default;
+
+  // 禁止移动构造
+  subspan(const subspan&& other) = delete;
+
+  // ---------- 赋值运算符 ----------
+  // 拷贝赋值：将右侧数据复制到当前视图（不修改指针和大小）
+  subspan& operator=(const subspan& other) {
+    std::copy(other.begin(), other.end(), data_);  // 逐元素复制
+    return *this;
+  }
+
+  // 删除移动赋值 不管理所有权
+  subspan& operator=(subspan&& other) = delete;
+
+  // 析构使用自动生成 不会销毁指针数组
+  ~subspan() = default;
+
+  // ====================== 迭代器 ============================
+
+  T* begin() { return data_; }
+  T* end() { return data_ + size_; }  // 尾后指针
+
+  // const 重载
+  const T* begin() const { return data_; }
+  const T* end() const { return data_ + size_; }
+
+  // ====================== 数值运算 ============================
+
+  void set_value(T val) { std::fill(begin(), end(), val); }
+
+  // =================== 表达式模板 ============================
+  // 不允许表达式构造
+
+  // 表达式赋值
+  template <typename E>
+  subspan& operator=(const Expr<E>& expr) {
+    expr.eval_to(this->data());  // 直接计算到目标内存
+    return *this;
+  }
+
+  // 取值
+  template <typename T2>
+  typename simd<T2>::type eval_simd(size_t i) const {
+    return simd<T2>::load(data() + i);
+  }
+
+  // 取值
+  template <typename T2>
+  typename simd<T2>::type eval_simd_mask(size_t i) const {
+    return simd<T2>::mask_load(data() + i, size() - i);
+  }
+
+  // ========================================================
+  // b ?= a
+  subspan& operator+=(const subspan& other) {
+    simd_add_inplace(this->data(), other.data(), this->size());
+    return *this;
+  }
+
+  subspan& operator-=(const subspan& other) {
+    simd_sub_inplace(this->data(), other.data(), this->size());
+    return *this;
+  }
+
+  subspan& operator*=(const subspan& other) {
+    simd_mul_inplace(this->data(), other.data(), this->size());
+    return *this;
+  }
+
+  subspan& operator/=(const subspan& other) {
+    simd_div_inplace(this->data(), other.data(), this->size());
+    return *this;
+  }
+
+  // ========================================================
+
+  // 标量操作
+  // 添加标量eval_scalar方法
+  template <typename T2>
+  T2 eval_scalar(size_t i) const {
+    return static_cast<T2>(data_[i]);
+  }
+
+  // 添加与标量的复合赋值运算符
+  subspan& operator+=(T scalar) {
+    simd_add_inplace_scalar(this->data(), scalar, this->size());
+    return *this;
+  }
+
+  subspan& operator-=(T scalar) {
+    simd_sub_inplace_scalar(this->data(), scalar, this->size());
+    return *this;
+  }
+
+  subspan& operator*=(T scalar) {
+    simd_mul_inplace_scalar(this->data(), scalar, this->size());
+    return *this;
+  }
+
+  subspan& operator/=(T scalar) {
+    simd_div_inplace_scalar(this->data(), scalar, this->size());
+    return *this;
+  }
+
+  // ====================== 标量运算 ============================
 
  private:
   void check_slice_bounds(const std::array<detail::Slice, Rank>& slices, const std::array<std::size_t, Rank>& extents) {

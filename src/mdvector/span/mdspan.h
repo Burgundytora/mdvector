@@ -61,6 +61,15 @@ class mdspan {
     return data_[detail::linear_index(strides_, idxs)];
   }
 
+  // 获取一维索引
+  template <typename... Indices>
+  constexpr T& get_1d_index(Indices... indices) {
+    static_assert(sizeof...(Indices) == Rank, "Number of indices must match Rank");
+    check_bounds(indices...);
+    std::array<std::size_t, Rank> idxs{static_cast<std::size_t>(indices)...};
+    return detail::linear_index(strides_, idxs);
+  }
+
   // 属性访问
   constexpr std::size_t rank() const noexcept { return Rank; }
 
@@ -68,7 +77,9 @@ class mdspan {
 
   std::size_t extent(std::size_t r) const { return extents_[r]; }
 
-  T* data() const noexcept { return data_; }
+  T* data() { return data_; }
+
+  const T* data() const { return data_; }
 
   size_t size() { return size_; }
 
