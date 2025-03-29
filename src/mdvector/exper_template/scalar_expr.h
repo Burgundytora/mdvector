@@ -32,7 +32,7 @@ class ScalarWrapper : public Expr<ScalarWrapper<T>> {
 #if defined(__clang__)
   __attribute__((noinline, used))
 #endif
-  explicit ScalarWrapper(T val)
+  explicit ScalarWrapper(const T& val)
       : value_(val) {
     // 确保value_已初始化
     std::atomic_signal_fence(std::memory_order_seq_cst);

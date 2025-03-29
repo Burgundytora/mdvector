@@ -36,4 +36,4 @@ class Expr {
   }
 };
 
-#endif // __MDVECTOR_BASE_EXPR_H__
+#endif  // __MDVECTOR_BASE_EXPR_H__

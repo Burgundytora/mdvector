@@ -65,10 +65,10 @@ DivExpr<L, R> operator/(const Expr<L>& lhs, const Expr<R>& rhs) {
 }
 
 // 向量 / 标量
-// 优化为标量倒数乘法
+// 优化为标量倒数乘法 win x64有bug？
 template <typename L, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
 auto operator/(const Expr<L>& lhs, T rhs) {
-  return MulExpr<L, ScalarWrapper<T>>(lhs.derived(), ScalarWrapper<T>(1.0 / rhs));
+  return DivExpr<L, ScalarWrapper<T>>(lhs.derived(), ScalarWrapper<T>(rhs));
 }
 
 // 标量 / 向量
