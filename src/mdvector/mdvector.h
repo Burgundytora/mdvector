@@ -91,7 +91,7 @@ class mdvector : public Expr<mdvector<T, Dims>> {
   mdvector& operator=(const mdvector& other) {
     if (this != &other) {
       data_ = other.data_;                          // 复制数据
-      view_ = mdspan<T, Dims>(data_.data(), dims);  // 视图重新创建
+      view_ = mdspan<T, Dims>(data_.data(), other.view_.extents());  // 视图重新创建
     }
     return *this;
   }

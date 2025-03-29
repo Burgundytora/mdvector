@@ -10,7 +10,7 @@ namespace detail {
 
 // 计算strides (行主序)
 template <std::size_t Rank>
-constexpr auto compute_strides(const std::array<std::size_t, Rank>& extents) {
+auto compute_strides(const std::array<std::size_t, Rank>& extents) {
   std::array<std::size_t, Rank> strides;
   strides.back() = 1;
   for (int i = Rank - 2; i >= 0; --i) {
