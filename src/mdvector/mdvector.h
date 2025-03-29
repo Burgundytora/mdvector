@@ -4,6 +4,7 @@
 #include <array>
 #include <iostream>
 #include <numeric>
+#include <string>
 #include <vector>
 
 #include "allocator/aligned_allocator.h"
@@ -49,11 +50,24 @@ class mdvector : public Expr<mdvector<T, Dims>> {
   // 安全访问
   template <typename... Indices>
   T& at(Indices... indices) {
-    check_bounds(indices...);
-    return view_(indices...);
+    return view_.at(indices...);
   }
 
   // ========================================================
+
+  template <typename... Slices>
+  auto create_subspan(Slices... slices) {
+    static_assert(sizeof...(Slices) == Dims, "Number of slices must match dimensionality");
+
+    // 确保所有切片都转换为 detail::Slice 类型
+    auto slice_array = prepare_slices(slices...);
+    // for (const auto& s : slice_array) {
+    //   std::cout << "start:" << s.start << " end:" << s.end << " is_all:" << s.is_all << std::endl;
+    // }
+
+    // 创建子视图
+    return subspan<T, Dims>(data_.data(), view_.extents(), slice_array);
+  }
 
   T* data() const { return const_cast<T*>(data_.data()); }
 
@@ -63,14 +77,11 @@ class mdvector : public Expr<mdvector<T, Dims>> {
 
   // ========================================================
 
-  // TODO: 需要检查
-  // 正确的拷贝构造函数
+  // 拷贝构造函数
   mdvector(const mdvector& other)
       : data_(other.data_)  // 初始化列表
   {
-    view_ = mdspan<T, Dims>(data(), other.view_.extents());
-    std::cout << "!!!!\n";
-    // 构造函数体可以为空
+    view_ = mdspan<T, Dims>(data(), other.view_.extents());  // 保证在data_构造后
   }
 
   // 移动构造函数
@@ -129,17 +140,6 @@ class mdvector : public Expr<mdvector<T, Dims>> {
       size *= d;
     }
     return size;
-  }
-
-  template <typename... Indices>
-  void check_bounds(Indices... indices) const {
-    constexpr std::size_t rank = sizeof...(Indices);
-    std::array<std::size_t, rank> idxs{static_cast<std::size_t>(indices)...};
-    for (std::size_t i = 0; i < rank; ++i) {
-      if (idxs[i] >= view_.extent(i)) {
-        throw std::out_of_range("mdvector subscript out of range");
-      }
-    }
   }
 
  public:
@@ -221,7 +221,28 @@ class mdvector : public Expr<mdvector<T, Dims>> {
     return *this;
   }
 
- private:
+  template <typename... Slices>
+  std::array<detail::Slice, Dims> prepare_slices(Slices... slices) {
+    std::array<detail::Slice, Dims> result;
+    size_t i = 0;
+
+    // 使用折叠表达式处理每个切片
+    ((result[i++] = convert_slice(slices)), ...);
+
+    return result;
+  }
+
+  template <typename SliceType>
+  detail::Slice convert_slice(SliceType&& slice) {
+    if constexpr (std::is_same_v<std::decay_t<SliceType>, detail::Slice>) {
+      return std::forward<SliceType>(slice);
+    } else if constexpr (std::is_integral_v<std::decay_t<SliceType>>) {
+      // 整数索引转换为单元素切片
+      return detail::Slice(static_cast<std::ptrdiff_t>(slice), static_cast<std::ptrdiff_t>(slice), false);
+    } else {
+      static_assert(sizeof(SliceType) == 0, "Unsupported slice type");
+    }
+  }
 };
 
 // 常用维度别名 1D~6D

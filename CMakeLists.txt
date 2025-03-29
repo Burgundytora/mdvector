@@ -18,6 +18,7 @@ else()
     set(INCLUDE_DIR "/mnt/goldflex/dependency/include")
 endif()
 
+# 用于比较性能
 include_directories(
     "${INCLUDE_DIR}/eigen-3.4.0"
     "${INCLUDE_DIR}/highway"
