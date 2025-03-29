@@ -6,7 +6,7 @@
 ## 🚀 核心特性
 
 ### 1. 极致性能优化
-- **SIMD 全指令集支持**：SSE/AVX2/AVX512（x86）、NEON（ARM）、RISV-v自动适配，内存对齐与尾部掩码处理，相比手写指令集基本无性能损失仅
+- **SIMD 全指令集支持**：SSE/AVX2/AVX512（x86）、NEON（ARM）、RISC-V自动适配，内存对齐与尾部掩码处理，相比手写指令集基本无性能损失仅
 - **表达式模板**：复杂运算（如 `res = a + b - c * d / e`）零临时变量开销
 
 ### 2. 多维灵活操作
@@ -26,6 +26,9 @@
 
 
 ## 📊 性能对比
+- **md expr为此项目**   
+- **hwy为google-highway**
+- **expr为基于for循环的表达式模板**
 <div align="center">
   <img src="docs/images/win-2d.png" width="90%">
   <p><em>性能对比(越高越好)</em></p>
