@@ -28,11 +28,9 @@ class Expr {
     }
 
     // 使用掩码处理尾部元素
-    if (i < n) {
-      const size_t remaining = n - i;
-      auto simd_val = derived().template eval_simd_mask<std::remove_const_t<Dest>>(i);
-      simd<std::remove_const_t<Dest>>::mask_store(dest + i, remaining, simd_val);
-    }
+    const size_t remaining = n - i;
+    auto simd_val = derived().template eval_simd_mask<std::remove_const_t<Dest>>(i);
+    simd<std::remove_const_t<Dest>>::mask_store(dest + i, remaining, simd_val);
   }
 };
 
