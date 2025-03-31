@@ -151,11 +151,11 @@ class mdvector : public Expr<mdvector<T, Dims>> {
   // ====================== 迭代器 ============================
 
   T* begin() { return data_; }
-  T* end() { return data_ + size_; }  // 尾后指针
+  T* end() { return data_ + size(); }  // 尾后指针
 
   // const 重载
   const T* begin() const { return data_; }
-  const T* end() const { return data_ + size_; }
+  const T* end() const { return data_ + size(); }
 
  public:
   // ========================================================

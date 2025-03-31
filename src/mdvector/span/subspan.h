@@ -39,9 +39,9 @@ class subspan : public mdspan<T, Rank, Layout>, public Expr<subspan<T, Rank, Lay
     this->extents_ = new_extents;
     this->strides_ = new_strides;
 
-    size_ = 1;
+    this->size_ = 1;
     for (auto s : extents) {
-      size_ *= s;
+      this->size_ *= s;
     }
   }
 
@@ -54,7 +54,7 @@ class subspan : public mdspan<T, Rank, Layout>, public Expr<subspan<T, Rank, Lay
   // ---------- 赋值运算符 ----------
   // 拷贝赋值：将右侧数据复制到当前视图（不修改指针和大小）
   subspan& operator=(const subspan& other) {
-    std::copy(other.begin(), other.end(), data_);  // 逐元素复制
+    std::copy(other.begin(), other.end(), this->data_);  // 逐元素复制
     return *this;
   }
 
@@ -66,12 +66,12 @@ class subspan : public mdspan<T, Rank, Layout>, public Expr<subspan<T, Rank, Lay
 
   // ====================== 迭代器 ============================
 
-  T* begin() { return data_; }
-  T* end() { return data_ + size_; }  // 尾后指针
+  T* begin() { return this->data_; }
+  T* end() { return this->data_ + this->size_; }  // 尾后指针
 
   // const 重载
-  const T* begin() const { return data_; }
-  const T* end() const { return data_ + size_; }
+  const T* begin() const { return this->data_; }
+  const T* end() const { return this->data_ + this->size_; }
 
   // ====================== 数值运算 ============================
 
@@ -90,13 +90,13 @@ class subspan : public mdspan<T, Rank, Layout>, public Expr<subspan<T, Rank, Lay
   // 取值
   template <typename T2>
   typename simd<T2>::type eval_simd(size_t i) const {
-    return simd<T2>::load(data() + i);
+    return simd<T2>::load(this->data() + i);
   }
 
   // 取值
   template <typename T2>
   typename simd<T2>::type eval_simd_mask(size_t i) const {
-    return simd<T2>::mask_load(data() + i, size() - i);
+    return simd<T2>::mask_load(this->data() + i, this->size() - i);
   }
 
   // ========================================================
@@ -127,7 +127,7 @@ class subspan : public mdspan<T, Rank, Layout>, public Expr<subspan<T, Rank, Lay
   // 添加标量eval_scalar方法
   template <typename T2>
   T2 eval_scalar(size_t i) const {
-    return static_cast<T2>(data_[i]);
+    return static_cast<T2>(this->data_[i]);
   }
 
   // 添加与标量的复合赋值运算符
