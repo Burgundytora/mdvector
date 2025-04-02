@@ -14,7 +14,7 @@ class subspan : public mdspan<T, Rank, Layout>, public Expr<subspan<T, Rank, Lay
   constexpr subspan() noexcept = default;
 
   // 详细构造函数
-  subspan(T* data, const std::array<std::size_t, Rank>& extents, const std::array<detail::Slice, Rank>& slice_set)
+  subspan(T* data, const std::array<std::size_t, Rank>& extents, const std::array<md::slice, Rank>& slice_set)
       : mdspan<T, Rank, Layout>(nullptr, {}) {
     check_slice_bounds(slice_set, extents);
     if (!is_contiguous_slice(slice_set)) {
@@ -22,16 +22,19 @@ class subspan : public mdspan<T, Rank, Layout>, public Expr<subspan<T, Rank, Lay
     }
 
     std::array<std::size_t, Rank> new_extents;
-    std::array<std::size_t, Rank> new_strides = detail::compute_strides(extents);
+    std::array<std::size_t, Rank> new_strides = md::compute_strides(extents);
     std::size_t offset = 0;
 
     for (size_t i = 0; i < Rank; ++i) {
       if (slice_set[i].is_all) {
         new_extents[i] = extents[i];
       } else {
-        // 修改为闭区间计算方式 [start, end] → size = end - start + 1
-        new_extents[i] = slice_set[i].end - slice_set[i].start + 1;
-        offset += slice_set[i].start * new_strides[i];
+        // 处理负数索引
+        std::ptrdiff_t start = md::normalize_index(slice_set[i].start, extents[i]);
+        std::ptrdiff_t end = md::normalize_index(slice_set[i].end, extents[i]);
+
+        new_extents[i] = end - start + 1;  // 闭区间大小
+        offset += start * new_strides[i];  // 计算内存偏移
       }
     }
 
@@ -39,10 +42,7 @@ class subspan : public mdspan<T, Rank, Layout>, public Expr<subspan<T, Rank, Lay
     this->extents_ = new_extents;
     this->strides_ = new_strides;
 
-    this->size_ = 1;
-    for (auto s : extents) {
-      this->size_ *= s;
-    }
+    this->size_ = std::accumulate(new_extents.begin(), new_extents.end(), 1, std::multiplies<>());
   }
 
   // 允许拷贝构造
@@ -154,26 +154,30 @@ class subspan : public mdspan<T, Rank, Layout>, public Expr<subspan<T, Rank, Lay
   // ====================== 标量运算 ============================
 
  private:
-  void check_slice_bounds(const std::array<detail::Slice, Rank>& slices, const std::array<std::size_t, Rank>& extents) {
+  void check_slice_bounds(const std::array<md::slice, Rank>& slices, const std::array<std::size_t, Rank>& extents) {
     for (size_t i = 0; i < Rank; ++i) {
-      if (slices[i].start < 0 || slices[i].end < 0) {
-        throw std::out_of_range("subspan slice indices cannot be negative");
+      if (slices[i].is_all) {
+        continue;
       }
 
-      if (!slices[i].is_all) {
-        // 修改边界检查逻辑为闭区间
-        if (static_cast<std::size_t>(slices[i].start) >= extents[i] ||
-            static_cast<std::size_t>(slices[i].end) >= extents[i]) {
-          throw std::out_of_range("subspan slice out of range");
-        }
-        if (slices[i].start > slices[i].end) {  // 允许start == end（单元素）
-          throw std::invalid_argument("subspan slice start must <= end");
-        }
+      // 处理负数索引（-1 表示最后一个元素）
+      std::ptrdiff_t start = md::normalize_index(slices[i].start, extents[i]);
+      std::ptrdiff_t end = md::normalize_index(slices[i].end, extents[i]);
+
+      // 检查边界
+      if (start < 0 || start >= static_cast<std::ptrdiff_t>(extents[i])) {
+        throw std::out_of_range("subspan slice start out of range");
+      }
+      if (end < 0 || end >= static_cast<std::ptrdiff_t>(extents[i])) {
+        throw std::out_of_range("subspan slice end out of range");
+      }
+      if (start > end) {  // 允许 start == end（单元素）
+        throw std::invalid_argument("subspan slice start must <= end");
       }
     }
   }
 
-  bool is_contiguous_slice(const std::array<detail::Slice, Rank>& slices) {
+  bool is_contiguous_slice(const std::array<md::slice, Rank>& slices) {
     for (int i = Rank - 1; i >= 0; --i) {
       if (!slices[i].is_all) {
         for (int j = i - 1; j >= 0; j--) {

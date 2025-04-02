@@ -16,7 +16,7 @@ class mdspan {
 
   // 从指针和维度array构造
   constexpr mdspan(T* data, const std::array<std::size_t, Rank>& extents)
-      : data_(data), extents_(extents), strides_(detail::compute_strides(extents)) {
+      : data_(data), extents_(extents), strides_(md::compute_strides(extents)) {
     size_ = 1;
     for (auto s : extents) {
       size_ *= s;
@@ -49,7 +49,7 @@ class mdspan {
   constexpr T& operator()(Indices... indices) {
     static_assert(sizeof...(Indices) == Rank, "Number of indices must match Rank");
     std::array<std::size_t, Rank> idxs{static_cast<std::size_t>(indices)...};
-    return data_[detail::linear_index(strides_, idxs)];
+    return data_[md::linear_index(strides_, idxs)];
   }
 
   // 安全访问
@@ -58,7 +58,7 @@ class mdspan {
     static_assert(sizeof...(Indices) == Rank, "Number of indices must match Rank");
     check_bounds(indices...);
     std::array<std::size_t, Rank> idxs{static_cast<std::size_t>(indices)...};
-    return data_[detail::linear_index(strides_, idxs)];
+    return data_[md::linear_index(strides_, idxs)];
   }
 
   // 获取一维索引
@@ -67,7 +67,7 @@ class mdspan {
     static_assert(sizeof...(Indices) == Rank, "Number of indices must match Rank");
     check_bounds(indices...);
     std::array<std::size_t, Rank> idxs{static_cast<std::size_t>(indices)...};
-    return detail::linear_index(strides_, idxs);
+    return md::linear_index(strides_, idxs);
   }
 
   // 属性访问

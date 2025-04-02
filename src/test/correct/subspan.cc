@@ -6,6 +6,9 @@
 #include <windows.h>  // 添加Windows头文件
 #endif
 
+using md::all;
+using md::slice;
+
 int main() {
 #if defined(_WIN32)
   // 设置控制台输出为UTF-8编码
@@ -29,8 +32,8 @@ int main() {
   // 测试2: 创建子视图
 
   // 情况1: 最后一维完整切片
-  auto sub_contig1 = mat.create_subspan(1,             // 选择第1行
-                                        detail::all()  // 所有列
+  auto sub_contig1 = mat.create_subspan(1,     // 选择第1行
+                                        all()  // 所有列
   );
 
   std::cout << "\n子视图(行2, 所有列):" << std::endl;
@@ -43,9 +46,24 @@ int main() {
   // 预期输出:
   // 4 5 6
 
+  // 情况1: 最后一维完整切片
+  auto sub_contig11 = mat.create_subspan(1,            // 选择第1行
+                                         slice(1, -1)  // 第一列之后
+  );
+
+  std::cout << "\n子视图(行2, 所有列):" << std::endl;
+  for (int i = 0; i < sub_contig11.extent(0); ++i) {
+    for (int j = 0; j < sub_contig11.extent(1); ++j) {
+      std::cout << sub_contig11(i, j) << " ";
+    }
+    std::cout << std::endl;
+  }
+  // 预期输出:
+  // 5 6
+
   // 情况2: 单行选择
-  auto sub_contig2 = mat.create_subspan(0,                   // 只选择第1行
-                                        detail::Slice(0, 1)  // 选择第1-2列
+  auto sub_contig2 = mat.create_subspan(0,           // 只选择第1行
+                                        slice(0, 1)  // 选择第1-2列
   );
 
   std::cout << "\n子视图(行1, 列1-2):" << std::endl;
@@ -57,8 +75,8 @@ int main() {
   // 情况3: 非法情况测试
   std::cout << "\n\n=== 测试非法子视图 ===" << std::endl;
   try {
-    auto invalid_sub = mat.create_subspan(detail::Slice(0, 2, false),  // 多行
-                                          detail::Slice(0, 2, false)   // 多列
+    auto invalid_sub = mat.create_subspan(slice(0, 2, false),  // 多行
+                                          slice(0, 2, false)   // 多列
     );
     std::cout << "错误：非法子视图创建成功！" << std::endl;
   } catch (const std::runtime_error& e) {
@@ -68,8 +86,8 @@ int main() {
 
   // 测试3: 使用语法糖创建子视图
   std::cout << "\n=== 测试3: 使用语法糖 ===" << std::endl;
-  auto sub2 = mat.create_subspan(detail::Slice(0, 1),  // 第0-1行
-                                 detail::all()         // 所有列
+  auto sub2 = mat.create_subspan(slice(0, 1),  // 第0-1行
+                                 all()         // 所有列
   );
 
   std::cout << "子视图(0:1, :):" << std::endl;
@@ -95,15 +113,15 @@ int main() {
   // std::cout << "\n=== 测试5: 非法子视图测试 ===" << std::endl;
   // try {
   //   auto invalid_sub = mat.create_subspan(
-  //       detail::Slice(0, 1, false), detail::Slice(0, 1, false), detail::Slice(0, 1, false)  // 错误: 维度不匹配
+  //       md::Slice(0, 1, false), md::Slice(0, 1, false), md::Slice(0, 1, false)  // 错误: 维度不匹配
   //   );
   // } catch (const std::exception& e) {
   //   std::cout << "捕获异常: " << e.what() << std::endl;
   // }
 
   try {
-    auto invalid_sub = mat.create_subspan(detail::Slice(2, 4, false),  // 超出范围
-                                          detail::Slice(0, 3, true));
+    auto invalid_sub = mat.create_subspan(slice(2, 4),  // 超出范围
+                                          slice(0, 3));
   } catch (const std::exception& e) {
     std::cout << "捕获异常: " << e.what() << std::endl;
   }
@@ -122,9 +140,9 @@ int main() {
     }
   }
 
-  auto tensor_sub = tensor.create_subspan(1,             // 第一维 第二个
-                                          2,             // 第二维 第三个
-                                          detail::all()  // 所有第三维
+  auto tensor_sub = tensor.create_subspan(1,     // 第一维 第二个
+                                          2,     // 第二维 第三个
+                                          all()  // 所有第三维
   );
 
   std::cout << "3D张量子视图[1, 2, 0:4]的形状: ";

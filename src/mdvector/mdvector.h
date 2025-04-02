@@ -65,7 +65,7 @@ class mdvector : public Expr<mdvector<T, Dims>> {
   auto create_subspan(Slices... slices) {
     static_assert(sizeof...(Slices) == Dims, "Number of slices must match dimensionality");
 
-    // 确保所有切片都转换为 detail::Slice 类型
+    // 确保所有切片都转换为 md::Slice 类型
     auto slice_array = prepare_slices(slices...);
     // for (const auto& s : slice_array) {
     //   std::cout << "start:" << s.start << " end:" << s.end << " is_all:" << s.is_all << std::endl;
@@ -240,8 +240,8 @@ class mdvector : public Expr<mdvector<T, Dims>> {
   // 切片操作
 
   template <typename... Slices>
-  std::array<detail::Slice, Dims> prepare_slices(Slices... slices) {
-    std::array<detail::Slice, Dims> result;
+  std::array<md::slice, Dims> prepare_slices(Slices... slices) {
+    std::array<md::slice, Dims> result;
     size_t i = 0;
 
     // 使用折叠表达式处理每个切片
@@ -251,12 +251,12 @@ class mdvector : public Expr<mdvector<T, Dims>> {
   }
 
   template <typename SliceType>
-  detail::Slice convert_slice(SliceType&& slice) {
-    if constexpr (std::is_same_v<std::decay_t<SliceType>, detail::Slice>) {
-      return std::forward<SliceType>(slice);
+  md::slice convert_slice(SliceType&& slice_one) {
+    if constexpr (std::is_same_v<std::decay_t<SliceType>, md::slice>) {
+      return std::forward<SliceType>(slice_one);
     } else if constexpr (std::is_integral_v<std::decay_t<SliceType>>) {
       // 整数索引转换为单元素切片
-      return detail::Slice(static_cast<std::ptrdiff_t>(slice), static_cast<std::ptrdiff_t>(slice), false);
+      return md::slice(static_cast<std::ptrdiff_t>(slice_one), static_cast<std::ptrdiff_t>(slice_one), false);
     } else {
       static_assert(sizeof(SliceType) == 0, "Unsupported slice type");
     }

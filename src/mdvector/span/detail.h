@@ -6,7 +6,7 @@
 #include <type_traits>
 
 // 计算维度相关信息
-namespace detail {
+namespace md {
 
 // 计算strides (行主序)
 template <std::size_t Rank>
@@ -31,18 +31,23 @@ constexpr std::size_t linear_index(const std::array<std::size_t, Rank>& strides,
 }
 
 // subspan 切片 闭区间
-struct Slice {
+struct slice {
   std::ptrdiff_t start;
   std::ptrdiff_t end;
   bool is_all;
 
-  Slice(std::ptrdiff_t s = 0, std::ptrdiff_t e = 0, bool all = false) : start(s), end(e), is_all(all) {}
+  slice(std::ptrdiff_t s = 0, std::ptrdiff_t e = 0, bool all = false) : start(s), end(e), is_all(all) {}
 };
 
-inline Slice all() {
-  return Slice(0, 0, true);  // 创建全选切片
+// 将负数索引转换为正数
+static std::ptrdiff_t normalize_index(std::ptrdiff_t idx, std::ptrdiff_t dim_size) {
+  return idx >= 0 ? idx : dim_size + idx;
 }
 
-}  // namespace detail
+inline slice all() {
+  return slice(0, 0, true);  // 创建全选切片
+}
+
+}  // namespace md
 
 #endif  // MDVECTOR_SPAN_DETAIL_H_
