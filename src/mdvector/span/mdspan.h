@@ -81,8 +81,6 @@ class mdspan {
 
   const T* data() const { return data_; }
 
-  size_t size() { return size_; }
-
   std::array<std::size_t, Rank> shape() const { return extents_; }
 
   std::array<std::size_t, Rank> extents() const { return extents_; }

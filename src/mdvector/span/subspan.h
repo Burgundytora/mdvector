@@ -73,6 +73,8 @@ class subspan : public mdspan<T, Rank, Layout>, public Expr<subspan<T, Rank, Lay
   const T* begin() const { return this->data_; }
   const T* end() const { return this->data_ + this->size_; }
 
+  size_t size() const { return size_; }
+
   // ====================== 数值运算 ============================
 
   void set_value(T val) { std::fill(begin(), end(), val); }

@@ -17,7 +17,7 @@ int main() {
 
   // 测试1: 创建3x3矩阵并填充数据
   std::cout << "=== 测试1: 3x3矩阵基本操作 ===" << std::endl;
-  mdvector<float, 2> mat({3, 3});
+  mdvector<double, 2> mat({3, 3});
 
   // 填充数据
   for (int i = 0; i < 3; ++i) {
@@ -36,6 +36,10 @@ int main() {
                                         all()  // 所有列
   );
 
+  auto sub_contig_test = mat.create_subspan(2,     // 选择第1行
+                                            all()  // 所有列
+  );
+
   std::cout << "\n子视图(行2, 所有列):" << std::endl;
   for (int i = 0; i < sub_contig1.extent(0); ++i) {
     for (int j = 0; j < sub_contig1.extent(1); ++j) {
@@ -51,7 +55,7 @@ int main() {
                                          slice(1, -1)  // 第一列之后
   );
 
-  std::cout << "\n子视图(行2, 所有列):" << std::endl;
+  std::cout << "\n子视图(行2, 列1:-1):" << std::endl;
   for (int i = 0; i < sub_contig11.extent(0); ++i) {
     for (int j = 0; j < sub_contig11.extent(1); ++j) {
       std::cout << sub_contig11(i, j) << " ";
@@ -66,7 +70,7 @@ int main() {
                                         slice(0, 1)  // 选择第1-2列
   );
 
-  std::cout << "\n子视图(行1, 列1-2):" << std::endl;
+  std::cout << "\n子视图(行1, 列0:1):" << std::endl;
   for (int j = 0; j < sub_contig2.extent(1); ++j) {
     std::cout << sub_contig2(0, j) << " ";
   }
@@ -109,29 +113,39 @@ int main() {
   mat.show_data_matrix_style();
   // 预期输出中mat[1][0]变为99
 
-  // // 测试5: 尝试创建非法子视图
-  // std::cout << "\n=== 测试5: 非法子视图测试 ===" << std::endl;
-  // try {
-  //   auto invalid_sub = mat.create_subspan(
-  //       md::Slice(0, 1, false), md::Slice(0, 1, false), md::Slice(0, 1, false)  // 错误: 维度不匹配
-  //   );
-  // } catch (const std::exception& e) {
-  //   std::cout << "捕获异常: " << e.what() << std::endl;
-  // }
+  // 表达式计算
+  std::cout << "\n=== 测试5: 子视图元素*10 ===" << std::endl;
+  sub_contig1 *= 10;
+  std::cout << "修改后的原始矩阵:" << std::endl;
+  mat.show_data_matrix_style();
+  // 第二行 990 50 60
 
+  std::cout << "\n=== 测试5: 子视图元素+10 ===" << std::endl;
+  sub_contig1 = sub_contig1 + 10.0;
+  std::cout << "修改后的原始矩阵:" << std::endl;
+  mat.show_data_matrix_style();
+  // 第二行 1000 60 70
+
+  std::cout << "\n=== 测试5: 子视图元素 = 第三行/0.5 ===" << std::endl;
+  sub_contig1 = sub_contig_test / 0.5;
+  std::cout << "修改后的原始矩阵:" << std::endl;
+  mat.show_data_matrix_style();
+  // 第二行 14 16 18
+
+  // // 测试5: 尝试创建非法子视图
   try {
     auto invalid_sub = mat.create_subspan(slice(2, 4),  // 超出范围
                                           slice(0, 3));
   } catch (const std::exception& e) {
-    std::cout << "捕获异常: " << e.what() << std::endl;
+    std::cout << "\n捕获异常: " << e.what() << std::endl;
   }
 
   // 测试6: 3D数组子视图
   std::cout << "\n=== 测试6: 3D数组测试 ===" << std::endl;
-  mdvector<float, 3> tensor({2, 3, 4});
+  mdvector<double, 3> tensor({2, 3, 4});
 
   // 填充3D张量
-  float val = 1.0f;
+  double val = 1.0f;
   for (int i = 0; i < 2; ++i) {
     for (int j = 0; j < 3; ++j) {
       for (int k = 0; k < 4; ++k) {
