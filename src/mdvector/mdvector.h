@@ -14,12 +14,12 @@
 #include "span/subspan.h"
 
 // 核心mdvector类
-template <class T, size_t Dims>
-class mdvector : public Expr<mdvector<T, Dims>> {
+template <class T, size_t Rank>
+class mdvector : public Expr<mdvector<T, Rank>> {
  private:
   // ========================================================
   // 类成员
-  mdspan<T, Dims> view_;                      // 多维视图
+  mdspan<T, Rank> view_;                      // 多维视图
   std::vector<T, AlignedAllocator<T>> data_;  // 数据
 
  public:
@@ -27,14 +27,14 @@ class mdvector : public Expr<mdvector<T, Dims>> {
   mdvector() = default;
 
   // 从维度array构造
-  explicit mdvector(const std::array<std::size_t, Dims>& dims) : data_(calculate_size(dims)) {
-    view_ = mdspan<T, Dims>(data_.data(), dims);
+  explicit mdvector(const std::array<std::size_t, Rank>& dims) : data_(calculate_size(dims)) {
+    view_ = mdspan<T, Rank>(data_.data(), dims);
   }
 
   // 重置维度
-  void reset(const std::array<std::size_t, Dims>& dims) {
+  void reset(const std::array<std::size_t, Rank>& dims) {
     data_.resize(calculate_size(dims));
-    view_ = mdspan<T, Dims>(data_.data(), dims);
+    view_ = mdspan<T, Rank>(data_.data(), dims);
   }
 
   // 析构函数 成员全部为STL 默认析构即可
@@ -63,23 +63,20 @@ class mdvector : public Expr<mdvector<T, Dims>> {
 
   template <typename... Slices>
   auto create_subspan(Slices... slices) {
-    static_assert(sizeof...(Slices) == Dims, "Number of slices must match dimensionality");
+    static_assert(sizeof...(Slices) == Rank, "Number of slices must match dimensionality");
 
-    // 确保所有切片都转换为 md::Slice 类型
+    // 确保所有切片都转换为 md::slice 类型
     auto slice_array = prepare_slices(slices...);
-    // for (const auto& s : slice_array) {
-    //   std::cout << "start:" << s.start << " end:" << s.end << " is_all:" << s.is_all << std::endl;
-    // }
 
     // 创建子视图
-    return subspan<T, Dims>(data_.data(), view_.extents(), slice_array);
+    return subspan<T, Rank>(data_.data(), view_.extents(), slice_array);
   }
 
   T* data() const { return const_cast<T*>(data_.data()); }
 
   size_t size() const { return data_.size(); }
 
-  std::array<size_t, Dims> shape() const { return view_.shape(); }
+  std::array<size_t, Rank> shape() const { return view_.shape(); }
 
   // ========================================================
 
@@ -87,7 +84,7 @@ class mdvector : public Expr<mdvector<T, Dims>> {
   mdvector(const mdvector& other)
       : data_(other.data_)  // 初始化列表
   {
-    view_ = mdspan<T, Dims>(data(), other.view_.extents());  // 保证在data_构造后
+    view_ = mdspan<T, Rank>(data(), other.view_.extents());  // 保证在data_构造后
   }
 
   // 移动构造函数
@@ -97,7 +94,7 @@ class mdvector : public Expr<mdvector<T, Dims>> {
   mdvector& operator=(const mdvector& other) {
     if (this != &other) {
       data_ = other.data_;                                           // 复制数据
-      view_ = mdspan<T, Dims>(data_.data(), other.view_.extents());  // 视图重新创建
+      view_ = mdspan<T, Rank>(data_.data(), other.view_.extents());  // 视图重新创建
     }
     return *this;
   }
@@ -111,8 +108,68 @@ class mdvector : public Expr<mdvector<T, Dims>> {
     return *this;
   }
 
-  // =================== 表达式模板 ============================
+  // ====================== 迭代器 ============================
+  using iterator = T*;
+  using const_iterator = const T*;
+  using reverse_iterator = std::reverse_iterator<iterator>;
+  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
+  // ====================== 正向迭代器 ======================
+  iterator begin() noexcept { return data_.data(); }
+  iterator end() noexcept { return data_.data() + data_.size(); }
+
+  const_iterator begin() const noexcept { return data_.data(); }
+  const_iterator end() const noexcept { return data_.data() + data_.size(); }
+
+  // ====================== 常量迭代器 (C++11风格) ======================
+  const_iterator cbegin() const noexcept { return data_.data(); }
+  const_iterator cend() const noexcept { return data_.data() + data_.size(); }
+
+  // ====================== 反向迭代器 ======================
+  reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
+  reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
+
+  const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(end()); }
+  const_reverse_iterator rend() const noexcept { return const_reverse_iterator(begin()); }
+
+  // ====================== 常量反向迭代器 ======================
+  const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(end()); }
+  const_reverse_iterator crend() const noexcept { return const_reverse_iterator(begin()); }
+
+  // ========================================================
+
+ public:
+  // 基础功能函数
+  void set_value(T val) { std::fill(data_.begin(), data_.end(), val); }
+
+  void show_data_array_style() {
+    for (const auto& it : this->data_) {
+      std::cout << it << " ";
+    }
+    std::cout << "\n";
+  }
+
+  void show_data_matrix_style() {
+    if (Rank == 0) return;
+
+    const size_t cols = view_.extent(Rank - 1);
+    const size_t rows = size() / cols;
+
+    // std::cout << "data in matrix style:\n";
+    for (size_t i = 0; i < rows; ++i) {
+      const T* row_start = data() + i * cols;
+      for (size_t j = 0; j < cols; ++j) {
+        std::cout << row_start[j] << " ";
+      }
+      std::cout << "\n";
+    }
+  }
+
+  static std::size_t calculate_size(const std::array<std::size_t, Rank>& dims) {
+    return std::accumulate(dims.begin(), dims.end(), 1, std::multiplies<>());
+  }
+
+  // =================== 表达式模板 ============================
   // 表达式构造
   template <typename E>
   mdvector(const Expr<E>& expr) {
@@ -139,53 +196,7 @@ class mdvector : public Expr<mdvector<T, Dims>> {
     return simd<T2>::mask_load(data() + i, size() - i);
   }
 
-  // ========================================================
-  static std::size_t calculate_size(const std::array<std::size_t, Dims>& dims) {
-    std::size_t size = 1;
-    for (auto d : dims) {
-      size *= d;
-    }
-    return size;
-  }
-
-  // ====================== 迭代器 ============================
-
-  T* begin() { return data_; }
-  T* end() { return data_ + size(); }  // 尾后指针
-
-  // const 重载
-  const T* begin() const { return data_; }
-  const T* end() const { return data_ + size(); }
-
- public:
-  // ========================================================
-  // 基础功能函数
-  void set_value(T val) { std::fill(data_.begin(), data_.end(), val); }
-
-  void show_data_array_style() {
-    for (const auto& it : this->data_) {
-      std::cout << it << " ";
-    }
-    std::cout << "\n";
-  }
-
-  void show_data_matrix_style() {
-    if (Dims == 0) return;
-
-    const size_t cols = view_.extent(Dims - 1);
-    const size_t rows = size() / cols;
-
-    // std::cout << "data in matrix style:\n";
-    for (size_t i = 0; i < rows; ++i) {
-      const T* row_start = data() + i * cols;
-      for (size_t j = 0; j < cols; ++j) {
-        std::cout << row_start[j] << " ";
-      }
-      std::cout << "\n";
-    }
-  }
-
-  // ========================================================
+  // ======================= ?= 操作符重载 ============================
   // b ?= a
   mdvector& operator+=(const mdvector& other) {
     simd_add_inplace(this->data(), other.data(), this->size());
@@ -206,9 +217,8 @@ class mdvector : public Expr<mdvector<T, Dims>> {
     simd_div_inplace(this->data(), other.data(), this->size());
     return *this;
   }
-  // ========================================================
 
-  // 标量操作
+  // ====================== 标量表达式模板 ===========================
   // 添加标量eval_scalar方法
   template <typename T2>
   T2 eval_scalar(size_t i) const {
@@ -236,12 +246,10 @@ class mdvector : public Expr<mdvector<T, Dims>> {
     return *this;
   }
 
-  // ========================================================
-  // 切片操作
-
+  // ======================= 切片操作辅助函数 ============================
   template <typename... Slices>
-  std::array<md::slice, Dims> prepare_slices(Slices... slices) {
-    std::array<md::slice, Dims> result;
+  std::array<md::slice, Rank> prepare_slices(Slices... slices) {
+    std::array<md::slice, Rank> result;
     size_t i = 0;
 
     // 使用折叠表达式处理每个切片

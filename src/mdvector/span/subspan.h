@@ -7,6 +7,7 @@
 
 #include "mdspan.h"
 
+// 连续内存子视图 支持与mdvector相同的simd表达式计算
 template <class T, size_t Rank, class Layout = layout_right>
 class subspan : public mdspan<T, Rank, Layout>, public Expr<subspan<T, Rank, Layout>> {
  public:
@@ -64,23 +65,68 @@ class subspan : public mdspan<T, Rank, Layout>, public Expr<subspan<T, Rank, Lay
   // 析构使用自动生成 不会销毁指针数组
   ~subspan() = default;
 
-  // ====================== 迭代器 ============================
-
-  T* begin() { return this->data_; }
-  T* end() { return this->data_ + this->size_; }  // 尾后指针
-
-  // const 重载
-  const T* begin() const { return this->data_; }
-  const T* end() const { return this->data_ + this->size_; }
-
   size_t size() const { return size_; }
 
-  // ====================== 数值运算 ============================
+  // ====================== 迭代器 ============================
+
+  // 显式定义迭代器类型别名（符合 STL 惯例）
+  using iterator = T*;
+  using const_iterator = const T*;
+  // 可选：反向迭代器类型别名
+  using reverse_iterator = std::reverse_iterator<iterator>;
+  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+  // 普通迭代器（读写）
+  iterator begin() noexcept { return this->data_; }
+  iterator end() noexcept { return this->data_ + this->size_; }
+
+  // const 重载（读写，但返回 const_iterator）
+  const_iterator begin() const noexcept { return this->data_; }
+  const_iterator end() const noexcept { return this->data_ + this->data_; }
+
+  // 常量迭代器（只读，C++11 风格）
+  const_iterator cbegin() const noexcept { return this->data_; }
+  const_iterator cend() const noexcept { return this->data_ + this->size_; }
+
+  // 可选：反向迭代器
+  reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
+  reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
+  const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(end()); }
+  const_reverse_iterator rend() const noexcept { return const_reverse_iterator(begin()); }
+  const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(end()); }
+  const_reverse_iterator crend() const noexcept { return const_reverse_iterator(begin()); }
+
+  // ====================== 普通功能 ============================
 
   void set_value(T val) { std::fill(begin(), end(), val); }
 
+  void show_data_array_style() {
+    for (const auto& it : *this) {
+      std::cout << it << " ";
+    }
+    std::cout << "\n";
+  }
+
+  void show_data_matrix_style() {
+    if (Rank == 0) return;
+
+    const size_t cols = extents_[Rank - 1];
+    const size_t rows = size() / cols;
+
+    // std::cout << "data in matrix style:\n";
+    for (size_t i = 0; i < rows; ++i) {
+      const T* row_start = data() + i * cols;
+      for (size_t j = 0; j < cols; ++j) {
+        std::cout << row_start[j] << " ";
+      }
+      std::cout << "\n";
+    }
+  }
+
   // =================== 表达式模板 ============================
   // 不允许表达式构造
+  template <typename E>
+  subspan(const Expr<E>& expr) = delete;
 
   // 表达式赋值
   template <typename E>

@@ -65,6 +65,21 @@ int main() {
   // 预期输出:
   // 5 6
 
+  // 情况1: 最后一维完整切片
+  auto sub_contig111 = mat.create_subspan(-1,    // 选择第1行
+                                          all()  // 第一列之后
+  );
+
+  std::cout << "\n子视图(行-1, 列:):" << std::endl;
+  for (int i = 0; i < sub_contig111.extent(0); ++i) {
+    for (int j = 0; j < sub_contig111.extent(1); ++j) {
+      std::cout << sub_contig111(i, j) << " ";
+    }
+    std::cout << std::endl;
+  }
+  // 预期输出:
+  // 7 8 9
+
   // 情况2: 单行选择
   auto sub_contig2 = mat.create_subspan(0,           // 只选择第1行
                                         slice(0, 1)  // 选择第1-2列
@@ -131,6 +146,8 @@ int main() {
   std::cout << "修改后的原始矩阵:" << std::endl;
   mat.show_data_matrix_style();
   // 第二行 14 16 18
+  sub_contig1.show_data_matrix_style();
+  // 14 16 18
 
   // // 测试5: 尝试创建非法子视图
   try {
