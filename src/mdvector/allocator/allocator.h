@@ -1,13 +1,13 @@
 #ifndef __MDVECTOR_ALLOCATOR_H__
 #define __MDVECTOR_ALLOCATOR_H__
 
+#include <limits>
 #include <memory>
-#include <limits> 
 
-#include "../simd/simd.h"
+#include "../simd/simd_base.h"
 
-template <typename T>
-class AlignedAllocator {
+template <class T>
+class SimdAllocator {
  public:
   using value_type = T;
 
@@ -21,17 +21,17 @@ class AlignedAllocator {
   using is_always_equal = std::true_type;
 
   // 允许分配器类型转换的构造函数
-  template <typename U>
+  template <class U>
   struct rebind {
-    using other = AlignedAllocator<U>;
+    using other = SimdAllocator<U>;
   };
 
   // 默认构造函数
-  AlignedAllocator() noexcept = default;
+  SimdAllocator() noexcept = default;
 
   // 拷贝构造函数
-  template <typename U>
-  AlignedAllocator(const AlignedAllocator<U>&) noexcept {}
+  template <class U>
+  SimdAllocator(const SimdAllocator<U>&) noexcept {}
 
   static constexpr size_t alignment_for() {
     // 对数值类型使用SIMD对齐，其他类型使用默认对齐
@@ -71,27 +71,33 @@ class AlignedAllocator {
   size_t max_size() const noexcept { return std::numeric_limits<size_t>::max() / sizeof(T); }
 
   // 构造对象
-  template <typename U, typename... Args>
+  template <class U, class... Args>
   void construct(U* p, Args&&... args) {
     ::new (static_cast<void*>(p)) U(std::forward<Args>(args)...);
   }
 
   // 销毁对象
-  template <typename U>
+  template <class U>
   void destroy(U* p) {
     p->~U();
   }
 
   // 比较操作符
-  template <typename U>
-  bool operator==(const AlignedAllocator<U>&) const noexcept {
+  template <class U>
+  bool operator==(const SimdAllocator<U>&) const noexcept {
     return true;
   }
 
-  template <typename U>
-  bool operator!=(const AlignedAllocator<U>&) const noexcept {
+  template <class U>
+  bool operator!=(const SimdAllocator<U>&) const noexcept {
     return false;
   }
 };
+
+template <class T>
+using AutoAllocator = std::conditional_t<std::is_floating_point_v<T>,
+                                         SimdAllocator<T>,  // 浮点类型用对齐分配器
+                                         std::allocator<T>  // 其他类型用标准分配器
+                                         >;
 
 #endif  // __MDVECTOR_ALLOCATOR_H__

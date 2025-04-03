@@ -1,5 +1,5 @@
-#ifndef MDVECTOR_SPAN_SUBSPAN_H_
-#define MDVECTOR_SPAN_SUBSPAN_H_
+#ifndef __MDVECTOR_SPAN_SUBSPAN_H__
+#define __MDVECTOR_SPAN_SUBSPAN_H__
 
 #include <algorithm>
 #include <iostream>
@@ -9,7 +9,7 @@
 
 // 连续内存子视图 支持与mdvector相同的simd表达式计算
 template <class T, size_t Rank, class Layout = layout_right>
-class subspan : public mdspan<T, Rank, Layout>, public Expr<subspan<T, Rank, Layout>> {
+class subspan : public mdspan<T, Rank, Layout>, public TensorExpr<subspan<T, Rank, Layout>> {
  public:
   // 默认构造函数
   constexpr subspan() noexcept = default;
@@ -126,11 +126,11 @@ class subspan : public mdspan<T, Rank, Layout>, public Expr<subspan<T, Rank, Lay
   // =================== 表达式模板 ============================
   // 不允许表达式构造
   template <typename E>
-  subspan(const Expr<E>& expr) = delete;
+  subspan(const TensorExpr<E>& expr) = delete;
 
   // 表达式赋值
   template <typename E>
-  subspan& operator=(const Expr<E>& expr) {
+  subspan& operator=(const TensorExpr<E>& expr) {
     expr.eval_to(this->data());  // 直接计算到目标内存
     return *this;
   }

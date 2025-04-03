@@ -1,7 +1,7 @@
-#ifndef __X86_AVX512_H__
-#define __X86_AVX512_H__
+#ifndef __MDVECTOR_X86_AVX512_H__
+#define __MDVECTOR_X86_AVX512_H__
 
-#include "base.h"
+#include "simd_base.h"
 
 // ======================== AVX512 ========================
 

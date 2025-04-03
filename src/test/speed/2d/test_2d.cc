@@ -248,7 +248,7 @@ void test_base_expr() {
 
 template <class T>
 void test_highway() {
-  AlignedAllocator<T> allocator_;
+  SimdAllocator<T> allocator_;
 
   T* data1_ = allocator_.allocate(total_element);
   T* data2_ = allocator_.allocate(total_element);
@@ -290,7 +290,7 @@ void test_highway() {
 
 template <class T>
 void test_simd() {
-  AlignedAllocator<T> allocator_;
+  SimdAllocator<T> allocator_;
 
   T* data1_ = allocator_.allocate(total_element);
   T* data2_ = allocator_.allocate(total_element);

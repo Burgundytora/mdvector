@@ -1,5 +1,5 @@
-#ifndef MDVECTOR_SPAN_DETAIL_H_
-#define MDVECTOR_SPAN_DETAIL_H_
+#ifndef __MDVECTOR_SPAN_DETAIL_H__
+#define __MDVECTOR_SPAN_DETAIL_H__
 
 #include <array>
 #include <cstddef>

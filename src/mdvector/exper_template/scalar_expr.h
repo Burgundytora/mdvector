@@ -1,7 +1,7 @@
 #ifndef __MDVECTOR_SCALAR_EXPR_H__
 #define __MDVECTOR_SCALAR_EXPR_H__
 
-#include "base_expr.h"
+#include "tensor_expr.h"
 
 #if defined(__GNUC__) || defined(__clang__)
 #include <cstring>
@@ -9,7 +9,7 @@
 
 // ======================== 标量包装类 ========================
 template <typename T>
-class ScalarWrapper : public Expr<ScalarWrapper<T>> {
+class ScalarWrapper : public TensorExpr<ScalarWrapper<T>> {
   T value_;
   typename simd<T>::type simd_value_;
 

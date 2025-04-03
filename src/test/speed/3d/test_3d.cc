@@ -106,7 +106,7 @@ void test_norm() {
 
 template <class T>
 void test_simd() {
-  AlignedAllocator<T> allocator_;
+  SimdAllocator<T> allocator_;
 
   T* data1_ = allocator_.allocate(total_element);
   T* data2_ = allocator_.allocate(total_element);

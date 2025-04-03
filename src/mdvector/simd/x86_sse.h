@@ -1,7 +1,7 @@
-#ifndef __X86_SSE_H__
-#define __X86_SSE_H__
+#ifndef __MDVECTOR_X86_SSE_H__
+#define __MDVECTOR_X86_SSE_H__
 
-#include "base.h"
+#include "simd_base.h"
 
 // ======================== SSE ========================
 

@@ -1,3 +1,6 @@
+#ifndef __MDVECTOR_HWY_FUNCTION_H__
+#define __MDVECTOR_HWY_FUNCTION_H__
+
 #include "hwy/highway.h"
 
 namespace hn = hwy::HWY_NAMESPACE;
@@ -83,3 +86,4 @@ void hwy_div(const T* __restrict a, const T* __restrict b, T* __restrict res, si
     hn::StoreN(hn::Div(va, vb), d, res + i, size - i);
   }
 }
+#endif  // __FUNCTION_H__

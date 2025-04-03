@@ -1,5 +1,5 @@
-#ifndef MDVECTOR_SPAN_SUBVIEW_H_
-#define MDVECTOR_SPAN_SUBVIEW_H_
+#ifndef __MDVECTOR_SPAN_SUBVIEW_H__
+#define __MDVECTOR_SPAN_SUBVIEW_H__
 
 #include "mdspan.h"
 

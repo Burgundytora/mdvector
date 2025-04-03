@@ -1,5 +1,5 @@
-#ifndef __SIMD_H__
-#define __SIMD_H__
+#ifndef __MDVECTOR_SIMD_H__
+#define __MDVECTOR_SIMD_H__
 
 #if defined(USE_AVX2)
 #include "x86_avx2.h"

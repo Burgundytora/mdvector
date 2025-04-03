@@ -1,7 +1,7 @@
-#ifndef __RISC_V_H__
-#define __RISC_V_H__
+#ifndef __MDVECTOR_RISC_V_H__
+#define __MDVECTOR_RISC_V_H__
 
-#include "base.h"
+#include "simd_base.h"
 
 // ======================== RISC-V Vector ========================
 #include <riscv_vector.h>  // 需要支持RVV 1.0的编译器

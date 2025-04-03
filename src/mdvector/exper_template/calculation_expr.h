@@ -5,7 +5,7 @@
 
 // ======================== 表达式类 ========================
 template <typename L, typename R>
-class AddExpr : public Expr<AddExpr<L, R>> {
+class AddExpr : public TensorExpr<AddExpr<L, R>> {
   const L& lhs;
   const R& rhs;
 
@@ -32,7 +32,7 @@ class AddExpr : public Expr<AddExpr<L, R>> {
 };
 
 template <typename L, typename R>
-class SubExpr : public Expr<SubExpr<L, R>> {
+class SubExpr : public TensorExpr<SubExpr<L, R>> {
   const L& lhs;
   const R& rhs;
 
@@ -59,7 +59,7 @@ class SubExpr : public Expr<SubExpr<L, R>> {
 };
 
 template <typename L, typename R>
-class MulExpr : public Expr<MulExpr<L, R>> {
+class MulExpr : public TensorExpr<MulExpr<L, R>> {
   const L& lhs;
   const R& rhs;
 
@@ -86,7 +86,7 @@ class MulExpr : public Expr<MulExpr<L, R>> {
 };
 
 template <typename L, typename R>
-class DivExpr : public Expr<DivExpr<L, R>> {
+class DivExpr : public TensorExpr<DivExpr<L, R>> {
   const L& lhs;
   const R& rhs;
 

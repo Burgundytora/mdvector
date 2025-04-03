@@ -1,11 +1,11 @@
-#ifndef __MDVECTOR_BASE_EXPR_H__
-#define __MDVECTOR_BASE_EXPR_H__
+#ifndef __MDVECTOR_TENSOR_EXPR_H__
+#define __MDVECTOR_TENSOR_EXPR_H__
 
 #include "../simd/simd.h"
 
 // ======================== 表达式模板基类 ========================
 template <typename Derived>
-class Expr {
+class TensorExpr {
  public:
   const Derived& derived() const { return static_cast<const Derived&>(*this); }
 
@@ -34,4 +34,4 @@ class Expr {
   }
 };
 
-#endif  // __MDVECTOR_BASE_EXPR_H__
+#endif  // __TENSOR_EXPR_H__
