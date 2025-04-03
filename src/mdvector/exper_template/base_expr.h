@@ -11,7 +11,7 @@ class Expr {
 
   size_t size() const { return derived().size(); }
 
-  auto shape() const { return derived().shape(); }
+  auto extents() const { return derived().extents(); }
 
   // 左值
   auto eval_simd(size_t i) const { return static_cast<const Derived&>(*this).eval_simd(i); }

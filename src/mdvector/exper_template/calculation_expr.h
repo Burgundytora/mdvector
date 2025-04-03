@@ -3,7 +3,6 @@
 
 #include "scalar_expr.h"
 
-
 // ======================== 表达式类 ========================
 template <typename L, typename R>
 class AddExpr : public Expr<AddExpr<L, R>> {
@@ -15,7 +14,7 @@ class AddExpr : public Expr<AddExpr<L, R>> {
 
   size_t size() const { return lhs.size(); }
 
-  auto shape() const { return lhs.shape(); }
+  auto extents() const { return lhs.extents(); }
 
   template <typename T>
   typename simd<T>::type eval_simd(size_t i) const {
@@ -42,7 +41,7 @@ class SubExpr : public Expr<SubExpr<L, R>> {
 
   size_t size() const { return lhs.size(); }
 
-  auto shape() const { return lhs.shape(); }
+  auto extents() const { return lhs.extents(); }
 
   template <typename T>
   typename simd<T>::type eval_simd(size_t i) const {
@@ -69,7 +68,7 @@ class MulExpr : public Expr<MulExpr<L, R>> {
 
   size_t size() const { return lhs.size(); }
 
-  auto shape() const { return lhs.shape(); }
+  auto extents() const { return lhs.extents(); }
 
   template <typename T>
   typename simd<T>::type eval_simd(size_t i) const {
@@ -96,7 +95,7 @@ class DivExpr : public Expr<DivExpr<L, R>> {
 
   size_t size() const { return lhs.size(); }
 
-  auto shape() const { return lhs.shape(); }
+  auto extents() const { return lhs.extents(); }
 
   template <typename T>
   typename simd<T>::type eval_simd(size_t i) const {
@@ -113,4 +112,4 @@ class DivExpr : public Expr<DivExpr<L, R>> {
   }
 };
 
-#endif // __MDVECTOR_CALCULATION_EXPR_H__
+#endif  // __MDVECTOR_CALCULATION_EXPR_H__

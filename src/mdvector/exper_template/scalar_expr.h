@@ -64,7 +64,7 @@ class ScalarWrapper : public Expr<ScalarWrapper<T>> {
 
   size_t size() const { return 1; }
 
-  std::array<size_t, 1> shape() const { return std::array<size_t, 1>{1}; }
+  std::array<size_t, 1> extents() const { return std::array<size_t, 1>{1}; }
 };
 
 #endif  // __MDVECTOR_SCALAR_EXPR_H__

@@ -32,7 +32,7 @@ class mdvector : public Expr<mdvector<T, Rank>> {
   }
 
   // 重置维度
-  void reset(const std::array<std::size_t, Rank>& dims) {
+  void reset_shape(const std::array<std::size_t, Rank>& dims) {
     data_.resize(calculate_size(dims));
     view_ = mdspan<T, Rank>(data_.data(), dims);
   }
@@ -76,7 +76,9 @@ class mdvector : public Expr<mdvector<T, Rank>> {
 
   size_t size() const { return data_.size(); }
 
-  std::array<size_t, Rank> shape() const { return view_.shape(); }
+  std::array<size_t, Rank> shapes() const { return view_.extents(); }
+
+  std::array<size_t, Rank> extents() const { return view_.extents(); }
 
   // ========================================================
 
@@ -173,7 +175,7 @@ class mdvector : public Expr<mdvector<T, Rank>> {
   // 表达式构造
   template <typename E>
   mdvector(const Expr<E>& expr) {
-    this->reset(expr.shape());
+    this->reset(expr.extents());
     expr.eval_to(this->data());  // 直接计算到目标内存
   }
 
