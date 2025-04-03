@@ -4,8 +4,8 @@
 #include "scalar_expr.h"
 
 // ======================== 表达式类 ========================
-template <typename L, typename R>
-class AddExpr : public TensorExpr<AddExpr<L, R>> {
+template <class L, class R, class Policy>
+class AddExpr : public TensorExpr<AddExpr<L, R, Policy>, Policy> {
   const L& lhs;
   const R& rhs;
 
@@ -31,8 +31,8 @@ class AddExpr : public TensorExpr<AddExpr<L, R>> {
   }
 };
 
-template <typename L, typename R>
-class SubExpr : public TensorExpr<SubExpr<L, R>> {
+template <class L, class R, class Policy>
+class SubExpr : public TensorExpr<SubExpr<L, R, Policy>, Policy> {
   const L& lhs;
   const R& rhs;
 
@@ -43,14 +43,14 @@ class SubExpr : public TensorExpr<SubExpr<L, R>> {
 
   auto extents() const { return lhs.extents(); }
 
-  template <typename T>
+  template <class T>
   typename simd<T>::type eval_simd(size_t i) const {
     auto l = lhs.template eval_simd<T>(i);
     auto r = rhs.template eval_simd<T>(i);
     return simd<T>::sub(l, r);
   }
 
-  template <typename T>
+  template <class T>
   typename simd<T>::type eval_simd_mask(size_t i) const {
     auto l = lhs.template eval_simd_mask<T>(i);
     auto r = rhs.template eval_simd_mask<T>(i);
@@ -58,8 +58,8 @@ class SubExpr : public TensorExpr<SubExpr<L, R>> {
   }
 };
 
-template <typename L, typename R>
-class MulExpr : public TensorExpr<MulExpr<L, R>> {
+template <typename L, typename R, class Policy>
+class MulExpr : public TensorExpr<MulExpr<L, R, Policy>, Policy> {
   const L& lhs;
   const R& rhs;
 
@@ -70,14 +70,14 @@ class MulExpr : public TensorExpr<MulExpr<L, R>> {
 
   auto extents() const { return lhs.extents(); }
 
-  template <typename T>
+  template <class T>
   typename simd<T>::type eval_simd(size_t i) const {
     auto l = lhs.template eval_simd<T>(i);
     auto r = rhs.template eval_simd<T>(i);
     return simd<T>::mul(l, r);
   }
 
-  template <typename T>
+  template <class T>
   typename simd<T>::type eval_simd_mask(size_t i) const {
     auto l = lhs.template eval_simd_mask<T>(i);
     auto r = rhs.template eval_simd_mask<T>(i);
@@ -85,8 +85,8 @@ class MulExpr : public TensorExpr<MulExpr<L, R>> {
   }
 };
 
-template <typename L, typename R>
-class DivExpr : public TensorExpr<DivExpr<L, R>> {
+template <class L, class R, class Policy>
+class DivExpr : public TensorExpr<DivExpr<L, R, Policy>, Policy> {
   const L& lhs;
   const R& rhs;
 

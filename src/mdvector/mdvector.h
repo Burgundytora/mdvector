@@ -63,9 +63,10 @@ class mdvector : private MDEngine<T, Rank> {
 // ================  浮点类型 支持元素级计算 (simd + ET)  ====================
 //
 template <class T, size_t Rank>
-class mdvector<T, Rank, std::enable_if_t<std::is_floating_point_v<T>>> : public TensorExpr<mdvector<T, Rank>>,
-                                                                         private MDEngine<T, Rank> {
+class mdvector<T, Rank, std::enable_if_t<std::is_floating_point_v<T>>>
+    : public TensorExpr<mdvector<T, Rank>, AlignedPolicy>, private MDEngine<T, Rank> {
   using Impl = MDEngine<T, Rank>;
+  using Policy = AlignedPolicy;
 
  public:
   // 默认构造
@@ -122,14 +123,14 @@ class mdvector<T, Rank, std::enable_if_t<std::is_floating_point_v<T>>> : public 
   // =================== 表达式模板 ============================
   // 表达式构造
   template <class E>
-  mdvector(const TensorExpr<E>& expr) {
+  mdvector(const TensorExpr<E, AlignedPolicy>& expr) {
     this->reset_shape(expr.extents());
     expr.eval_to(this->data());  // 直接计算到目标内存
   }
 
   // 表达式赋值
   template <class E>
-  mdvector& operator=(const TensorExpr<E>& expr) {
+  mdvector& operator=(const TensorExpr<E, AlignedPolicy>& expr) {
     expr.eval_to(this->data());  // 直接计算到目标内存
     return *this;
   }
@@ -137,34 +138,34 @@ class mdvector<T, Rank, std::enable_if_t<std::is_floating_point_v<T>>> : public 
   // 取值
   template <class T2>
   typename simd<T2>::type eval_simd(size_t i) const {
-    return simd<T2>::load(data() + i);
+    return simd<T2>::load(this->data() + i);
   }
 
   // 取值
   template <class T2>
   typename simd<T2>::type eval_simd_mask(size_t i) const {
-    return simd<T2>::mask_load(data() + i, size() - i);
+    return simd<T2>::mask_load(this->data() + i, size() - i);
   }
 
   // ======================= ?= 操作符重载 ============================
   // b ?= a
   mdvector& operator+=(const mdvector& other) {
-    simd_add_inplace(this->data(), other.data(), this->size());
+    simd_add_inplace<T, Policy>(this->data(), other.data(), this->size());
     return *this;
   }
 
   mdvector& operator-=(const mdvector& other) {
-    simd_sub_inplace(this->data(), other.data(), this->size());
+    simd_sub_inplace<T, Policy>(this->data(), other.data(), this->size());
     return *this;
   }
 
   mdvector& operator*=(const mdvector& other) {
-    simd_mul_inplace(this->data(), other.data(), this->size());
+    simd_mul_inplace<T, Policy>(this->data(), other.data(), this->size());
     return *this;
   }
 
   mdvector& operator/=(const mdvector& other) {
-    simd_div_inplace(this->data(), other.data(), this->size());
+    simd_div_inplace<T, Policy>(this->data(), other.data(), this->size());
     return *this;
   }
 
@@ -172,27 +173,27 @@ class mdvector<T, Rank, std::enable_if_t<std::is_floating_point_v<T>>> : public 
   // 添加标量eval_scalar方法
   template <class T2>
   T2 eval_scalar(size_t i) const {
-    return static_cast<T2>(data_[i]);
+    return static_cast<T2>(this->data_[i]);
   }
 
   // 添加与标量的复合赋值运算符
   mdvector& operator+=(T scalar) {
-    simd_add_inplace_scalar(this->data(), scalar, this->size());
+    simd_add_inplace_scalar<T, Policy>(this->data(), scalar, this->size());
     return *this;
   }
 
   mdvector& operator-=(T scalar) {
-    simd_sub_inplace_scalar(this->data(), scalar, this->size());
+    simd_sub_inplace_scalar<T, Policy>(this->data(), scalar, this->size());
     return *this;
   }
 
   mdvector& operator*=(T scalar) {
-    simd_mul_inplace_scalar(this->data(), scalar, this->size());
+    simd_mul_inplace_scalar<T, Policy>(this->data(), scalar, this->size());
     return *this;
   }
 
   mdvector& operator/=(T scalar) {
-    simd_div_inplace_scalar(this->data(), scalar, this->size());
+    simd_div_inplace_scalar<T, Policy>(this->data(), scalar, this->size());
     return *this;
   }
 
@@ -207,11 +208,11 @@ class mdvector<T, Rank, std::enable_if_t<std::is_floating_point_v<T>>> : public 
   void show_data_matrix_style() {
     if (Rank == 0) return;
 
-    const size_t cols = view_.extent(Rank - 1);
+    const size_t cols = this->view_.extent(Rank - 1);
     const size_t rows = size() / cols;
 
     for (size_t i = 0; i < rows; ++i) {
-      const T* row_start = data() + i * cols;
+      const T* row_start = this->data() + i * cols;
       for (size_t j = 0; j < cols; ++j) {
         std::cout << row_start[j] << " ";
       }

@@ -32,8 +32,8 @@ int main() {
   // 测试2: 创建子视图
 
   // 情况1: 最后一维完整切片
-  auto sub_contig1 = mat.create_subspan(1,     // 选择第1行
-                                        all()  // 所有列
+  subspan<double, 2> sub_contig1 = mat.create_subspan(1,     // 选择第1行
+                                                      all()  // 所有列
   );
 
   auto sub_contig_test = mat.create_subspan(2,     // 选择第1行
@@ -130,7 +130,7 @@ int main() {
 
   // 表达式计算
   std::cout << "\n=== 测试5: 子视图元素*10 ===" << std::endl;
-  sub_contig1 *= 10;
+  sub_contig1 *= 10.0;
   std::cout << "修改后的原始矩阵:" << std::endl;
   mat.show_data_matrix_style();
   // 第二行 990 50 60

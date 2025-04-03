@@ -7,11 +7,11 @@
 #include <string>
 #include <vector>
 
-#include "allocator/allocator.h"
-#include "exper_template/operator.h"
-#include "simd/simd_function.h"
-#include "span/mdspan.h"
-#include "span/subspan.h"
+#include "../allocator/allocator.h"
+#include "../exper_template/operator.h"
+#include "../simd/simd_function.h"
+#include "../span/mdspan.h"
+#include "../span/subspan.h"
 
 // 多维方法实现封装
 template <class T, size_t Rank>

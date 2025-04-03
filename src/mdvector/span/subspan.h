@@ -9,7 +9,9 @@
 
 // 连续内存子视图 支持与mdvector相同的simd表达式计算
 template <class T, size_t Rank, class Layout = layout_right>
-class subspan : public mdspan<T, Rank, Layout>, public TensorExpr<subspan<T, Rank, Layout>> {
+class subspan : public mdspan<T, Rank, Layout>, public TensorExpr<subspan<T, Rank, Layout>, UnalignedPolicy> {
+  using Policy = UnalignedPolicy;
+
  public:
   // 默认构造函数
   constexpr subspan() noexcept = default;
@@ -65,7 +67,7 @@ class subspan : public mdspan<T, Rank, Layout>, public TensorExpr<subspan<T, Ran
   // 析构使用自动生成 不会销毁指针数组
   ~subspan() = default;
 
-  size_t size() const { return size_; }
+  size_t size() const { return this->size_; }
 
   // ====================== 迭代器 ============================
 
@@ -110,12 +112,12 @@ class subspan : public mdspan<T, Rank, Layout>, public TensorExpr<subspan<T, Ran
   void show_data_matrix_style() {
     if (Rank == 0) return;
 
-    const size_t cols = extents_[Rank - 1];
+    const size_t cols = this->extents_[Rank - 1];
     const size_t rows = size() / cols;
 
     // std::cout << "data in matrix style:\n";
     for (size_t i = 0; i < rows; ++i) {
-      const T* row_start = data() + i * cols;
+      const T* row_start = this->data() + i * cols;
       for (size_t j = 0; j < cols; ++j) {
         std::cout << row_start[j] << " ";
       }
@@ -126,11 +128,11 @@ class subspan : public mdspan<T, Rank, Layout>, public TensorExpr<subspan<T, Ran
   // =================== 表达式模板 ============================
   // 不允许表达式构造
   template <typename E>
-  subspan(const TensorExpr<E>& expr) = delete;
+  subspan(const TensorExpr<E, Policy>& expr) = delete;
 
   // 表达式赋值
   template <typename E>
-  subspan& operator=(const TensorExpr<E>& expr) {
+  subspan& operator=(const TensorExpr<E, Policy>& expr) {
     expr.eval_to(this->data());  // 直接计算到目标内存
     return *this;
   }
@@ -138,34 +140,34 @@ class subspan : public mdspan<T, Rank, Layout>, public TensorExpr<subspan<T, Ran
   // 取值
   template <typename T2>
   typename simd<T2>::type eval_simd(size_t i) const {
-    return simd<T2>::load(this->data() + i);
+    return simd<T2>::loadu(this->data() + i);
   }
 
   // 取值
   template <typename T2>
   typename simd<T2>::type eval_simd_mask(size_t i) const {
-    return simd<T2>::mask_load(this->data() + i, this->size() - i);
+    return simd<T2>::mask_loadu(this->data() + i, this->size() - i);
   }
 
   // ========================================================
   // b ?= a
   subspan& operator+=(const subspan& other) {
-    simd_add_inplace(this->data(), other.data(), this->size());
+    simd_add_inplace<T, Policy>(this->data(), other.data(), this->size());
     return *this;
   }
 
   subspan& operator-=(const subspan& other) {
-    simd_sub_inplace(this->data(), other.data(), this->size());
+    simd_sub_inplace<T, Policy>(this->data(), other.data(), this->size());
     return *this;
   }
 
   subspan& operator*=(const subspan& other) {
-    simd_mul_inplace(this->data(), other.data(), this->size());
+    simd_mul_inplace<T, Policy>(this->data(), other.data(), this->size());
     return *this;
   }
 
   subspan& operator/=(const subspan& other) {
-    simd_div_inplace(this->data(), other.data(), this->size());
+    simd_div_inplace<T, Policy>(this->data(), other.data(), this->size());
     return *this;
   }
 
@@ -180,22 +182,22 @@ class subspan : public mdspan<T, Rank, Layout>, public TensorExpr<subspan<T, Ran
 
   // 添加与标量的复合赋值运算符
   subspan& operator+=(T scalar) {
-    simd_add_inplace_scalar(this->data(), scalar, this->size());
+    simd_add_inplace_scalar<T, Policy>(this->data(), scalar, this->size());
     return *this;
   }
 
   subspan& operator-=(T scalar) {
-    simd_sub_inplace_scalar(this->data(), scalar, this->size());
+    simd_sub_inplace_scalar<T, Policy>(this->data(), scalar, this->size());
     return *this;
   }
 
   subspan& operator*=(T scalar) {
-    simd_mul_inplace_scalar(this->data(), scalar, this->size());
+    simd_mul_inplace_scalar<T, Policy>(this->data(), scalar, this->size());
     return *this;
   }
 
   subspan& operator/=(T scalar) {
-    simd_div_inplace_scalar(this->data(), scalar, this->size());
+    simd_div_inplace_scalar<T, Policy>(this->data(), scalar, this->size());
     return *this;
   }
 

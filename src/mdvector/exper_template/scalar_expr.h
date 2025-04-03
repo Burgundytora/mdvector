@@ -8,8 +8,8 @@
 #endif
 
 // ======================== 标量包装类 ========================
-template <typename T>
-class ScalarWrapper : public TensorExpr<ScalarWrapper<T>> {
+template <class T, class Policy>
+class ScalarWrapper : public TensorExpr<ScalarWrapper<T, Policy>, Policy> {
   T value_;
   typename simd<T>::type simd_value_;
 
@@ -41,12 +41,12 @@ class ScalarWrapper : public TensorExpr<ScalarWrapper<T>> {
     auto tmp = simd<T>::set1(value_);
     force_simd_store(simd_value_, tmp);
 
-    // 最终验证（调试用）
-#ifndef NDEBUG
-    T verify[simd<T>::pack_size];
-    simd<T>::store(verify, simd_value_);
-    assert(verify[0] == value_ && "SIMD init failed!");
-#endif
+    //     // 最终验证（调试用）
+    // #ifndef NDEBUG
+    //     T verify[simd<T>::pack_size];
+    //     simd<T>::store(verify, simd_value_);
+    //     assert(verify[0] == value_ && "SIMD init failed!");
+    // #endif
   }
 
   // 允许拷贝

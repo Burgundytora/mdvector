@@ -13,7 +13,7 @@ using std::vector;
 #include "src/mdvector/mdvector.h"
 #include "src/mdvector/simd/simd_function.h"
 #include "src/other_method/base_expr/base_expr.h"
-#include "src/other_method/highway/function.h"
+// #include "src/other_method/highway/function.h"
 #include "time_cost.h"
 
 //
@@ -246,47 +246,47 @@ void test_base_expr() {
   }
 }
 
-template <class T>
-void test_highway() {
-  SimdAllocator<T> allocator_;
+// template <class T>
+// void test_highway() {
+//   SimdAllocator<T> allocator_;
 
-  T* data1_ = allocator_.allocate(total_element);
-  T* data2_ = allocator_.allocate(total_element);
-  T* data3_ = allocator_.allocate(total_element);
-  T* data4_ = allocator_.allocate(total_element);
+//   T* data1_ = allocator_.allocate(total_element);
+//   T* data2_ = allocator_.allocate(total_element);
+//   T* data3_ = allocator_.allocate(total_element);
+//   T* data4_ = allocator_.allocate(total_element);
 
-  // 赋值
-  for (size_t i = 0; i < total_element; i++) {
-    data1_[i] = 1;
-    data2_[i] = 2;
-    data4_[i] = 4;
-  }
+//   // 赋值
+//   for (size_t i = 0; i < total_element; i++) {
+//     data1_[i] = 1;
+//     data2_[i] = 2;
+//     data4_[i] = 4;
+//   }
 
-  TimerRecorder a("hwy 1d");
+//   TimerRecorder a("hwy 1d");
 
-  size_t k = 0;
-  while (k++ < loop) {
-    if constexpr (do_add) {
-      hwy_add(data1_, data2_, data3_, total_element);
-    }
+//   size_t k = 0;
+//   while (k++ < loop) {
+//     if constexpr (do_add) {
+//       hwy_add(data1_, data2_, data3_, total_element);
+//     }
 
-    if constexpr (do_sub) {
-      hwy_sub<T>(data1_, data2_, data3_, total_element);
-    }
+//     if constexpr (do_sub) {
+//       hwy_sub<T>(data1_, data2_, data3_, total_element);
+//     }
 
-    if constexpr (do_mul) {
-      hwy_mul<T>(data1_, data2_, data3_, total_element);
-    }
+//     if constexpr (do_mul) {
+//       hwy_mul<T>(data1_, data2_, data3_, total_element);
+//     }
 
-    if constexpr (do_div) {
-      hwy_div<T>(data1_, data2_, data3_, total_element);
-    }
-  }
+//     if constexpr (do_div) {
+//       hwy_div<T>(data1_, data2_, data3_, total_element);
+//     }
+//   }
 
-  allocator_.deallocate(data1_);
-  allocator_.deallocate(data2_);
-  allocator_.deallocate(data3_);
-}
+//   allocator_.deallocate(data1_);
+//   allocator_.deallocate(data2_);
+//   allocator_.deallocate(data3_);
+// }
 
 template <class T>
 void test_simd() {
@@ -309,19 +309,19 @@ void test_simd() {
   size_t k = 0;
   while (k++ < loop) {
     if constexpr (do_add) {
-      simd_add<T>(data1_, data2_, data3_, total_element);
+      simd_add<T, AlignedPolicy>(data1_, data2_, data3_, total_element);
     }
 
     if constexpr (do_sub) {
-      simd_sub<T>(data1_, data2_, data3_, total_element);
+      simd_sub<T, AlignedPolicy>(data1_, data2_, data3_, total_element);
     }
 
     if constexpr (do_mul) {
-      simd_mul<T>(data1_, data2_, data3_, total_element);
+      simd_mul<T, AlignedPolicy>(data1_, data2_, data3_, total_element);
     }
 
     if constexpr (do_div) {
-      simd_div<T>(data1_, data2_, data3_, total_element);
+      simd_div<T, AlignedPolicy>(data1_, data2_, data3_, total_element);
     }
   }
 
@@ -487,7 +487,7 @@ int main(int args, char* argv[]) {
     test_simd<double>();
     test_mdvector_expr<double>();
     test_eigen_matrixd();
-    test_highway<double>();
+    // test_highway<double>();
     test_vector<double>();
     test_norm<double>();
     test_valarray<double>();

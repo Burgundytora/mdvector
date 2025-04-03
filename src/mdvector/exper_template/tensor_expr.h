@@ -4,7 +4,7 @@
 #include "../simd/simd.h"
 
 // ======================== 表达式模板基类 ========================
-template <typename Derived>
+template <class Derived, class Policy>
 class TensorExpr {
  public:
   const Derived& derived() const { return static_cast<const Derived&>(*this); }
@@ -24,13 +24,13 @@ class TensorExpr {
 
     for (; i + pack_size <= n; i += pack_size) {
       auto simd_val = derived().template eval_simd<std::remove_const_t<Dest>>(i);
-      simd<std::remove_const_t<Dest>>::store(dest + i, simd_val);
+      Policy::template store<std::remove_const_t<Dest>>(dest + i, simd_val);
     }
 
     // 使用掩码处理尾部元素
     const size_t remaining = n - i;
     auto simd_val = derived().template eval_simd_mask<std::remove_const_t<Dest>>(i);
-    simd<std::remove_const_t<Dest>>::mask_store(dest + i, remaining, simd_val);
+    Policy::template mask_store<std::remove_const_t<Dest>>(dest + i, remaining, simd_val);
   }
 };
 

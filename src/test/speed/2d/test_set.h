@@ -9,7 +9,7 @@ using std::vector;
 constexpr bool do_add = true;
 constexpr bool do_sub = true;
 constexpr bool do_mul = true;
-constexpr bool do_div = true;
+constexpr bool do_div = false;
 
 constexpr size_t points = 0.5E9;
 

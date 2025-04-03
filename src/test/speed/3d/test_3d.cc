@@ -125,19 +125,19 @@ void test_simd() {
   size_t k = 0;
   while (k++ < loop) {
     if constexpr (do_add) {
-      simd_add<T>(data1_, data2_, data3_, total_element);
+      simd_add<T, AlignedPolicy>(data1_, data2_, data3_, total_element);
     }
 
     if constexpr (do_sub) {
-      simd_sub<T>(data1_, data2_, data3_, total_element);
+      simd_sub<T, AlignedPolicy>(data1_, data2_, data3_, total_element);
     }
 
     if constexpr (do_mul) {
-      simd_mul<T>(data1_, data2_, data3_, total_element);
+      simd_mul<T, AlignedPolicy>(data1_, data2_, data3_, total_element);
     }
 
     if constexpr (do_div) {
-      simd_div<T>(data1_, data2_, data3_, total_element);
+      simd_div<T, AlignedPolicy>(data1_, data2_, data3_, total_element);
     }
   }
 
