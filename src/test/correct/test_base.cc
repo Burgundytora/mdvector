@@ -8,17 +8,17 @@ int main(int args, char *argv[]) {
   size_t b = 3;
   size_t c = 1;
 
-  // 创建ndarray的shape
+  // 创建mdvector的shape
   mdshape_2d ss = {a, b};
 
-  // 创建ndarray
-  mdvector_2d<double> dat1(ss);                       // 使用定义好的shape构造
-  mdvector_2d<double> dat2(mdshape_2d{2, 3});         // 临时创建shape构造
+  // 创建mdvector
+  mdvector_2d<double> dat1(ss);                // 使用定义好的shape构造
+  mdvector_2d<double> dat2(mdshape_2d{2, 3});  // 临时创建shape构造
   mdvector_2d<double> dat2_error1(mdshape_2d{2, 4});  // 第二维长度不同 与data1进行运算会出错 +会unsafe Plus会抛出异常
-  mdvector_2d<double> dat2_direct({a, b});            // 调用array初始化列表
-  mdvector_2d<double> dat3(mdshape_2d{2, 3});         // 同data1
-  mdvector_3d<double> dat4(mdshape_3d{3, 3, 3});      // 同data1
-  mdvector_3d<double> dat5;                           // 先声明，后设置维度
+  mdvector_2d<double> dat2_direct({a, b});        // 调用array初始化列表
+  mdvector_2d<double> dat3(mdshape_2d{2, 3});     // 同data1
+  mdvector_3d<double> dat4(mdshape_3d{3, 3, 3});  // 同data1
+  mdvector_3d<double> dat5;                       // 先声明，后设置维度
   dat5.reset_shape(mdshape_3d{3, 3, 3});
 
   // 输入参数

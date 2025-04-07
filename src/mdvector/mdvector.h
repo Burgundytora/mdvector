@@ -9,7 +9,7 @@ template <class T, size_t Rank, class Enable = void>
 class mdvector : private MDEngine<T, Rank> {
   using Impl = MDEngine<T, Rank>;
 
- private:
+ public:
   // 使用基础构造函数
   using Impl::Impl;
 

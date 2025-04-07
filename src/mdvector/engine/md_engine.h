@@ -26,7 +26,10 @@ class MDEngine {
 
   // 从维度array构造
   explicit MDEngine(const std::array<std::size_t, Rank>& dims)
-      : data_(calculate_size(dims)), view_(mdspan<T, Rank>(data_.data(), dims)) {}
+      : data_(calculate_size(dims)), view_(mdspan<T, Rank>(data_.data(), dims)) {
+    // 检查pod
+    static_assert(std::is_trivial_v<T> && std::is_standard_layout_v<T>, "T must be trivial and standard-layout!");
+  }
 
   // 析构函数 成员全部为STL 默认析构即可
   ~MDEngine() = default;
