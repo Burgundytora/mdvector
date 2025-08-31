@@ -9,27 +9,14 @@
 namespace md {
 
 template <class T>
-class SimdAllocator {
+class simd_allocator {
  public:
   using value_type = T;
 
-  using pointer = T*;
-  using const_pointer = const T*;
-  using reference = T&;
-  using const_reference = const T&;
-  using size_type = std::size_t;
-  using difference_type = std::ptrdiff_t;
-  using is_always_equal = std::true_type;
+  simd_allocator() noexcept = default;
 
   template <class U>
-  struct rebind {
-    using other = SimdAllocator<U>;
-  };
-
-  SimdAllocator() noexcept = default;
-
-  template <class U>
-  SimdAllocator(const SimdAllocator<U>&) noexcept {}
+  simd_allocator(const simd_allocator<U>&) = delete;
 
   static constexpr size_t alignment_for() {
     if constexpr (std::is_arithmetic_v<T>) {
@@ -64,30 +51,10 @@ class SimdAllocator {
   }
 
   size_t max_size() const noexcept { return std::numeric_limits<size_t>::max() / sizeof(T); }
-
-  template <class U, class... Args>
-  void construct(U* p, Args&&... args) {
-    ::new (static_cast<void*>(p)) U(std::forward<Args>(args)...);
-  }
-
-  template <class U>
-  void destroy(U* p) {
-    p->~U();
-  }
-
-  template <class U>
-  bool operator==(const SimdAllocator<U>&) const noexcept {
-    return true;
-  }
-
-  template <class U>
-  bool operator!=(const SimdAllocator<U>&) const noexcept {
-    return false;
-  }
 };
 
 template <class T>
-using auto_allocator = std::conditional_t<std::is_floating_point_v<T>, SimdAllocator<T>, std::allocator<T> >;
+using auto_allocator = std::conditional_t<std::is_floating_point_v<T>, simd_allocator<T>, std::allocator<T> >;
 
 }  // namespace md
 

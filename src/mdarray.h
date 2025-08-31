@@ -1,5 +1,7 @@
-#ifndef HEADER_MDARRAY_HPP_
-#define HEADER_MDARRAY_HPP_
+#ifndef __MDARRAY_H__
+#define __MDARRAY_H__
+
+#include <algorithm>
 
 #include "multi_dimension/engine_static.h"
 
@@ -9,8 +11,8 @@ class mdarray_base;
 // base type without simd_ET
 template <class T, class Layout, size_t... lengths>
 class mdarray_base<T, Layout, std::enable_if_t<!std::is_floating_point_v<T>>, lengths...>
-    : private md::EngineStatic<T, Layout, lengths...> {
-  using Impl = md::EngineStatic<T, Layout, lengths...>;
+    : private md::engine_static<T, Layout, lengths...> {
+  using Impl = md::engine_static<T, Layout, lengths...>;
 
  public:
   using Impl::Impl;
@@ -32,8 +34,11 @@ class mdarray_base<T, Layout, std::enable_if_t<!std::is_floating_point_v<T>>, le
   ~mdarray_base() = default;
 
   using Impl::operator();
+#if defined(__cpp_multidimensional_subscript) || __cplusplus >= 202302L
+  using Impl::operator[];
+#endif
   using Impl::at;
-
+  using Impl::extent;
   using Impl::extents;
   using Impl::set_value;
   using Impl::shapes;
@@ -59,10 +64,10 @@ class mdarray_base<T, Layout, std::enable_if_t<!std::is_floating_point_v<T>>, le
 // double/float with simd_ET
 template <class T, class Layout, size_t... lengths>
 class mdarray_base<T, Layout, std::enable_if_t<std::is_floating_point_v<T>>, lengths...>
-    : public md::TensorExpr<mdarray_base<T, Layout, void, lengths...>, md::UnalignedPolicy>,
-      private md::EngineStatic<T, Layout, lengths...> {
-  using Impl = md::EngineStatic<T, Layout, lengths...>;
-  using Policy = md::UnalignedPolicy;
+    : public md::tensor_expr<mdarray_base<T, Layout, void, lengths...>, md::unaligned_policy>,
+      private md::engine_static<T, Layout, lengths...> {
+  using Impl = md::engine_static<T, Layout, lengths...>;
+  using Policy = md::unaligned_policy;
 
  public:
   using Impl::Impl;
@@ -84,7 +89,11 @@ class mdarray_base<T, Layout, std::enable_if_t<std::is_floating_point_v<T>>, len
   ~mdarray_base() = default;
 
   using Impl::operator();
+#if defined(__cpp_multidimensional_subscript) || __cplusplus >= 202302L
+  using Impl::operator[];
+#endif
   using Impl::at;
+  using Impl::extent;
   using Impl::extents;
   using Impl::set_value;
   using Impl::shapes;
@@ -105,15 +114,8 @@ class mdarray_base<T, Layout, std::enable_if_t<std::is_floating_point_v<T>>, len
   using Impl::rbegin;
   using Impl::rend;
 
-  // 禁止从表达式构造 mdarray需编译时构造
-  // template <class E>
-  // mdarray_base(const TensorExpr<E, Policy>& expr) {
-  //   this->reset_shape(expr.extents());
-  //   expr.eval_to(this->data());
-  // }
-
   template <class E>
-  mdarray_base& operator=(const TensorExpr<E, Policy>& expr) {
+  mdarray_base& operator=(const md::tensor_expr<E, Policy>& expr) {
     expr.eval_to(this->data());
     return *this;
   }
@@ -149,25 +151,25 @@ class mdarray_base<T, Layout, std::enable_if_t<std::is_floating_point_v<T>>, len
   }
 
   template <class E>
-  mdarray_base& operator+=(const md::TensorExpr<E, Policy>& expr) {
+  mdarray_base& operator+=(const md::tensor_expr<E, Policy>& expr) {
     (*this + expr).eval_to(this->data());
     return *this;
   }
 
   template <class E>
-  mdarray_base& operator-=(const md::TensorExpr<E, Policy>& expr) {
+  mdarray_base& operator-=(const md::tensor_expr<E, Policy>& expr) {
     (*this - expr).eval_to(this->data());
     return *this;
   }
 
   template <class E>
-  mdarray_base& operator*=(const md::TensorExpr<E, Policy>& expr) {
+  mdarray_base& operator*=(const md::tensor_expr<E, Policy>& expr) {
     (*this * expr).eval_to(this->data());
     return *this;
   }
 
   template <class E>
-  mdarray_base& operator/=(const md::TensorExpr<E, Policy>& expr) {
+  mdarray_base& operator/=(const md::tensor_expr<E, Policy>& expr) {
     (*this / expr).eval_to(this->data());
     return *this;
   }
@@ -216,11 +218,11 @@ class mdarray_base<T, Layout, std::enable_if_t<std::is_floating_point_v<T>>, len
 
   using this_type = mdarray_base;
   // 数学函数简化定义
-#define DEFINE_MD_MATH_OP(name, op)                                                                             \
-  this_type name() const noexcept {                                                                             \
-    this_type res(*this);                                                                                       \
-    std::transform(data_.begin(), data_.end(), res.data_.begin(), [](T val) noexcept { return std::op(val); }); \
-    return res;                                                                                                 \
+#define DEFINE_MD_MATH_OP(name, op)                                                                       \
+  this_type name() const noexcept {                                                                       \
+    this_type res(*this);                                                                                 \
+    std::transform(this->begin(), this->end(), res.begin(), [](T val) noexcept { return std::op(val); }); \
+    return res;                                                                                           \
   }
   // 三角函数
   DEFINE_MD_MATH_OP(cos, cos);
@@ -237,8 +239,7 @@ class mdarray_base<T, Layout, std::enable_if_t<std::is_floating_point_v<T>>, len
   DEFINE_MD_MATH_OP(abs, abs);
   DEFINE_MD_MATH_OP(sqrt, sqrt);
   DEFINE_MD_MATH_OP(log10, log10);
-  DEFINE_MD_MATH_OP(ln, ln);
-  DEFINE_MD_MATH_OP(pow2, pow2);
+  DEFINE_MD_MATH_OP(ln, log);
 
 #undef DEFINE_MD_MATH_OP
 
@@ -263,7 +264,7 @@ class mdarray_base<T, Layout, std::enable_if_t<std::is_floating_point_v<T>>, len
     return arr.name();                                                       \
   }
 
-// 生成无参数学函数
+// 批量定义数学函数
 DEFINE_MDARRAY_MATH_FUNC(cos)
 DEFINE_MDARRAY_MATH_FUNC(sin)
 DEFINE_MDARRAY_MATH_FUNC(tan)
@@ -302,4 +303,4 @@ using array_5d = mdarray<T, N1, N2, N3, N4, N5>;
 template <class T, size_t N1, size_t N2, size_t N3, size_t N4, size_t N5, size_t N6>
 using array_6d = mdarray<T, N1, N2, N3, N4, N5, N6>;
 
-#endif  // HEADER_MDARRAY_HPP_
+#endif  // __MDARRAY_H__

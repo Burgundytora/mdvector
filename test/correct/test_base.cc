@@ -12,13 +12,13 @@ int main(int args, char *argv[]) {
   shape_2d ss = {a, b};
 
   // 创建mdvector
-  vector_2d<double> dat1(ss);                     // 使用定义好的shape构造
-  vector_2d<double> dat2(shape_2d{2, 3});         // 临时创建shape构造
+  vector_2d<double> dat1(ss);              // 使用定义好的shape构造
+  vector_2d<double> dat2(shape_2d{2, 3});  // 临时创建shape构造
   vector_2d<double> dat2_error1(shape_2d{2, 4});  // 第二维长度不同 与data1进行运算会出错 +会unsafe Plus会抛出异常
-  vector_2d<double> dat2_direct({a, b});          // 调用array初始化列表
-  vector_2d<double> dat3(shape_2d{2, 3});         // 同data1
-  vector_3d<double> dat4(shape_3d{3, 3, 3});      // 同data1
-  vector_3d<double> dat5;                         // 先声明，后设置维度
+  vector_2d<double> dat2_direct({a, b});      // 调用array初始化列表
+  vector_2d<double> dat3(shape_2d{2, 3});     // 同data1
+  vector_3d<double> dat4(shape_3d{3, 3, 3});  // 同data1
+  vector_3d<double> dat5;                     // 先声明，后设置维度
   dat5.reset_shape(shape_3d{3, 3, 3});
 
   // 输入参数
@@ -103,6 +103,12 @@ int main(int args, char *argv[]) {
   std::cout << "data2.at(1,1):" << dat2.at(1, 1) << "\n";
   std::cout << "data3.at(1,1):" << dat3.at(1, 1) << "\n";
   //   std::cout << "data3.at(9,9):" << dat3.at(9, 9) << "\n";  // 错误 索引越界
+
+#if defined(__cpp_multidimensional_subscript) || __cplusplus >= 202302L
+  std::cout << "data1.at[1,1]:" << dat1[1, 1] << "\n";
+  std::cout << "data2.at[1,1]:" << dat2[1, 1] << "\n";
+  std::cout << "data3.at[1,1]:" << dat3[1, 1] << "\n";
+#endif
 
   // 正常完成
   std::cout << "down!" << std::endl;

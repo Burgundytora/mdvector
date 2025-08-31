@@ -6,7 +6,7 @@
 namespace md {
 
 template <class Derived, class Policy>
-class TensorExpr {
+class tensor_expr {
  public:
   const Derived& derived() const noexcept { return static_cast<const Derived&>(*this); }
 

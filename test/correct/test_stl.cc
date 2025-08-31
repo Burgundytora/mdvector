@@ -33,12 +33,12 @@ int main(int args, char *argv[]) {
   }
   std::cout << "\n";
 
-  auto slice = a.view(1, all());
+  auto slice = a.span(1, all());
 
   sum = std::reduce(slice.begin(), slice.end());
-  std::cout << "subspan: sum of subspan 4~6 = " << sum << " (expected 15)\n";
+  std::cout << "span: sum of span 4~6 = " << sum << " (expected 15)\n";
 
-  std::cout << "subspan: print 4~6 : ";
+  std::cout << "span: print 4~6 : ";
   for (const auto &it : slice) {
     std::cout << it << " ";
   }

@@ -1,12 +1,12 @@
-#ifndef HEADER_MDVECTOR_HPP_
-#define HEADER_MDVECTOR_HPP_
+#ifndef __MDVECTOR_H__
+#define __MDVECTOR_H__
 
 #include "multi_dimension/engine_dynamic.h"
 
 // base type without simd_ET
-template <class T, size_t Rank, class Layout = md::layout_right, class Enable = void>
-class mdvector : private md::EngineDynamic<T, Rank, Layout> {
-  using Impl = md::EngineDynamic<T, Rank, Layout>;
+template <class T, size_t Rank, class Layout, class Enable>
+class mdvector : private md::engine_dynamic<T, Rank, Layout> {
+  using Impl = md::engine_dynamic<T, Rank, Layout>;
 
  public:
   using Impl::Impl;
@@ -28,14 +28,17 @@ class mdvector : private md::EngineDynamic<T, Rank, Layout> {
   ~mdvector() = default;
 
   using Impl::operator();
+#if defined(__cpp_multidimensional_subscript) || __cplusplus >= 202302L
+  using Impl::operator[];
+#endif
   using Impl::at;
+  using Impl::extent;
   using Impl::extents;
   using Impl::reset_shape;
   using Impl::set_value;
   using Impl::shapes;
   using Impl::size;
   using Impl::used_size;
-  using Impl::view;
 
   using iterator = T*;
   using const_iterator = const T*;
@@ -55,9 +58,9 @@ class mdvector : private md::EngineDynamic<T, Rank, Layout> {
 // double/float with simd_ET
 template <class T, size_t Rank, class Layout>
 class mdvector<T, Rank, Layout, std::enable_if_t<std::is_floating_point_v<T>>>
-    : public md::TensorExpr<mdvector<T, Rank>, md::AlignedPolicy>, private md::EngineDynamic<T, Rank, Layout> {
-  using Impl = md::EngineDynamic<T, Rank, Layout>;
-  using Policy = md::AlignedPolicy;
+    : public md::tensor_expr<mdvector<T, Rank>, md::unaligned_policy>, private md::engine_dynamic<T, Rank, Layout> {
+  using Impl = md::engine_dynamic<T, Rank, Layout>;
+  using Policy = md::unaligned_policy;
 
  public:
   using Impl::Impl;
@@ -79,14 +82,17 @@ class mdvector<T, Rank, Layout, std::enable_if_t<std::is_floating_point_v<T>>>
   ~mdvector() = default;
 
   using Impl::operator();
+#if defined(__cpp_multidimensional_subscript) || __cplusplus >= 202302L
+  using Impl::operator[];
+#endif
   using Impl::at;
+  using Impl::extent;
   using Impl::extents;
   using Impl::reset_shape;
   using Impl::set_value;
   using Impl::shapes;
   using Impl::size;
   using Impl::used_size;
-  using Impl::view;
 
   using iterator = T*;
   using const_iterator = const T*;
@@ -103,15 +109,70 @@ class mdvector<T, Rank, Layout, std::enable_if_t<std::is_floating_point_v<T>>>
   using Impl::rend;
 
   template <class E>
-  mdvector(const md::TensorExpr<E, Policy>& expr) noexcept {
+  mdvector(const md::tensor_expr<E, Policy>& expr) noexcept {
     this->reset_shape(expr.extents());
     expr.eval_to(this->data());
   }
 
   template <class E>
-  mdvector& operator=(const md::TensorExpr<E, Policy>& expr) noexcept {
+  mdvector& operator=(const md::tensor_expr<E, Policy>& expr) noexcept {
+    this->reset_shape(expr.extents());
     expr.eval_to(this->data());
     return *this;
+  }
+
+  // 从span创建
+  mdvector(const md::span<T, Rank, Layout>& span) noexcept {
+    this->reset_shape(span.extents());
+    span.eval_to(this->data());
+  }
+
+  mdvector& operator=(const md::span<T, Rank, Layout>& span) noexcept {
+    this->reset_shape(span.extents());
+    span.eval_to(this->data());
+    return *this;
+  }
+
+  // 内存连续子视图
+  template <class... Slices>
+  auto span(Slices... slices) {
+    static_assert(sizeof...(Slices) == Rank, "Number of slices must match dimensionality");
+
+    constexpr std::size_t NewRank = md::compressed_rank_v<Slices...>;
+
+    auto [slice_array, is_integral] = md::prepare_slices<Rank>(extents(), slices...);
+
+    // 检查越界
+    md::check_slice_bounds<Rank>(slice_array, extents());
+
+    // 检查内存连续
+    if (!md::check_slice_contiguous<Rank, Layout>(extents(), slice_array, is_integral)) {
+      throw std::runtime_error("span slices must result in contiguous memory");
+    }
+
+    // 计算新的extents
+    std::array<std::size_t, NewRank> new_extents;
+    std::size_t new_idx = 0;
+
+    for (std::size_t i = 0; i < Rank; ++i) {
+      if (!is_integral[i]) {  // 只保留非整数索引的维度
+        const auto& s = slice_array[i];
+        std::ptrdiff_t start = md::normalize_index(s.start, extent(i));
+        std::ptrdiff_t end = md::normalize_index(s.end, extent(i));
+        new_extents[new_idx++] = s.is_all ? extent(i) : (end - start + 1);
+      }
+    }
+
+    // 计算新的数据指针偏移
+    std::size_t offset = calculate_offset(slice_array, is_integral);
+
+    // 返回适当维度的span
+    if constexpr (NewRank == 0) {
+      // 所有维度都是整数索引，返回标量引用
+      return data_[offset];
+    } else {
+      return md::span<T, NewRank, Layout>(data_.data() + offset, new_extents);
+    }
   }
 
   template <class T2>
@@ -145,25 +206,25 @@ class mdvector<T, Rank, Layout, std::enable_if_t<std::is_floating_point_v<T>>>
   }
 
   template <class E>
-  mdvector& operator+=(const md::TensorExpr<E, Policy>& expr) noexcept {
+  mdvector& operator+=(const md::tensor_expr<E, Policy>& expr) noexcept {
     (*this + expr).eval_to(this->data());
     return *this;
   }
 
   template <class E>
-  mdvector& operator-=(const md::TensorExpr<E, Policy>& expr) noexcept {
+  mdvector& operator-=(const md::tensor_expr<E, Policy>& expr) noexcept {
     (*this - expr).eval_to(this->data());
     return *this;
   }
 
   template <class E>
-  mdvector& operator*=(const md::TensorExpr<E, Policy>& expr) noexcept {
+  mdvector& operator*=(const md::tensor_expr<E, Policy>& expr) noexcept {
     (*this * expr).eval_to(this->data());
     return *this;
   }
 
   template <class E>
-  mdvector& operator/=(const md::TensorExpr<E, Policy>& expr) noexcept {
+  mdvector& operator/=(const md::tensor_expr<E, Policy>& expr) noexcept {
     (*this / expr).eval_to(this->data());
     return *this;
   }
@@ -198,7 +259,7 @@ class mdvector<T, Rank, Layout, std::enable_if_t<std::is_floating_point_v<T>>>
   void show_data_matrix_style() {
     if (Rank == 0) return;
 
-    const size_t cols = this->view_.extent(Rank - 1);
+    const size_t cols = this->extent(Rank - 1);
     const size_t rows = used_size() / cols;
 
     for (size_t i = 0; i < rows; ++i) {
@@ -212,11 +273,11 @@ class mdvector<T, Rank, Layout, std::enable_if_t<std::is_floating_point_v<T>>>
 
   using this_type = mdvector;
   // 数学函数简化定义
-#define DEFINE_MD_MATH_OP(name, op)                                                                             \
-  this_type name() const noexcept {                                                                             \
-    this_type res(*this);                                                                                       \
-    std::transform(data_.begin(), data_.end(), res.data_.begin(), [](T val) noexcept { return std::op(val); }); \
-    return res;                                                                                                 \
+#define DEFINE_MD_MATH_OP(name, op)                                                                       \
+  this_type name() const noexcept {                                                                       \
+    this_type res(*this);                                                                                 \
+    std::transform(this->begin(), this->end(), res.begin(), [](T val) noexcept { return std::op(val); }); \
+    return res;                                                                                           \
   }
   // 三角函数
   DEFINE_MD_MATH_OP(cos, cos);
@@ -233,8 +294,7 @@ class mdvector<T, Rank, Layout, std::enable_if_t<std::is_floating_point_v<T>>>
   DEFINE_MD_MATH_OP(abs, abs);
   DEFINE_MD_MATH_OP(sqrt, sqrt);
   DEFINE_MD_MATH_OP(log10, log10);
-  DEFINE_MD_MATH_OP(ln, ln);
-  DEFINE_MD_MATH_OP(pow2, pow2);
+  DEFINE_MD_MATH_OP(ln, log);
 
 #undef DEFINE_MD_MATH_OP
 
@@ -251,37 +311,55 @@ class mdvector<T, Rank, Layout, std::enable_if_t<std::is_floating_point_v<T>>>
                    [y](T val) noexcept { return std::pow(val, y); });
     return res;
   }
+
+ private:
+  // 计算数据指针偏移
+  std::size_t calculate_offset(const std::array<md::slice, Rank>& slices, const std::array<bool, Rank>& is_integral) {
+    std::size_t offset = 0;
+    std::size_t stride = 1;
+
+    // 按内存布局计算偏移（这里以行优先为例）
+    for (int i = Rank - 1; i >= 0; --i) {
+      if (!is_integral[i]) {
+        offset += slices[i].start * stride;
+        stride *= extent(i);
+      } else {
+        offset += static_cast<std::size_t>(slices[i].start) * stride;
+      }
+    }
+
+    return offset;
+  }
 };
 
 // 视图的数学函数返回一个新的mdvector
-#define DEFINE_SUBSPAN_MATH_FUNC(name, func)                                                                \
+#define DEFINE_SPAN_MATH_FUNC(name, func)                                                                   \
   template <class T, size_t Rank, class Layout>                                                             \
-  mdvector<T, Rank, Layout> subspan<T, Rank, Layout>::name() const noexcept {                               \
+  mdvector<T, Rank, Layout> md::span<T, Rank, Layout>::name() const noexcept {                              \
     mdvector<T, Rank, Layout> res(this->extents_);                                                          \
     std::transform(this->begin(), this->end(), res.begin(), [](T val) noexcept { return std::func(val); }); \
     return res;                                                                                             \
   }
 
 // 三角函数
-DEFINE_SUBSPAN_MATH_FUNC(cos, cos);
-DEFINE_SUBSPAN_MATH_FUNC(acos, acos);
-DEFINE_SUBSPAN_MATH_FUNC(cosh, cosh);
-DEFINE_SUBSPAN_MATH_FUNC(sin, sin);
-DEFINE_SUBSPAN_MATH_FUNC(asin, asin);
-DEFINE_SUBSPAN_MATH_FUNC(sinh, sinh);
-DEFINE_SUBSPAN_MATH_FUNC(tan, tan);
-DEFINE_SUBSPAN_MATH_FUNC(atan, atan);
-DEFINE_SUBSPAN_MATH_FUNC(tanh, tanh);
-DEFINE_SUBSPAN_MATH_FUNC(abs, abs);
-DEFINE_SUBSPAN_MATH_FUNC(sqrt, sqrt);
-DEFINE_SUBSPAN_MATH_FUNC(log10, log10);
-DEFINE_SUBSPAN_MATH_FUNC(ln, ln);
-DEFINE_SUBSPAN_MATH_FUNC(pow2, pow2);
+DEFINE_SPAN_MATH_FUNC(cos, cos);
+DEFINE_SPAN_MATH_FUNC(acos, acos);
+DEFINE_SPAN_MATH_FUNC(cosh, cosh);
+DEFINE_SPAN_MATH_FUNC(sin, sin);
+DEFINE_SPAN_MATH_FUNC(asin, asin);
+DEFINE_SPAN_MATH_FUNC(sinh, sinh);
+DEFINE_SPAN_MATH_FUNC(tan, tan);
+DEFINE_SPAN_MATH_FUNC(atan, atan);
+DEFINE_SPAN_MATH_FUNC(tanh, tanh);
+DEFINE_SPAN_MATH_FUNC(abs, abs);
+DEFINE_SPAN_MATH_FUNC(sqrt, sqrt);
+DEFINE_SPAN_MATH_FUNC(log10, log10);
+DEFINE_SPAN_MATH_FUNC(ln, log);
 
-#undef DEFINE_SUBSPAN_MATH_FUNC
+#undef DEFINE_SPAN_MATH_FUNC
 
 template <class T, size_t Rank, class Layout>
-mdvector<T, Rank, Layout> subspan<T, Rank, Layout>::exp(T y) const noexcept {
+mdvector<T, Rank, Layout> md::span<T, Rank, Layout>::exp(T y) const noexcept {
   mdvector<T, Rank, Layout> res(this->extents_);
   std::transform(this->data_.begin(), this->data_.end(), res.data_.begin(),
                  [y](T val) noexcept { return std::pow(y, val); });
@@ -289,7 +367,7 @@ mdvector<T, Rank, Layout> subspan<T, Rank, Layout>::exp(T y) const noexcept {
 }
 
 template <class T, size_t Rank, class Layout>
-mdvector<T, Rank, Layout> subspan<T, Rank, Layout>::pow(T y) const noexcept {
+mdvector<T, Rank, Layout> md::span<T, Rank, Layout>::pow(T y) const noexcept {
   mdvector<T, Rank, Layout> res(this->extents_);
   std::transform(this->begin(), this->end(), res.begin(), [y](T val) noexcept { return std::pow(val, y); });
   return res;
@@ -302,7 +380,7 @@ mdvector<T, Rank, Layout> subspan<T, Rank, Layout>::pow(T y) const noexcept {
     return v.name();                                       \
   }                                                        \
   template <class T, size_t Rank, class Layout>            \
-  auto name(const subspan<T, Rank, Layout>& v) noexcept {  \
+  auto name(const md::span<T, Rank, Layout>& v) noexcept { \
     return v.name();                                       \
   }
 
@@ -319,7 +397,6 @@ DEFINE_MD_MATH_FUNC(abs);
 DEFINE_MD_MATH_FUNC(sqrt);
 DEFINE_MD_MATH_FUNC(log10);
 DEFINE_MD_MATH_FUNC(ln);
-DEFINE_MD_MATH_FUNC(pow2);
 
 #undef DEFINE_MD_MATH_FUNC
 
@@ -349,4 +426,4 @@ using vector_5d = mdvector<T, 5>;
 template <class T>
 using vector_6d = mdvector<T, 6>;
 
-#endif  // HEADER_MDVECTOR_HPP_
+#endif  // __MDVECTOR_H__

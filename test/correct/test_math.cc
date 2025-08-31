@@ -4,6 +4,7 @@
 
 using md::all;
 using md::slice;
+using md::span;
 
 int main(int args, char *argv[]) {
   std::cout << "\nVerification:" << std::endl;
@@ -39,33 +40,33 @@ int main(int args, char *argv[]) {
   }
   std::cout << "\n";
 
-  std::cout << "subspan: print 0.1~0.3 : ";
-  for (const auto &it : a.view(0, all())) {
+  std::cout << "span: print 0.1~0.3 : ";
+  for (const auto &it : a.span(0, all())) {
     std::cout << it << " ";
   }
   std::cout << "\n";
 
-  std::cout << "subspan: print 0.4~0.6 : ";
-  for (const auto &it : a.view(1, all())) {
+  std::cout << "span: print 0.4~0.6 : ";
+  for (const auto &it : a.span(1, all())) {
     std::cout << it << " ";
   }
   std::cout << "\n";
 
-  std::cout << "subspan: print (0.1~0.3).sin() : ";
-  for (const auto &it : a.view(0, all()).sin()) {
+  std::cout << "span: print (0.1~0.3).sin() : ";
+  for (const auto &it : a.span(0, all()).sin()) {
     std::cout << it << " ";
   }
   std::cout << "\n";
 
-  std::cout << "subspan: print sin(0.1~0.3)*10 : ";
-  vector_2d<double> temp = sin(a.view(0, all())) + 10.0;
+  std::cout << "span: print sin(0.1~0.3)+10 : ";
+  vector_1d<double> temp = sin(a.span(0, all())) + 10.0;
   for (const auto &it : temp) {
     std::cout << it << " ";
   }
   std::cout << "\n";
 
-  std::cout << "subspan: print (0.4~0.6)^3 : ";
-  for (const auto &it : a.view(1, all()).pow(3)) {
+  std::cout << "span: print (0.4~0.6)^3 : ";
+  for (const auto &it : a.span(1, all()).pow(3)) {
     std::cout << it << " ";
   }
   std::cout << "\n";

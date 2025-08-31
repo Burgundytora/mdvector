@@ -13,10 +13,11 @@ include(SelectSimd)
 
 # 添加子目录
 include_directories(${PROJECT_SOURCE_DIR}/src)
+add_subdirectory(test/correct)
 
 # 测试
-option(BUILD_TEST "" ON)
-if(BUILD_TEST)
+option(BUILD_SPEED_TEST "" OFF)
+if(BUILD_SPEED_TEST)
     if(WIN32)
         set(INCLUDE_DIR "G:/third_party/include")
     else()
@@ -27,7 +28,8 @@ if(BUILD_TEST)
         "${INCLUDE_DIR}/highway"
         "${INCLUDE_DIR}/xtensor/include"
         "${INCLUDE_DIR}/xtl/include"
+        "${INCLUDE_DIR}/xsimd/include"
     )
     include_directories(${PROJECT_SOURCE_DIR}/test)
-    add_subdirectory(test)
+    add_subdirectory(test/speed)
 endif()

@@ -14,13 +14,20 @@ struct simd<float> {
   static constexpr size_t alignment = 64;
   static constexpr size_t pack_size = 16;
   using type = __m512;
+  using ref_type = __m512&;
+  using const_type = const __m512;
+  using const_ref_type = const __m512&;
 
   static inline type load(const float* p) { return _mm512_load_ps(p); }
-  static inline void store(float* p, type v) { _mm512_store_ps(p, v); }
-  static inline type add(type a, type b) { return _mm512_add_ps(a, b); }
-  static inline type sub(type a, type b) { return _mm512_sub_ps(a, b); }
-  static inline type mul(type a, type b) { return _mm512_mul_ps(a, b); }
-  static inline type div(type a, type b) { return _mm512_div_ps(a, b); }
+  static inline void store(float* p, const_ref_type v) { _mm512_store_ps(p, v); }
+
+  static inline type loadu(const float* p) { return _mm512_loadu_ps(p); }
+  static inline void storeu(float* p, const_ref_type v) { _mm512_storeu_ps(p, v); }
+
+  static inline type add(const_ref_type a, const_ref_type b) { return _mm512_add_ps(a, b); }
+  static inline type sub(const_ref_type a, const_ref_type b) { return _mm512_sub_ps(a, b); }
+  static inline type mul(const_ref_type a, const_ref_type b) { return _mm512_mul_ps(a, b); }
+  static inline type div(const_ref_type a, const_ref_type b) { return _mm512_div_ps(a, b); }
 
   static inline __mmask16 mask(const size_t& remaining) { return (1u << remaining) - 1; }
 
@@ -30,10 +37,10 @@ struct simd<float> {
   static inline type mask_loadu(const float* p, const size_t& remaining) {
     return _mm512_maskz_loadu_ps(mask(remaining), p);
   }
-  static inline void mask_store(float* p, const size_t& remaining, type v) {
+  static inline void mask_store(float* p, const size_t& remaining, const_ref_type v) {
     _mm512_mask_store_ps(p, mask(remaining), v);
   }
-  static inline void mask_storeu(float* p, const size_t& remaining, type v) {
+  static inline void mask_storeu(float* p, const size_t& remaining, const_ref_type v) {
     _mm512_mask_storeu_ps(p, mask(remaining), v);
   }
 
@@ -45,16 +52,20 @@ struct simd<double> {
   static constexpr size_t alignment = 64;
   static constexpr size_t pack_size = 8;
   using type = __m512d;
-
-  static inline type add(type a, type b) { return _mm512_add_pd(a, b); }
-  static inline type sub(type a, type b) { return _mm512_sub_pd(a, b); }
-  static inline type mul(type a, type b) { return _mm512_mul_pd(a, b); }
-  static inline type div(type a, type b) { return _mm512_div_pd(a, b); }
+  using ref_type = __m512d&;
+  using const_type = const __m512d;
+  using const_ref_type = const __m512d&;
 
   static inline type load(const double* p) { return _mm512_load_pd(p); }
   static inline void store(double* p, type v) { _mm512_store_pd(p, v); }
+
   static inline type loadu(const double* p) { return _mm512_loadu_pd(p); }
   static inline void storeu(double* p, type v) { _mm512_storeu_pd(p, v); }
+
+  static inline type add(const_ref_type a, const_ref_type b) { return _mm512_add_pd(a, b); }
+  static inline type sub(const_ref_type a, const_ref_type b) { return _mm512_sub_pd(a, b); }
+  static inline type mul(const_ref_type a, const_ref_type b) { return _mm512_mul_pd(a, b); }
+  static inline type div(const_ref_type a, const_ref_type b) { return _mm512_div_pd(a, b); }
 
   static inline __mmask8 mask(const size_t& remaining) { return (1u << remaining) - 1; }
 
@@ -64,10 +75,10 @@ struct simd<double> {
   static inline type mask_loadu(const double* p, const size_t& remaining) {
     return _mm512_maskz_loadu_pd(mask(remaining), p);
   }
-  static inline void mask_store(double* p, const size_t& remaining, type v) {
+  static inline void mask_store(double* p, const size_t& remaining, const_ref_type v) {
     _mm512_mask_store_pd(p, mask(remaining), v);
   }
-  static inline void mask_storeu(double* p, const size_t& remaining, type v) {
+  static inline void mask_storeu(double* p, const size_t& remaining, const_ref_type v) {
     _mm512_mask_storeu_pd(p, mask(remaining), v);
   }
 

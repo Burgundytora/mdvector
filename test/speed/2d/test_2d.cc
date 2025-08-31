@@ -5,6 +5,9 @@
 
 //
 #include "Eigen/Dense"
+
+//
+#define XTENSOR_USE_XSIMD
 #include "xtensor/xarray.hpp"
 #include "xtensor/xtensor.hpp"
 
@@ -294,7 +297,7 @@ void test_base_expr() {
 
 // template <class T>
 // void test_highway() {
-//   SimdAllocator<T> allocator_;
+//   simd_allocator<T> allocator_;
 
 //   T* data1_ = allocator_.allocate(total_element);
 //   T* data2_ = allocator_.allocate(total_element);
@@ -336,7 +339,7 @@ void test_base_expr() {
 
 template <class T>
 void test_simd() {
-  md::SimdAllocator<T> allocator_;
+  md::simd_allocator<T> allocator_;
 
   T* data1_ = allocator_.allocate(total_element);
   T* data2_ = allocator_.allocate(total_element);
@@ -355,19 +358,19 @@ void test_simd() {
   size_t k = 0;
   while (k++ < loop) {
     if constexpr (do_add) {
-      md::simd_add<T, md::AlignedPolicy>(data1_, data2_, data3_, total_element);
+      md::simd_add<T, md::aligned_policy>(data1_, data2_, data3_, total_element);
     }
 
     if constexpr (do_sub) {
-      md::simd_sub<T, md::AlignedPolicy>(data1_, data2_, data3_, total_element);
+      md::simd_sub<T, md::aligned_policy>(data1_, data2_, data3_, total_element);
     }
 
     if constexpr (do_mul) {
-      md::simd_mul<T, md::AlignedPolicy>(data1_, data2_, data3_, total_element);
+      md::simd_mul<T, md::aligned_policy>(data1_, data2_, data3_, total_element);
     }
 
     if constexpr (do_div) {
-      md::simd_div<T, md::AlignedPolicy>(data1_, data2_, data3_, total_element);
+      md::simd_div<T, md::aligned_policy>(data1_, data2_, data3_, total_element);
     }
     val = data3_[0];
   }

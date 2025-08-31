@@ -276,7 +276,7 @@ void simd_div_inplace_scalar(T* __restrict a, T b, const size_t n) {
 // ======================== 标量与向量操作 ========================
 template <class T, class Policy>
 void simd_scalar_add(T a, const T* __restrict b, T* __restrict c, const size_t n) {
-  simd_add_scalar<T, Policy>(b, a, c, n);  // 复用加法交换律
+  simd_add_scalar<T, Policy>(b, a, c, n);
 }
 
 template <class T, class Policy>
@@ -297,7 +297,7 @@ void simd_scalar_sub(T a, const T* __restrict b, T* __restrict c, const size_t n
 
 template <class T, class Policy>
 void simd_scalar_mul(T a, const T* __restrict b, T* __restrict c, const size_t n) {
-  simd_mul_scalar<T, Policy>(b, a, c, n);  // 复用乘法交换律
+  simd_mul_scalar<T, Policy>(b, a, c, n);
 }
 
 template <class T, class Policy>

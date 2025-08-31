@@ -42,7 +42,7 @@ void print_simd_type() {
 }
 
 // 对齐
-struct AlignedPolicy {
+struct aligned_policy {
   template <class T>
   static inline auto load(const T* ptr) {
     return simd<T>::load(ptr);
@@ -54,18 +54,18 @@ struct AlignedPolicy {
   }
 
   template <class T>
-  static inline void store(T* ptr, typename simd<T>::type val) {
+  static inline void store(T* ptr, typename simd<T>::const_ref_type val) {
     simd<T>::store(ptr, val);
   }
 
   template <class T>
-  static inline void mask_store(T* ptr, const size_t& remaining, typename simd<T>::type val) {
+  static inline void mask_store(T* ptr, const size_t& remaining, typename simd<T>::const_ref_type val) {
     simd<T>::mask_store(ptr, remaining, val);
   }
 };
 
 // 非对齐
-struct UnalignedPolicy {
+struct unaligned_policy {
   template <class T>
   static inline auto load(const T* ptr) {
     return simd<T>::loadu(ptr);
@@ -77,15 +77,35 @@ struct UnalignedPolicy {
   }
 
   template <class T>
-  static inline void store(T* ptr, typename simd<T>::type val) {
+  static inline void store(T* ptr, typename simd<T>::const_ref_type val) {
     simd<T>::storeu(ptr, val);
   }
 
   template <class T>
-  static inline void mask_store(T* ptr, const size_t& remaining, typename simd<T>::type val) {
+  static inline void mask_store(T* ptr, const size_t& remaining, typename simd<T>::const_ref_type val) {
     simd<T>::mask_storeu(ptr, remaining, val);
   }
 };
+
+struct Add;
+struct Sub;
+struct Mul;
+struct Div;
+
+template <class T, class Cal>
+static inline typename simd<T>::type simd_cal(typename simd<T>::const_ref_type l, typename simd<T>::const_ref_type r) {
+  if constexpr (std::is_same_v<Cal, Add>) {
+    return simd<T>::add(l, r);
+  } else if constexpr (std::is_same_v<Cal, Sub>) {
+    return simd<T>::sub(l, r);
+  } else if constexpr (std::is_same_v<Cal, Mul>) {
+    return simd<T>::mul(l, r);
+  } else if constexpr (std::is_same_v<Cal, Div>) {
+    return simd<T>::div(l, r);
+  } else {
+    static_assert(false, "simd_cal<T, Cal>, Cal must be Add/Sub/Mul/Div !");
+  }
+}
 
 }  // namespace md
 

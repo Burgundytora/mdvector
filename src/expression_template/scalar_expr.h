@@ -6,13 +6,13 @@
 namespace md {
 
 template <class T, class Policy>
-class ScalarWrapper : public TensorExpr<ScalarWrapper<T, Policy>, Policy> {
+class scalar_wrapper : public tensor_expr<scalar_wrapper<T, Policy>, Policy> {
   typename simd<T>::type simd_value_;
 
  public:
-  explicit ScalarWrapper(T val) : simd_value_(simd<T>::set1(val)) {}
+  explicit scalar_wrapper(T val) : simd_value_(simd<T>::set1(val)) {}
 
-  ScalarWrapper(const ScalarWrapper &) = delete;
+  scalar_wrapper(const scalar_wrapper &) = delete;
 
   template <class U>
   typename simd<U>::type eval_simd(size_t) const {

@@ -3,6 +3,8 @@
 
 #include "detail.h"
 
+namespace md {
+
 template <class T, size_t Rank, class Layout = md::layout_right>
 class mdspan {
  public:
@@ -70,5 +72,7 @@ class mdspan {
   std::array<std::size_t, Rank> extents_;
   std::array<std::size_t, Rank> strides_;
 };
+
+}  // namespace md
 
 #endif  // __MDVECTOR_MDSPAN_H__
