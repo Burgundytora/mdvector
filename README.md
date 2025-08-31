@@ -4,6 +4,8 @@
 
 **mdvector** is a **C++17** based **lightweight header-only** multidimensional array computing library based on modern C++. Through **SIMD instruction set optimization** and **expression template techniques**, it achieves **near hand-written assembly performance** in element-wise operations while supporting **Python-style slicing operations** and high-performance computation on slices.
 
+
+
 ## 🚀 核心特性
 
 ### 1. 极致性能优化【已支持】
@@ -31,7 +33,7 @@
 
 ### 5. 未来特性
 
-- **高性能三角函数**：集成simd形式高性能三角函数，扩展mdvector在科学计算领域的适用性
+- **高性能基础数学函数[已支持]**：集成simd形式高性能三角函数及基础数学函数，扩展mdvector在科学计算领域的适用性
 - **更多灵活切片方法**：更多切片方法，如python风格跨步长子视图，以及降维等实用操作
 - **更多类型支持**：目前mdvector支持float与double，未来考虑兼容int以及自定义类型（但是会要求类型POD，同时会去掉表达式模板运算功能，保留多维索引与子视图功能）
 - **基本科学计算功能扩展**：三维坐标计算、四元数计算等基础功能
@@ -67,6 +69,40 @@
   <img src="docs/images/linux-3d.png" width="90%">
   <p><em>性能对比(越高越好)</em></p>
 </div>
+
+## 🚀 示例
+1.有限元计算中，根据节点实时三维坐标，更新梁长度信息，
+
+- 常规写法：用vector/结构体储存坐标，然后每个时间步for循环，写法复杂，存在中间变量，且使用AOS，难以simd向量化优化性能，变量多易出错：
+  ```
+  struct pos3d{
+    double x;
+    double y;
+    double z;
+  }
+  vector<pos3d> pos_info;
+  vector<double> length;
+  /// ... 赋值pos_info省略
+  /// 每个时间步更新length
+  for (int i = 0; i < nodes_num - 1; i++>){
+    double x_l = pos_info[i+1].x - pos_info[i].x;
+    doubel y_l = pos_info[i+1].y - pos_info[i].y;
+    doubel z_l = pos_info[i+1].z - pos_info[i].z;
+    length[i] = std::sqrt(std::pow(x_l, 2) + std::pow(y_l, 2) + std::pow(z_l, 2));
+  }
+  ```
+- mdvector方法：使用二维mdvector直接存储，储存十个节点的坐标信息，再创建内存连续视图，每次时间步中只需执行表达式计算，无需中间变量与for循环，且mdvector/span的四则运算为完全simd向量化，性能远高于基础for循环方法:
+  ```
+  mdvector<double, 2> pos_info({3, nodes_num});
+  mdvector<double, 1> length({nodes_num-1});
+  /// ... 赋值pos_info省略
+  md::span<double, 1> x1 = pos_info.span(0, slice(0, -2));
+  md::span<double, 1> x2 = pos_info.span(0, slice(1, -1));
+  /// ... y1 y2 z1 z2省略
+  /// 每个时间步更新length
+  length = (x2-x1)*(x2-x1) + (y2-y1)*(y2-y1) + (z2-z1)*(z2-z1);
+  length = length.sqrt();
+  ```
 
 ## 📦 快速开始
 

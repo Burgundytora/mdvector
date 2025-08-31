@@ -203,7 +203,7 @@ int main() {
   md::span<double, 1> y2 = pos_info.span(1, slice(1, -1));
   md::span<double, 1> z2 = pos_info.span(2, slice(1, -1));
   mdvector<double, 1> length = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1) + (z2 - z1) * (z2 - z1);
-  length = length.pow(0.5);
+  length = length.sqrt();
   length.show_data_matrix_style();
 
   return 0;
