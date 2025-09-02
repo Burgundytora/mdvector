@@ -58,9 +58,9 @@ class mdvector : private md::engine_dynamic<T, Rank, Layout> {
 // double/float with simd_ET
 template <class T, size_t Rank, class Layout>
 class mdvector<T, Rank, Layout, std::enable_if_t<std::is_floating_point_v<T>>>
-    : public md::tensor_expr<mdvector<T, Rank>, md::unaligned_policy>, private md::engine_dynamic<T, Rank, Layout> {
+    : public md::tensor_expr<mdvector<T, Rank>, T>, private md::engine_dynamic<T, Rank, Layout> {
   using Impl = md::engine_dynamic<T, Rank, Layout>;
-  using Policy = md::unaligned_policy;
+  using Policy = md::aligned_policy;
 
  public:
   using Impl::Impl;
@@ -109,27 +109,25 @@ class mdvector<T, Rank, Layout, std::enable_if_t<std::is_floating_point_v<T>>>
   using Impl::rend;
 
   template <class E>
-  mdvector(const md::tensor_expr<E, Policy>& expr) noexcept {
+  mdvector(const md::tensor_expr<E, T>& expr) noexcept {
     this->reset_shape(expr.extents());
-    expr.eval_to(this->data());
+    expr.eval_to<T, Policy>(this->data());
   }
 
   template <class E>
-  mdvector& operator=(const md::tensor_expr<E, Policy>& expr) noexcept {
-    this->reset_shape(expr.extents());
-    expr.eval_to(this->data());
+  mdvector& operator=(const md::tensor_expr<E, T>& expr) noexcept {
+    expr.eval_to<T, Policy>(this->data());
     return *this;
   }
 
   // 从span创建
   mdvector(const md::span<T, Rank, Layout>& span) noexcept {
     this->reset_shape(span.extents());
-    span.eval_to(this->data());
+    span.eval_to<T, Policy>(this->data());
   }
 
   mdvector& operator=(const md::span<T, Rank, Layout>& span) noexcept {
-    this->reset_shape(span.extents());
-    span.eval_to(this->data());
+    span.eval_to<T, Policy>(this->data());
     return *this;
   }
 
@@ -206,26 +204,26 @@ class mdvector<T, Rank, Layout, std::enable_if_t<std::is_floating_point_v<T>>>
   }
 
   template <class E>
-  mdvector& operator+=(const md::tensor_expr<E, Policy>& expr) noexcept {
-    (*this + expr).eval_to(this->data());
+  mdvector& operator+=(const md::tensor_expr<E, T>& expr) noexcept {
+    (*this + expr).eval_to<T, Policy>(this->data());
     return *this;
   }
 
   template <class E>
-  mdvector& operator-=(const md::tensor_expr<E, Policy>& expr) noexcept {
-    (*this - expr).eval_to(this->data());
+  mdvector& operator-=(const md::tensor_expr<E, T>& expr) noexcept {
+    (*this - expr).eval_to<T, Policy>(this->data());
     return *this;
   }
 
   template <class E>
-  mdvector& operator*=(const md::tensor_expr<E, Policy>& expr) noexcept {
-    (*this * expr).eval_to(this->data());
+  mdvector& operator*=(const md::tensor_expr<E, T>& expr) noexcept {
+    (*this * expr).eval_to<T, Policy>(this->data());
     return *this;
   }
 
   template <class E>
-  mdvector& operator/=(const md::tensor_expr<E, Policy>& expr) noexcept {
-    (*this / expr).eval_to(this->data());
+  mdvector& operator/=(const md::tensor_expr<E, T>& expr) noexcept {
+    (*this / expr).eval_to<T, Policy>(this->data());
     return *this;
   }
 
@@ -333,28 +331,27 @@ class mdvector<T, Rank, Layout, std::enable_if_t<std::is_floating_point_v<T>>>
 };
 
 // 视图的数学函数返回一个新的mdvector
-#define DEFINE_SPAN_MATH_FUNC(name, func)                                                                   \
-  template <class T, size_t Rank, class Layout>                                                             \
-  mdvector<T, Rank, Layout> md::span<T, Rank, Layout>::name() const noexcept {                              \
-    mdvector<T, Rank, Layout> res(this->extents_);                                                          \
-    std::transform(this->begin(), this->end(), res.begin(), [](T val) noexcept { return std::func(val); }); \
-    return res;                                                                                             \
+#define DEFINE_SPAN_MATH_FUNC(name, func)                                                                \
+  template <class T, size_t Rank, class Layout>                                                          \
+  mdvector<T, Rank, Layout> md::span<T, Rank, Layout>::name() const noexcept {                           \
+    mdvector<T, Rank, Layout> res(this->extents_);                                                       \
+    std::transform(this->begin(), this->end(), res.begin(), [](T val) noexcept { return (func)(val); }); \
+    return res;                                                                                          \
   }
 
-// 三角函数
-DEFINE_SPAN_MATH_FUNC(cos, cos);
-DEFINE_SPAN_MATH_FUNC(acos, acos);
-DEFINE_SPAN_MATH_FUNC(cosh, cosh);
-DEFINE_SPAN_MATH_FUNC(sin, sin);
-DEFINE_SPAN_MATH_FUNC(asin, asin);
-DEFINE_SPAN_MATH_FUNC(sinh, sinh);
-DEFINE_SPAN_MATH_FUNC(tan, tan);
-DEFINE_SPAN_MATH_FUNC(atan, atan);
-DEFINE_SPAN_MATH_FUNC(tanh, tanh);
-DEFINE_SPAN_MATH_FUNC(abs, abs);
-DEFINE_SPAN_MATH_FUNC(sqrt, sqrt);
-DEFINE_SPAN_MATH_FUNC(log10, log10);
-DEFINE_SPAN_MATH_FUNC(ln, log);
+DEFINE_SPAN_MATH_FUNC(cos, std::cos);
+DEFINE_SPAN_MATH_FUNC(acos, std::acos);
+DEFINE_SPAN_MATH_FUNC(cosh, std::cosh);
+DEFINE_SPAN_MATH_FUNC(sin, std::sin);
+DEFINE_SPAN_MATH_FUNC(asin, std::asin);
+DEFINE_SPAN_MATH_FUNC(sinh, std::sinh);
+DEFINE_SPAN_MATH_FUNC(tan, std::tan);
+DEFINE_SPAN_MATH_FUNC(atan, std::atan);
+DEFINE_SPAN_MATH_FUNC(tanh, std::tanh);
+DEFINE_SPAN_MATH_FUNC(abs, std::abs);
+DEFINE_SPAN_MATH_FUNC(sqrt, std::sqrt);
+DEFINE_SPAN_MATH_FUNC(log10, std::log10);
+DEFINE_SPAN_MATH_FUNC(ln, std::log);
 
 #undef DEFINE_SPAN_MATH_FUNC
 
@@ -373,7 +370,7 @@ mdvector<T, Rank, Layout> md::span<T, Rank, Layout>::pow(T y) const noexcept {
   return res;
 }
 
-// 类外数学函数
+// mdvector类外数学函数
 #define DEFINE_MD_MATH_FUNC(name)                          \
   template <class T, size_t Rank, class Layout>            \
   auto name(const mdvector<T, Rank, Layout>& v) noexcept { \
@@ -399,6 +396,45 @@ DEFINE_MD_MATH_FUNC(log10);
 DEFINE_MD_MATH_FUNC(ln);
 
 #undef DEFINE_MD_MATH_FUNC
+
+// 从表达式创建mdvector 数学表达式的临时变量
+#define DEFINE_EXPR_MATH_FUNC(name, func)                                                                 \
+  template <class T, class E>                                                                             \
+  mdvector<T, 1> name(const md::tensor_expr<E, T>& expr) noexcept {                                       \
+    mdvector<T, 1> res = expr;                                                                            \
+    std::transform(res.begin(), res.end(), res.begin(), [](double val) noexcept { return (func)(val); }); \
+    return res;                                                                                           \
+  }
+
+DEFINE_EXPR_MATH_FUNC(cos, std::cos)
+DEFINE_EXPR_MATH_FUNC(acos, std::acos)
+DEFINE_EXPR_MATH_FUNC(cosh, std::cosh)
+DEFINE_EXPR_MATH_FUNC(sin, std::sin)
+DEFINE_EXPR_MATH_FUNC(asin, std::asin)
+DEFINE_EXPR_MATH_FUNC(sinh, std::sinh)
+DEFINE_EXPR_MATH_FUNC(tan, std::tan)
+DEFINE_EXPR_MATH_FUNC(atan, std::atan)
+DEFINE_EXPR_MATH_FUNC(tanh, std::tanh)
+DEFINE_EXPR_MATH_FUNC(abs, std::abs)
+DEFINE_EXPR_MATH_FUNC(sqrt, std::sqrt)
+DEFINE_EXPR_MATH_FUNC(log10, std::log10)
+DEFINE_EXPR_MATH_FUNC(ln, std::log)
+
+#undef DEFINE_EXPR_MATH_FUNC
+
+template <class T, class E>
+mdvector<T, 1> exp(const md::tensor_expr<E, T>& expr, T y) noexcept {
+  mdvector<T, 1> res = expr;
+  std::transform(res.begin(), res.end(), res.begin(), [y](T val) noexcept { return std::pow(y, val); });
+  return res;
+}
+
+template <class T, class E>
+mdvector<T, 1> pow(const md::tensor_expr<E, T>& expr, T y) noexcept {
+  mdvector<T, 1> res = expr;
+  std::transform(res.begin(), res.end(), res.begin(), [y](T val) noexcept { return std::pow(val, y); });
+  return res;
+}
 
 // 常用别名
 using shape_1d = std::array<size_t, 1>;

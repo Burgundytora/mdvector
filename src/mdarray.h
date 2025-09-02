@@ -64,7 +64,7 @@ class mdarray_base<T, Layout, std::enable_if_t<!std::is_floating_point_v<T>>, le
 // double/float with simd_ET
 template <class T, class Layout, size_t... lengths>
 class mdarray_base<T, Layout, std::enable_if_t<std::is_floating_point_v<T>>, lengths...>
-    : public md::tensor_expr<mdarray_base<T, Layout, void, lengths...>, md::unaligned_policy>,
+    : public md::tensor_expr<mdarray_base<T, Layout, void, lengths...>, T>,
       private md::engine_static<T, Layout, lengths...> {
   using Impl = md::engine_static<T, Layout, lengths...>;
   using Policy = md::unaligned_policy;
@@ -115,8 +115,8 @@ class mdarray_base<T, Layout, std::enable_if_t<std::is_floating_point_v<T>>, len
   using Impl::rend;
 
   template <class E>
-  mdarray_base& operator=(const md::tensor_expr<E, Policy>& expr) {
-    expr.eval_to(this->data());
+  mdarray_base& operator=(const md::tensor_expr<E, T>& expr) {
+    expr.eval_to<T, Policy>(this->data());
     return *this;
   }
 
@@ -151,26 +151,26 @@ class mdarray_base<T, Layout, std::enable_if_t<std::is_floating_point_v<T>>, len
   }
 
   template <class E>
-  mdarray_base& operator+=(const md::tensor_expr<E, Policy>& expr) {
-    (*this + expr).eval_to(this->data());
+  mdarray_base& operator+=(const md::tensor_expr<E, T>& expr) {
+    (*this + expr).eval_to<T, Policy>(this->data());
     return *this;
   }
 
   template <class E>
-  mdarray_base& operator-=(const md::tensor_expr<E, Policy>& expr) {
-    (*this - expr).eval_to(this->data());
+  mdarray_base& operator-=(const md::tensor_expr<E, T>& expr) {
+    (*this - expr).eval_to<T, Policy>(this->data());
     return *this;
   }
 
   template <class E>
-  mdarray_base& operator*=(const md::tensor_expr<E, Policy>& expr) {
-    (*this * expr).eval_to(this->data());
+  mdarray_base& operator*=(const md::tensor_expr<E, T>& expr) {
+    (*this * expr).eval_to<T, Policy>(this->data());
     return *this;
   }
 
   template <class E>
-  mdarray_base& operator/=(const md::tensor_expr<E, Policy>& expr) {
-    (*this / expr).eval_to(this->data());
+  mdarray_base& operator/=(const md::tensor_expr<E, T>& expr) {
+    (*this / expr).eval_to<T, Policy>(this->data());
     return *this;
   }
 

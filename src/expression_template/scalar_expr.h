@@ -5,8 +5,8 @@
 
 namespace md {
 
-template <class T, class Policy>
-class scalar_wrapper : public tensor_expr<scalar_wrapper<T, Policy>, Policy> {
+template <class T>
+class scalar_wrapper : public tensor_expr<scalar_wrapper<T>, T> {
   typename simd<T>::type simd_value_;
 
  public:

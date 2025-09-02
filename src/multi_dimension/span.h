@@ -14,7 +14,7 @@ class mdvector;
 namespace md {
 
 template <class T, size_t Rank, class Layout = md::layout_right>
-class span : public mdspan<T, Rank, Layout>, public md::tensor_expr<span<T, Rank, Layout>, md::unaligned_policy> {
+class span : public mdspan<T, Rank, Layout>, public md::tensor_expr<span<T, Rank, Layout>, T> {
   using Policy = md::unaligned_policy;
 
  public:
@@ -42,13 +42,11 @@ class span : public mdspan<T, Rank, Layout>, public md::tensor_expr<span<T, Rank
   ~span() = default;
 
   template <class E>
-  span(const md::tensor_expr<E, Policy>& expr) = delete;
+  span(const md::tensor_expr<E, T>& expr) = delete;
 
   template <class E>
-  span& operator=(const md::tensor_expr<E, Policy>& expr) noexcept {
-    std::cout << "2\n";
-    // this->reset_shape(span.extents());
-    expr.eval_to(this->data());
+  span& operator=(const md::tensor_expr<E, T>& expr) noexcept {
+    expr.eval_to<T, Policy>(this->data());
     return *this;
   }
 
@@ -83,25 +81,25 @@ class span : public mdspan<T, Rank, Layout>, public md::tensor_expr<span<T, Rank
   }
 
   template <class E>
-  span& operator+=(const md::tensor_expr<E, Policy>& expr) noexcept {
+  span& operator+=(const md::tensor_expr<E, T>& expr) noexcept {
     (*this + expr).eval_to(this->data());
     return *this;
   }
 
   template <class E>
-  span& operator-=(const md::tensor_expr<E, Policy>& expr) noexcept {
+  span& operator-=(const md::tensor_expr<E, T>& expr) noexcept {
     (*this - expr).eval_to(this->data());
     return *this;
   }
 
   template <class E>
-  span& operator*=(const md::tensor_expr<E, Policy>& expr) noexcept {
+  span& operator*=(const md::tensor_expr<E, T>& expr) noexcept {
     (*this * expr).eval_to(this->data());
     return *this;
   }
 
   template <class E>
-  span& operator/=(const md::tensor_expr<E, Policy>& expr) noexcept {
+  span& operator/=(const md::tensor_expr<E, T>& expr) noexcept {
     (*this / expr).eval_to(this->data());
     return *this;
   }

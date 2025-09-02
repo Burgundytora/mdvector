@@ -5,23 +5,23 @@
 
 namespace md {
 
-template <class T, class Policy, class = void>
+template <class T, class = void>
 struct tensor_scalar_type {
   using type = const T&;
 };
 
-template <class T, class Policy>
-struct tensor_scalar_type<T, Policy, std::enable_if_t<std::is_arithmetic_v<T>>> {
-  using type = scalar_wrapper<T, Policy>;
+template <class T>
+struct tensor_scalar_type<T, std::enable_if_t<std::is_arithmetic_v<T>>> {
+  using type = scalar_wrapper<T>;
 };
 
-template <class T, class Policy>
-using AutoType = typename tensor_scalar_type<T, Policy>::type;
+template <class T>
+using AutoType = typename tensor_scalar_type<T>::type;
 
-template <class L, class R, class Policy, class Cal>
-class calculation_expr : public tensor_expr<calculation_expr<L, R, Policy, Cal>, Policy> {
-  AutoType<L, Policy> lhs;
-  AutoType<R, Policy> rhs;
+template <class T, class L, class R, class Cal>
+class calculation_expr : public tensor_expr<calculation_expr<T, L, R, Cal>, T> {
+  AutoType<L> lhs;
+  AutoType<R> rhs;
 
  public:
   calculation_expr(const L& l, const R& r) : lhs(l), rhs(r) {}

@@ -16,7 +16,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 add_subdirectory(test/correct)
 
 # 测试
-option(BUILD_SPEED_TEST "" OFF)
+option(BUILD_SPEED_TEST "" ON)
 if(BUILD_SPEED_TEST)
     if(WIN32)
         set(INCLUDE_DIR "G:/third_party/include")

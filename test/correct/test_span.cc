@@ -202,9 +202,11 @@ int main() {
   md::span<double, 1> x2 = pos_info.span(0, slice(1, -1));
   md::span<double, 1> y2 = pos_info.span(1, slice(1, -1));
   md::span<double, 1> z2 = pos_info.span(2, slice(1, -1));
-  mdvector<double, 1> length = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1) + (z2 - z1) * (z2 - z1);
-  length = length.sqrt();
+  mdvector<double, 1> length;
+  length = sqrt(pow(x2 - x1, 2.0) + pow(y2 - y1, 2.0) + pow(z2 - z1, 2.0));
   length.show_data_matrix_style();
+
+  mdvector<double, 1> creat_mdvector_from_span = x1;
 
   return 0;
 }
