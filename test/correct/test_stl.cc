@@ -9,7 +9,7 @@ int main(int args, char *argv[]) {
   std::cout << "\nVerification:" << std::endl;
 
   vector_2d<double> a({2, 3});
-  a.set_value(0.1);
+  a.fill(0.1);
 
   double sum;
 
@@ -43,6 +43,8 @@ int main(int args, char *argv[]) {
     std::cout << it << " ";
   }
   std::cout << "\n";
+
+  std::cout << "stl test down. \n";
 
   return 0;
 }

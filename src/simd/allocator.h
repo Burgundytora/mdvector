@@ -15,8 +15,29 @@ class simd_allocator {
 
   simd_allocator() noexcept = default;
 
+  // 添加复制构造函数
+  simd_allocator(const simd_allocator&) noexcept = default;
+
+  // 添加移动构造函数
+  simd_allocator(simd_allocator&&) noexcept = default;
+
+  // 添加模板复制构造函数（允许从其他类型的 simd_allocator 转换）
   template <class U>
-  simd_allocator(const simd_allocator<U>&) = delete;
+  simd_allocator(const simd_allocator<U>&) noexcept {}
+
+  // 赋值运算符
+  simd_allocator& operator=(const simd_allocator&) noexcept = default;
+
+  // 比较运算符（分配器应该总是相等的）
+  template <class U>
+  bool operator==(const simd_allocator<U>&) const noexcept {
+    return true;
+  }
+
+  template <class U>
+  bool operator!=(const simd_allocator<U>&) const noexcept {
+    return false;
+  }
 
   static constexpr size_t alignment_for() {
     if constexpr (std::is_arithmetic_v<T>) {
@@ -54,7 +75,7 @@ class simd_allocator {
 };
 
 template <class T>
-using auto_allocator = std::conditional_t<std::is_floating_point_v<T>, simd_allocator<T>, std::allocator<T> >;
+using auto_allocator = std::conditional_t<std::is_floating_point_v<T>, simd_allocator<T>, std::allocator<T>>;
 
 }  // namespace md
 

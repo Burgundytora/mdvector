@@ -4,13 +4,15 @@
 //
 #include "mdarray.h"
 #include "mdvector.h"
-#include "simd/simd_function.h"
 
 //
 #include "Eigen/Dense"
 #include "unsupported/Eigen/CXX11/Tensor"
-#include "xtensor/xarray.hpp"
-#include "xtensor/xtensor.hpp"
+
+//
+#define XTENSOR_USE_XSIMD
+#include "xtensor/containers/xarray.hpp"
+#include "xtensor/containers/xtensor.hpp"
 
 double val = 0.0;
 
@@ -161,9 +163,9 @@ void test_mdvector_expr() {
   vector_3d<T> data4_(test_shape);
 
   // 赋值
-  data1_.set_value(1);
-  data2_.set_value(2);
-  data4_.set_value(3);
+  data1_.fill(1);
+  data2_.fill(2);
+  data4_.fill(3);
 
   TimerRecorder a("mdvector");
 
@@ -196,9 +198,9 @@ void test_mdarray_expr() {
   array_3d<T, N1, N2, N3> data4_;
 
   // 赋值
-  data1_.set_value(1);
-  data2_.set_value(2);
-  data4_.set_value(3);
+  data1_.fill(1);
+  data2_.fill(2);
+  data4_.fill(3);
 
   TimerRecorder a("mdarray");
 

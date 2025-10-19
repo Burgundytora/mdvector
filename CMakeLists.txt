@@ -2,7 +2,7 @@
 project(mdvector VERSION 1.0.0 LANGUAGES CXX)
 
 # 基础配置
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # 包含自定义模块
@@ -14,6 +14,8 @@ include(SelectSimd)
 # 添加子目录
 include_directories(${PROJECT_SOURCE_DIR}/src)
 add_subdirectory(test/correct)
+add_subdirectory(test/demo)
+
 
 # 测试
 option(BUILD_SPEED_TEST "" ON)
@@ -23,6 +25,8 @@ if(BUILD_SPEED_TEST)
     else()
         set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/include")
     endif()
+    # eigen在C++23下警告处理
+    add_compile_definitions(_SILENCE_CXX23_DENORM_DEPRECATION_WARNING)
     include_directories(
         "${INCLUDE_DIR}/eigen"
         "${INCLUDE_DIR}/highway"

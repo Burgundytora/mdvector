@@ -1,6 +1,8 @@
 #ifndef __MDVECTOR_SIMD_H__
 #define __MDVECTOR_SIMD_H__
 
+#include <iostream>
+
 #if defined(__x86_64__) || defined(_M_X64) || defined(_M_IX86) || defined(_M_AMD64)
 #if defined(__AVX512F__)
 #include "x86_avx512.h"

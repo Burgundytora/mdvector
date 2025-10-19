@@ -6,7 +6,7 @@ int main(int args, char *argv[]) {
   std::cout << "\nVerification:" << std::endl;
 
   vector_2d<double> a({2, 3});
-  a.set_value(0.1);
+  a.fill(0.1);
   std::cout << " a  = " << a(0, 0) << " (expected 0.1)" << std::endl;
 
   vector_2d<double> temp = a;
@@ -90,6 +90,8 @@ int main(int args, char *argv[]) {
               << std::endl;
     std::cout << "\n";
   }
+
+  std::cout << "scalar test down. \n";
 
   return 0;
 }

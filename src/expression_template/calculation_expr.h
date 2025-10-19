@@ -1,6 +1,8 @@
 #ifndef __MDVECTOR_CALCULATION_EXPR_H__
 #define __MDVECTOR_CALCULATION_EXPR_H__
 
+#include <print>
+
 #include "scalar_expr.h"
 
 namespace md {
@@ -42,18 +44,18 @@ class calculation_expr : public tensor_expr<calculation_expr<T, L, R, Cal>, T> {
     }
   }
 
-  template <class T>
-  typename simd<T>::type eval_simd(size_t i) const {
-    auto l = lhs.template eval_simd<T>(i);
-    auto r = rhs.template eval_simd<T>(i);
-    return simd_cal<T, Cal>(l, r);
+  template <class U>
+  typename simd<U>::type eval_simd(size_t i) const {
+    auto l = lhs.template eval_simd<U>(i);
+    auto r = rhs.template eval_simd<U>(i);
+    return simd_cal<U, Cal>(l, r);
   }
 
-  template <class T>
-  typename simd<T>::type eval_simd_mask(size_t i) const {
-    auto l = lhs.template eval_simd_mask<T>(i);
-    auto r = rhs.template eval_simd_mask<T>(i);
-    return simd_cal<T, Cal>(l, r);
+  template <class U>
+  typename simd<U>::type eval_simd_mask(size_t i) const {
+    auto l = lhs.template eval_simd_mask<U>(i);
+    auto r = rhs.template eval_simd_mask<U>(i);
+    return simd_cal<U, Cal>(l, r);
   }
 };
 
