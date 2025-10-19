@@ -12,7 +12,6 @@
 
 #include "mdspan_little.h"
 
-
 namespace md {
 
 template <typename MDspan>
@@ -28,8 +27,8 @@ size_t calculate_size(const std::array<size_t, Rank>& shape) {
   return std::reduce(shape.begin(), shape.end(), size_t(1), std::multiplies<size_t>());
 }
 
-template <typename T, typename Extents>
-void print_mdspan(std::mdspan<T, Extents> mdspan_) {
+template <typename T, typename Extents, class Layout>
+void print_mdspan(std::mdspan<T, Extents, Layout> mdspan_) {
   constexpr size_t Rank = mdspan_.rank();
   if constexpr (Rank == 1) {
     // 1D 输出

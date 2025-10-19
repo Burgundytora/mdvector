@@ -24,7 +24,6 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T> {
  protected:
   std::mdspan<T, std::dextents<size_t, Rank>, Layout> mdspan_;
   std::array<size_t, Rank> shape_;
-  bool initialized_ = false;
 
  public:
   ///////////////////////////////////////////////////////////////////////////////////////
@@ -32,7 +31,7 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T> {
   constexpr span() noexcept = default;
 
   span(T* data, const std::array<std::size_t, Rank>& shape)
-      : mdspan_(create_mdspan(data, shape, std::make_index_sequence<Rank>{})), shape_(shape), initialized_(true) {}
+      : mdspan_(create_mdspan(data, shape, std::make_index_sequence<Rank>{})), shape_(shape) {}
 
   span(const span& other) = delete;
 
@@ -193,7 +192,7 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T> {
   void print()
     requires Printable<T>
   {
-    if (initialized_) {
+    if (!mdspan_.empty()) {
       md::print_mdspan(mdspan_);
     } else {
       throw std::logic_error("md::span need to be initialized before print!!!");

@@ -578,6 +578,9 @@ using mdvector_row_major = mdvector<T, Rank, std::layout_right>;
 template <typename T, size_t Rank>
 using mdvector_col_major = mdvector<T, Rank, std::layout_left>;
 
+template <size_t Rank>
+using mdshape = std::array<size_t, Rank>;
+
 using shape_1d = std::array<size_t, 1>;
 using shape_2d = std::array<size_t, 2>;
 using shape_3d = std::array<size_t, 3>;

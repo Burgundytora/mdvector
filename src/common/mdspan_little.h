@@ -27,6 +27,11 @@ struct layout_left {
   class mapping;
 };
 
+struct layout_stride {
+  template <typename Extents>
+  class mapping;
+};
+
 // extents 实现
 template <typename IndexType, size_t... Extents>
 class extents {
@@ -154,6 +159,83 @@ class layout_left::mapping {
   }
 };
 
+// layout_stride 映射实现
+template <typename Extents>
+class layout_stride::mapping {
+ public:
+  using extents_type = Extents;
+  using index_type = typename extents_type::index_type;
+  using size_type = typename extents_type::size_type;
+  using rank_type = typename extents_type::rank_type;
+
+  constexpr mapping() noexcept = default;
+
+  // 从 extents 和 strides 构造
+  constexpr mapping(const extents_type& ext, const std::array<index_type, extents_type::rank()>& strides) noexcept
+      : extents_(ext), strides_(strides) {}
+
+  // 从其他映射构造（简化版本）
+  template <typename OtherMapping>
+  constexpr mapping(const OtherMapping& other) noexcept : extents_(other.extents()) {
+    for (rank_type i = 0; i < rank(); ++i) {
+      strides_[i] = other.stride(i);
+    }
+  }
+
+  constexpr const extents_type& extents() const noexcept { return extents_; }
+  constexpr const std::array<index_type, extents_type::rank()>& strides() const noexcept { return strides_; }
+
+  template <typename... Indices>
+  constexpr index_type operator()(Indices... indices) const noexcept {
+    static_assert(sizeof...(Indices) == extents_type::rank(), "Number of indices must match rank");
+    return compute_index(indices...);
+  }
+
+  constexpr index_type required_span_size() const noexcept {
+    index_type max_index = 0;
+    for (rank_type i = 0; i < rank(); ++i) {
+      max_index += (extents_.extent(i) - 1) * strides_[i];
+    }
+    return max_index + 1;
+  }
+
+  static constexpr bool is_always_unique() noexcept { return true; }
+  static constexpr bool is_always_exhaustive() noexcept { return false; }
+  static constexpr bool is_always_strided() noexcept { return true; }
+
+  constexpr bool is_unique() const noexcept { return true; }
+  constexpr bool is_exhaustive() const noexcept {
+    // 简化检查：如果步长是连续的，则是 exhaustive
+    index_type expected_stride = 1;
+    for (rank_type i = extents_type::rank() - 1; i < extents_type::rank(); --i) {
+      if (strides_[i] != expected_stride) {
+        return false;
+      }
+      expected_stride *= extents_.extent(i);
+    }
+    return true;
+  }
+  constexpr bool is_strided() const noexcept { return true; }
+
+  constexpr index_type stride(rank_type r) const noexcept { return strides_[r]; }
+
+ private:
+  extents_type extents_;
+  std::array<index_type, extents_type::rank()> strides_{};
+
+  template <typename... Indices>
+  constexpr index_type compute_index(Indices... indices) const {
+    const std::array<index_type, sizeof...(Indices)> idxs{static_cast<index_type>(indices)...};
+    index_type result = 0;
+
+    for (rank_type i = 0; i < extents_type::rank(); ++i) {
+      result += idxs[i] * strides_[i];
+    }
+
+    return result;
+  }
+};
+
 // 默认访问器
 template <typename ElementType>
 class default_accessor {
@@ -237,6 +319,9 @@ class mdspan {
   constexpr data_handle_type data_handle() const noexcept { return ptr_; }
 
   constexpr bool empty() const noexcept { return size() == 0; }
+
+  // // 步长相关方法（对于 strided 布局）
+  // constexpr index_type stride(rank_type r) const requires { mapping_.stride(r); } { return mapping_.stride(r); }
 
  private:
   data_handle_type ptr_;
