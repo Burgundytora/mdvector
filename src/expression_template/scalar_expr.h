@@ -8,6 +8,8 @@ namespace md {
 template <class T>
 class scalar_wrapper : public tensor_expr<scalar_wrapper<T>, T> {
   typename simd<T>::type simd_value_;
+  static constexpr size_t rank_ = 1;
+  using value_type = T;
 
  public:
   explicit scalar_wrapper(T val) : simd_value_(simd<T>::set1(val)) {}

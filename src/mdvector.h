@@ -4,6 +4,9 @@
 #include <vector>
 
 #include "common/detail.h"
+#include "common/iterator_mixin.h"
+#include "common/math_function.h"
+#include "common/statistic_function.h"
 #include "common/type_concept.h"
 #include "expression_template/operator.h"
 #include "simd/allocator.h"
@@ -11,9 +14,13 @@
 #include "span.h"
 
 template <class T, size_t Rank, class Layout>
-class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T> {
-  /// simd对齐策略
+class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
+                 public md::iterator_mixin<mdvector<T, Rank, Layout>, T> {
+ public:
   using Policy = md::aligned_policy;
+  using value_type = T;
+  using layout_type = Layout;
+  static constexpr size_t rank_ = Rank;
 
  private:
   /// 成员变量
@@ -218,25 +225,16 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T> {
     }
   }
 
-  ///////////////////////////////////////////////////////////////////////////////////////
-  /// 迭代器
-  using iterator = T*;
-  using const_iterator = const T*;
-  using reverse_iterator = std::reverse_iterator<iterator>;
-  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-
-  iterator begin() noexcept { return vector_.data(); }
-  iterator end() noexcept { return vector_.data() + vector_.size(); }
-  const_iterator begin() const noexcept { return vector_.data(); }
-  const_iterator end() const noexcept { return vector_.data() + vector_.size(); }
-  const_iterator cbegin() const noexcept { return vector_.data(); }
-  const_iterator cend() const noexcept { return vector_.data() + vector_.size(); }
-  reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
-  reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
-  const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(end()); }
-  const_reverse_iterator rend() const noexcept { return const_reverse_iterator(begin()); }
-  const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(end()); }
-  const_reverse_iterator crend() const noexcept { return const_reverse_iterator(begin()); }
+  // ///////////////////////////////////////////////////////////////////////////////////////
+  // /// 迭代器
+  using md::iterator_mixin<mdvector<T, Rank, Layout>, T>::begin;
+  using md::iterator_mixin<mdvector<T, Rank, Layout>, T>::end;
+  using md::iterator_mixin<mdvector<T, Rank, Layout>, T>::cbegin;
+  using md::iterator_mixin<mdvector<T, Rank, Layout>, T>::cend;
+  using md::iterator_mixin<mdvector<T, Rank, Layout>, T>::rbegin;
+  using md::iterator_mixin<mdvector<T, Rank, Layout>, T>::rend;
+  using md::iterator_mixin<mdvector<T, Rank, Layout>, T>::crbegin;
+  using md::iterator_mixin<mdvector<T, Rank, Layout>, T>::crend;
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 表达式模板数值计算
@@ -359,100 +357,6 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T> {
     return *this;
   }
 
-  ///////////////////////////////////////////////////////////////////////////////////////
-  /// 数学函数
-  // 求和
-  T sum() { return std::reduce(begin(), end()); }
-
-  // 求积
-  T prod() { return std::reduce(begin(), end(), T(1), std::multiplies<T>()); }
-
-  // 最大值
-  T max() { return *std::max_element(begin(), end()); }
-
-  // 最小值
-  T min() { return *std::min_element(begin(), end()); }
-
-  // 平均值
-  T mean() { return std::reduce(begin(), end()) / T(size()); }
-
-  // 方差
-  T variance() {
-    if (size() <= 1) {
-      return 0.0;
-    }
-    double m = mean();
-    double sum_sq = std::accumulate(begin(), end(), 0.0, [m](double acc, T val) {
-      double diff = static_cast<double>(val) - m;
-      return acc + diff * diff;
-    });
-
-    return sum_sq / (size() - 1);
-  }
-
-  // 标准差
-  T standard_deviation() { return std::sqrt(variance()); }
-
-  // 中位数
-  T median() {
-    if (empty()) {
-      return 0.0;
-    }
-    auto vec = vector_;
-    std::sort(vec.begin(), vec.end());
-    size_t size = vec.size();
-    if (size % 2 == 0) {
-      return (static_cast<T>(vec[size / 2 - 1]) + static_cast<T>(vec[size / 2])) / 2.0;
-    } else {
-      return static_cast<T>(vec[size / 2]);
-    }
-  }
-
-  // 数学函数简化定义
-  using this_type = mdvector;
-#define DEFINE_MD_MATH_OP(name, op)                                                                       \
-  this_type name() const noexcept                                                                         \
-    requires Numeric<T>                                                                                   \
-  {                                                                                                       \
-    this_type res(*this);                                                                                 \
-    std::transform(this->begin(), this->end(), res.begin(), [](T val) noexcept { return std::op(val); }); \
-    return res;                                                                                           \
-  }
-  // 三角函数
-  DEFINE_MD_MATH_OP(cos, cos);
-  DEFINE_MD_MATH_OP(acos, acos);
-  DEFINE_MD_MATH_OP(cosh, cosh);
-  DEFINE_MD_MATH_OP(sin, sin);
-  DEFINE_MD_MATH_OP(asin, asin);
-  DEFINE_MD_MATH_OP(sinh, sinh);
-  DEFINE_MD_MATH_OP(tan, tan);
-  DEFINE_MD_MATH_OP(atan, atan);
-  DEFINE_MD_MATH_OP(tanh, tanh);
-
-  // 数学函数
-  DEFINE_MD_MATH_OP(abs, abs);
-  DEFINE_MD_MATH_OP(sqrt, sqrt);
-  DEFINE_MD_MATH_OP(log10, log10);
-  DEFINE_MD_MATH_OP(ln, log);
-
-#undef DEFINE_MD_MATH_OP
-
-  this_type exp(T y) const noexcept
-    requires Numeric<T>
-  {
-    this_type res(*this);
-    std::transform(this->begin(), this->end(), res.begin(), [y](T val) noexcept { return std::pow(y, val); });
-    return res;
-  }
-
-  this_type pow(T y) const noexcept
-    requires Numeric<T>
-  {
-    this_type res(*this);
-    std::transform(this->begin(), this->end(), res.begin(), [y](T val) noexcept { return std::pow(val, y); });
-    return res;
-  }
-
  private:
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 内部函数
@@ -498,127 +402,6 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T> {
     return offset;
   }
 };
-///////////////////////////////////////////////////////////////////////////////////////
-
-// 视图的数学函数返回一个新的mdvector
-#define DEFINE_SPAN_MATH_FUNC(name, func)                                                                \
-  template <class T, size_t Rank, class Layout>                                                          \
-  mdvector<T, Rank, Layout> md::span<T, Rank, Layout>::name() const noexcept                             \
-    requires Numeric<T>                                                                                  \
-  {                                                                                                      \
-    mdvector<T, Rank, Layout> res(this->extents());                                                      \
-    std::transform(this->begin(), this->end(), res.begin(), [](T val) noexcept { return (func)(val); }); \
-    return res;                                                                                          \
-  }
-
-DEFINE_SPAN_MATH_FUNC(cos, std::cos);
-DEFINE_SPAN_MATH_FUNC(acos, std::acos);
-DEFINE_SPAN_MATH_FUNC(cosh, std::cosh);
-DEFINE_SPAN_MATH_FUNC(sin, std::sin);
-DEFINE_SPAN_MATH_FUNC(asin, std::asin);
-DEFINE_SPAN_MATH_FUNC(sinh, std::sinh);
-DEFINE_SPAN_MATH_FUNC(tan, std::tan);
-DEFINE_SPAN_MATH_FUNC(atan, std::atan);
-DEFINE_SPAN_MATH_FUNC(tanh, std::tanh);
-DEFINE_SPAN_MATH_FUNC(abs, std::abs);
-DEFINE_SPAN_MATH_FUNC(sqrt, std::sqrt);
-DEFINE_SPAN_MATH_FUNC(log10, std::log10);
-DEFINE_SPAN_MATH_FUNC(ln, std::log);
-
-#undef DEFINE_SPAN_MATH_FUNC
-
-template <class T, size_t Rank, class Layout>
-mdvector<T, Rank, Layout> md::span<T, Rank, Layout>::exp(T y) const noexcept
-  requires Numeric<T>
-{
-  mdvector<T, Rank, Layout> res(this->extents());
-  std::transform(this->begin(), this->end(), res.data_.begin(), [y](T val) noexcept { return std::pow(y, val); });
-  return res;
-}
-
-template <class T, size_t Rank, class Layout>
-mdvector<T, Rank, Layout> md::span<T, Rank, Layout>::pow(T y) const noexcept
-  requires Numeric<T>
-{
-  mdvector<T, Rank, Layout> res(this->extents());
-  std::transform(this->begin(), this->end(), res.begin(), [y](T val) noexcept { return std::pow(val, y); });
-  return res;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////
-/// mdvector类外数学函数
-#define DEFINE_MD_MATH_FUNC(name)                          \
-  template <class T, size_t Rank, class Layout>            \
-  auto name(const mdvector<T, Rank, Layout>& v) noexcept   \
-    requires Numeric<T>                                    \
-  {                                                        \
-    return v.name();                                       \
-  }                                                        \
-  template <class T, size_t Rank, class Layout>            \
-  auto name(const md::span<T, Rank, Layout>& v) noexcept { \
-    return v.name();                                       \
-  }
-
-DEFINE_MD_MATH_FUNC(cos)
-DEFINE_MD_MATH_FUNC(acos)
-DEFINE_MD_MATH_FUNC(cosh)
-DEFINE_MD_MATH_FUNC(sin)
-DEFINE_MD_MATH_FUNC(asin)
-DEFINE_MD_MATH_FUNC(sinh)
-DEFINE_MD_MATH_FUNC(tan)
-DEFINE_MD_MATH_FUNC(atan)
-DEFINE_MD_MATH_FUNC(tanh)
-DEFINE_MD_MATH_FUNC(abs);
-DEFINE_MD_MATH_FUNC(sqrt);
-DEFINE_MD_MATH_FUNC(log10);
-DEFINE_MD_MATH_FUNC(ln);
-
-#undef DEFINE_MD_MATH_FUNC
-
-// 从表达式创建mdvector 数学表达式的临时变量
-#define DEFINE_EXPR_MATH_FUNC(name, func)                                                                 \
-  template <class T, class E>                                                                             \
-  mdvector<T, 1> name(const md::tensor_expr<E, T>& expr) noexcept                                         \
-    requires Numeric<T>                                                                                   \
-  {                                                                                                       \
-    mdvector<T, 1> res = expr;                                                                            \
-    std::transform(res.begin(), res.end(), res.begin(), [](double val) noexcept { return (func)(val); }); \
-    return res;                                                                                           \
-  }
-
-DEFINE_EXPR_MATH_FUNC(cos, std::cos)
-DEFINE_EXPR_MATH_FUNC(acos, std::acos)
-DEFINE_EXPR_MATH_FUNC(cosh, std::cosh)
-DEFINE_EXPR_MATH_FUNC(sin, std::sin)
-DEFINE_EXPR_MATH_FUNC(asin, std::asin)
-DEFINE_EXPR_MATH_FUNC(sinh, std::sinh)
-DEFINE_EXPR_MATH_FUNC(tan, std::tan)
-DEFINE_EXPR_MATH_FUNC(atan, std::atan)
-DEFINE_EXPR_MATH_FUNC(tanh, std::tanh)
-DEFINE_EXPR_MATH_FUNC(abs, std::abs)
-DEFINE_EXPR_MATH_FUNC(sqrt, std::sqrt)
-DEFINE_EXPR_MATH_FUNC(log10, std::log10)
-DEFINE_EXPR_MATH_FUNC(ln, std::log)
-
-#undef DEFINE_EXPR_MATH_FUNC
-
-template <class T, class E>
-mdvector<T, 1> exp(const md::tensor_expr<E, T>& expr, T y) noexcept
-  requires Numeric<T>
-{
-  mdvector<T, 1> res = expr;
-  std::transform(res.begin(), res.end(), res.begin(), [y](T val) noexcept { return std::pow(y, val); });
-  return res;
-}
-
-template <class T, class E>
-mdvector<T, 1> pow(const md::tensor_expr<E, T>& expr, T y) noexcept
-  requires Numeric<T>
-{
-  mdvector<T, 1> res = expr;
-  std::transform(res.begin(), res.end(), res.begin(), [y](T val) noexcept { return std::pow(val, y); });
-  return res;
-}
 
 // 常用别名
 template <typename T, size_t Rank>

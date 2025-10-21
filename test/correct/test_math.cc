@@ -24,34 +24,26 @@ int main(int args, char *argv[]) {
     std::cout << "mdvector: print 0.1~0.6 : ";
     a.print();
 
-    vector_2d<double> a_cos_plus_10 = a.cos() + 10.0;
+    auto temp111 = md::sin(a + 0.1);
+    std::cout << "mdvector: print sin (0.1~0.6 + 0.1) : ";
+    temp111.print();
+
+    vector_2d<double> a_cos_plus_10 = md::cos(a) + 10.0;
     std::cout << "mdvector: print cos(0.1~0.6)+10 : ";
     for (const auto &it : a_cos_plus_10) {
       std::cout << it << " ";
     }
     std::cout << "\n";
 
-    vector_2d<double> a_exp_2_plus_1 = a.exp(2) + 1.0;
+    vector_2d<double> a_exp_2_plus_1 = exp(a, 2) + 1.0;
     std::cout << "mdvector: print exp 2^(0.1~0.6)+1 : ";
     for (const auto &it : a_exp_2_plus_1) {
       std::cout << it << " ";
     }
     std::cout << "\n";
 
-    std::cout << "span: print 0.1~0.3 : ";
-    for (const auto &it : a.span(0, all())) {
-      std::cout << it << " ";
-    }
-    std::cout << "\n";
-
-    std::cout << "span: print 0.4~0.6 : ";
-    for (const auto &it : a.span(1, all())) {
-      std::cout << it << " ";
-    }
-    std::cout << "\n";
-
-    std::cout << "span: print (0.1~0.3).sin() : ";
-    for (const auto &it : a.span(0, all()).sin()) {
+    std::cout << "span: print sin(0.1~0.3) : ";
+    for (const auto &it : sin(a.span(0, all()))) {
       std::cout << it << " ";
     }
     std::cout << "\n";
@@ -64,16 +56,21 @@ int main(int args, char *argv[]) {
     std::cout << "\n";
 
     std::cout << "span: print (0.4~0.6)^3 : ";
-    for (const auto &it : a.span(1, all()).pow(3)) {
+    for (const auto &it : pow(a.span(1, all()), 3)) {
       std::cout << it << " ";
     }
     std::cout << "\n";
 
-    std::cout << "span: mean [(0.4~0.6)^3] : " << a.span(1, all()).pow(3).mean() << "\n";
-    std::cout << "span: max [(0.4~0.6)^3] : " << a.span(1, all()).pow(3).max() << "\n";
-    std::cout << "span: min [(0.4~0.6)^3] : " << a.span(1, all()).pow(3).min() << "\n";
-    std::cout << "span: median [(0.4~0.6)^3] : " << a.span(1, all()).pow(3).median() << "\n";
-    std::cout << "span: std [(0.4~0.6)^3] : " << a.span(1, all()).pow(3).standard_deviation() << "\n";
+    using md::max;
+    using md::mean;
+    using md::median;
+    using md::min;
+    using md::standard_deviation;
+    std::cout << "span: mean [(0.4~0.6)^3] : " << mean(pow(a.span(1, all()), 3)) << "\n";
+    std::cout << "span: max [(0.4~0.6)^3] : " << max(pow(a.span(1, all()), 3)) << "\n";
+    std::cout << "span: min [(0.4~0.6)^3] : " << min(pow(a.span(1, all()), 3)) << "\n";
+    std::cout << "span: median [(0.4~0.6)^3] : " << median(pow(a.span(1, all()), 3)) << "\n";
+    std::cout << "span: std [(0.4~0.6)^3] : " << standard_deviation(pow(a.span(1, all()), 3)) << "\n";
     std::cout << "\n";
 
   } catch (const std::runtime_error &e) {

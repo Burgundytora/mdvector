@@ -2,14 +2,20 @@
 #define __MDVECTOR_ENGINE_STATIC_H__
 
 #include "common/detail.h"
+#include "common/iterator_mixin.h"
+#include "common/statistic_function.h"
 #include "common/type_concept.h"
 #include "expression_template/operator.h"
 #include "simd/simd_function.h"
 
 template <class T, class Layout = std::layout_right, size_t... lengths>
-class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T> {
-  /// simd对齐策略
+class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
+                public md::iterator_mixin<mdarray<T, Layout, lengths...>, T> {
+ public:
   using Policy = md::aligned_policy;
+  using value_type = T;
+  using layout_type = Layout;
+  static constexpr size_t rank_ = sizeof...(lengths);
 
  private:
   /// 成员变量
@@ -125,23 +131,14 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T> {
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 迭代器
-  using iterator = T*;
-  using const_iterator = const T*;
-  using reverse_iterator = std::reverse_iterator<iterator>;
-  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-
-  iterator begin() noexcept { return array_.begin(); }
-  iterator end() noexcept { return array_.begin() + raw_total_size; }
-  const_iterator begin() const noexcept { return array_.begin(); }
-  const_iterator end() const noexcept { return array_.begin() + raw_total_size; }
-  const_iterator cbegin() const noexcept { return array_.begin(); }
-  const_iterator cend() const noexcept { return array_.begin() + raw_total_size; }
-  reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
-  reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
-  const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator(end()); }
-  const_reverse_iterator rend() const noexcept { return const_reverse_iterator(begin()); }
-  const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(end()); }
-  const_reverse_iterator crend() const noexcept { return const_reverse_iterator(begin()); }
+  using md::iterator_mixin<mdarray<T, Layout, lengths...>, T>::begin;
+  using md::iterator_mixin<mdarray<T, Layout, lengths...>, T>::end;
+  using md::iterator_mixin<mdarray<T, Layout, lengths...>, T>::cbegin;
+  using md::iterator_mixin<mdarray<T, Layout, lengths...>, T>::cend;
+  using md::iterator_mixin<mdarray<T, Layout, lengths...>, T>::rbegin;
+  using md::iterator_mixin<mdarray<T, Layout, lengths...>, T>::rend;
+  using md::iterator_mixin<mdarray<T, Layout, lengths...>, T>::crbegin;
+  using md::iterator_mixin<mdarray<T, Layout, lengths...>, T>::crend;
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 表达式模板数值计算
@@ -255,95 +252,6 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T> {
     return *this;
   }
 
-  ///
-  // 求和
-  T sum() { return std::reduce(begin(), end()); }
-
-  // 求积
-  T prod() { return std::reduce(begin(), end(), T(1), std::multiplies<T>()); }
-
-  // 最大值
-  T max() { return *std::max_element(begin(), end()); }
-
-  // 最小值
-  T min() { return *std::min_element(begin(), end()); }
-
-  // 平均值
-  T mean() { return std::reduce(begin(), end()) / size(); }
-
-  // 方差
-  T variance() {
-    if (size() <= 1) {
-      return 0.0;
-    }
-    double m = mean();
-    double sum_sq = std::accumulate(begin(), end(), 0.0, [m](double acc, T val) {
-      double diff = static_cast<double>(val) - m;
-      return acc + diff * diff;
-    });
-
-    return sum_sq / (size() - 1);
-  }
-
-  // 标准差
-  T standard_deviation() { return std::sqrt(variance()); }
-
-  // 中位数
-  T median() {
-    if (empty()) {
-      return 0.0;
-    }
-    auto vec = std::vector<T>(size());
-    std::sort(vec.begin(), vec.end());
-    size_t size = vec.size();
-    if (size % 2 == 0) {
-      return (static_cast<T>(vec[size / 2 - 1]) + static_cast<T>(vec[size / 2])) / 2.0;
-    } else {
-      return static_cast<T>(vec[size / 2]);
-    }
-  }
-
-  using this_type = mdarray;
-  // 数学函数简化定义
-#define DEFINE_MD_MATH_OP(name, op)                                                                       \
-  this_type name() const noexcept {                                                                       \
-    this_type res(*this);                                                                                 \
-    std::transform(this->begin(), this->end(), res.begin(), [](T val) noexcept { return std::op(val); }); \
-    return res;                                                                                           \
-  }
-  // 三角函数
-  DEFINE_MD_MATH_OP(cos, cos);
-  DEFINE_MD_MATH_OP(acos, acos);
-  DEFINE_MD_MATH_OP(cosh, cosh);
-  DEFINE_MD_MATH_OP(sin, sin);
-  DEFINE_MD_MATH_OP(asin, asin);
-  DEFINE_MD_MATH_OP(sinh, sinh);
-  DEFINE_MD_MATH_OP(tan, tan);
-  DEFINE_MD_MATH_OP(atan, atan);
-  DEFINE_MD_MATH_OP(tanh, tanh);
-
-  // 数学函数
-  DEFINE_MD_MATH_OP(abs, abs);
-  DEFINE_MD_MATH_OP(sqrt, sqrt);
-  DEFINE_MD_MATH_OP(log10, log10);
-  DEFINE_MD_MATH_OP(ln, log);
-
-#undef DEFINE_MD_MATH_OP
-
-  this_type exp(T y) const noexcept {
-    this_type res(*this);
-    std::transform(this->data_.begin(), this->data_.end(), res.data_.begin(),
-                   [y](T val) noexcept { return std::pow(y, val); });
-    return res;
-  }
-
-  this_type pow(T y) const noexcept {
-    this_type res(*this);
-    std::transform(this->data_.begin(), this->data_.end(), res.data_.begin(),
-                   [y](T val) noexcept { return std::pow(val, y); });
-    return res;
-  }
-
  private:
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 内部函数
@@ -358,39 +266,6 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T> {
     }
   }
 };
-
-#define DEFINE_MDARRAY_MATH_FUNC(name)                            \
-  template <class T, class Layout, size_t... lengths>             \
-  auto name(const mdarray<T, Layout, lengths...>& arr) noexcept { \
-    return arr.name();                                            \
-  }
-
-// 批量定义数学函数
-DEFINE_MDARRAY_MATH_FUNC(cos)
-DEFINE_MDARRAY_MATH_FUNC(sin)
-DEFINE_MDARRAY_MATH_FUNC(tan)
-DEFINE_MDARRAY_MATH_FUNC(acos)
-DEFINE_MDARRAY_MATH_FUNC(asin)
-DEFINE_MDARRAY_MATH_FUNC(atan)
-DEFINE_MDARRAY_MATH_FUNC(cosh)
-DEFINE_MDARRAY_MATH_FUNC(sinh)
-DEFINE_MDARRAY_MATH_FUNC(tanh)
-DEFINE_MDARRAY_MATH_FUNC(abs)
-DEFINE_MDARRAY_MATH_FUNC(sqrt)
-DEFINE_MDARRAY_MATH_FUNC(log10)
-DEFINE_MDARRAY_MATH_FUNC(ln)
-
-#undef DEFINE_MDARRAY_MATH_FUNC
-
-template <class T, class Layout, size_t... lengths>
-auto pow(const mdarray<T, Layout, lengths...>& arr, T y) noexcept {
-  return arr.pow(y);
-}
-
-template <class T, class Layout, size_t... lengths>
-auto exp(const mdarray<T, Layout, lengths...>& arr, T y) noexcept {
-  return arr.exp(y);
-}
 
 // 常用别名
 template <class T, size_t... lengths>

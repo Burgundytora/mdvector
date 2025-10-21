@@ -1,3 +1,11 @@
 Language:  Cpp
 BasedOnStyle:  Google
 ColumnLimit:  120
+AccessModifierOffset: -1        # 访问修饰符缩进1空格
+SortIncludes: false             # 禁止头文件重排
+IncludeBlocks: Preserve         # 禁止调整头文件块
+AlignAfterOpenBracket: Align    # 括号内对齐
+SortUsingDeclarations: false    # 禁止using重排
+UseTab: false                   # 自动替换tab为空格
+IndentWidth: 2                  # 对齐到2空格
+IndentPPDirectives: None        # 宏行首对齐

@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <iostream>
 #include <numeric>
+#include <print>
 #include <type_traits>
 #include <version>
 
