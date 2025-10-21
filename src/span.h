@@ -70,6 +70,8 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T> {
 
   size_t extent(int index) const { return mdspan_.extent(index); }
 
+  bool empty() { return mdspan_.empty(); }
+
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 多维索引
   template <class... Indices>
@@ -217,6 +219,53 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T> {
   const_reverse_iterator rend() const noexcept { return const_reverse_iterator(begin()); }
   const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(end()); }
   const_reverse_iterator crend() const noexcept { return const_reverse_iterator(begin()); }
+
+  // 求和
+  T sum() { return std::reduce(begin(), end()); }
+
+  // 求积
+  T prod() { return std::reduce(begin(), end(), T(1), std::multiplies<T>()); }
+
+  // 最大值
+  T max() { return *std::max_element(begin(), end()); }
+
+  // 最小值
+  T min() { return *std::min_element(begin(), end()); }
+
+  // 平均值
+  T mean() { return std::reduce(begin(), end()) / size(); }
+
+  // 方差
+  T variance() {
+    if (size() <= 1) {
+      return 0.0;
+    }
+    double m = mean();
+    double sum_sq = std::accumulate(begin(), end(), 0.0, [m](double acc, T val) {
+      double diff = static_cast<double>(val) - m;
+      return acc + diff * diff;
+    });
+
+    return sum_sq / (size() - 1);
+  }
+
+  // 标准差
+  T standard_deviation() { return std::sqrt(variance()); }
+
+  // 中位数
+  T median() {
+    if (empty()) {
+      return 0.0;
+    }
+    auto vec = std::vector<T>(size());
+    std::sort(vec.begin(), vec.end());
+    size_t size = vec.size();
+    if (size % 2 == 0) {
+      return (static_cast<T>(vec[size / 2 - 1]) + static_cast<T>(vec[size / 2])) / 2.0;
+    } else {
+      return static_cast<T>(vec[size / 2]);
+    }
+  }
 
   // 视图的数学函数返回一个新的mdvector
   using return_type = mdvector<T, Rank, Layout>;

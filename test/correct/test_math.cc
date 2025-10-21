@@ -69,6 +69,13 @@ int main(int args, char *argv[]) {
     }
     std::cout << "\n";
 
+    std::cout << "span: mean [(0.4~0.6)^3] : " << a.span(1, all()).pow(3).mean() << "\n";
+    std::cout << "span: max [(0.4~0.6)^3] : " << a.span(1, all()).pow(3).max() << "\n";
+    std::cout << "span: min [(0.4~0.6)^3] : " << a.span(1, all()).pow(3).min() << "\n";
+    std::cout << "span: median [(0.4~0.6)^3] : " << a.span(1, all()).pow(3).median() << "\n";
+    std::cout << "span: std [(0.4~0.6)^3] : " << a.span(1, all()).pow(3).standard_deviation() << "\n";
+    std::cout << "\n";
+
   } catch (const std::runtime_error &e) {
     std::cout << "捕获异常: " << e.what() << std::endl;
   }

@@ -147,6 +147,8 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T> {
 
   constexpr size_t rank() const { return Rank; }
 
+  bool empty() { return vector_.empty(); }
+
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 更改属性
   void fill(T val) { std::fill(begin(), end(), val); }
@@ -359,8 +361,55 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T> {
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 数学函数
-  using this_type = mdvector;
+  // 求和
+  T sum() { return std::reduce(begin(), end()); }
+
+  // 求积
+  T prod() { return std::reduce(begin(), end(), T(1), std::multiplies<T>()); }
+
+  // 最大值
+  T max() { return *std::max_element(begin(), end()); }
+
+  // 最小值
+  T min() { return *std::min_element(begin(), end()); }
+
+  // 平均值
+  T mean() { return std::reduce(begin(), end()) / T(size()); }
+
+  // 方差
+  T variance() {
+    if (size() <= 1) {
+      return 0.0;
+    }
+    double m = mean();
+    double sum_sq = std::accumulate(begin(), end(), 0.0, [m](double acc, T val) {
+      double diff = static_cast<double>(val) - m;
+      return acc + diff * diff;
+    });
+
+    return sum_sq / (size() - 1);
+  }
+
+  // 标准差
+  T standard_deviation() { return std::sqrt(variance()); }
+
+  // 中位数
+  T median() {
+    if (empty()) {
+      return 0.0;
+    }
+    auto vec = vector_;
+    std::sort(vec.begin(), vec.end());
+    size_t size = vec.size();
+    if (size % 2 == 0) {
+      return (static_cast<T>(vec[size / 2 - 1]) + static_cast<T>(vec[size / 2])) / 2.0;
+    } else {
+      return static_cast<T>(vec[size / 2]);
+    }
+  }
+
   // 数学函数简化定义
+  using this_type = mdvector;
 #define DEFINE_MD_MATH_OP(name, op)                                                                       \
   this_type name() const noexcept                                                                         \
     requires Numeric<T>                                                                                   \

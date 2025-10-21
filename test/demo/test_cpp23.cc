@@ -27,7 +27,7 @@ void test_layout_strided() {
 }
 
 int main() {
-  // test_mdspan_dynamic();
+  test_mdspan_dynamic();
   test_layout_strided();
   return 0;
 }
