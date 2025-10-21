@@ -5,7 +5,7 @@
 
 namespace md {
 
-template <class T>
+template <typename T>
 class scalar_wrapper : public tensor_expr<scalar_wrapper<T>, T> {
   typename simd<T>::type simd_value_;
   static constexpr size_t rank_ = 1;
@@ -16,12 +16,12 @@ class scalar_wrapper : public tensor_expr<scalar_wrapper<T>, T> {
 
   scalar_wrapper(const scalar_wrapper &) = delete;
 
-  template <class U>
+  template <typename U>
   typename simd<U>::type eval_simd(size_t) const {
     return simd_value_;
   }
 
-  template <class U>
+  template <typename U>
   typename simd<U>::type eval_simd_mask(size_t) const {
     return simd_value_;
   }

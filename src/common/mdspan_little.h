@@ -64,7 +64,7 @@ class dextents {
 
   constexpr dextents() = default;
 
-  template <class... Extents>
+  template <typename... Extents>
   constexpr dextents(Extents... ext) {
     static_assert(Rank == sizeof...(Extents), "Number of indices must match rank");
     extents_ = {static_cast<index_type>(ext)...};

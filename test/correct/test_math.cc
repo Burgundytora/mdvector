@@ -61,15 +61,21 @@ int main(int args, char *argv[]) {
     }
     std::cout << "\n";
 
+    std::cout << "span: print abs(-0.1~-0.3) : ";
+    for (const auto &it : abs(-1.0 * a.span(0, all()))) {
+      std::cout << it << " ";
+    }
+    std::cout << "\n";
+
     using md::max;
     using md::mean;
     using md::median;
     using md::min;
     using md::standard_deviation;
-    std::cout << "span: mean [(0.4~0.6)^3] : " << mean(pow(a.span(1, all()), 3)) << "\n";
+    std::cout << "span: mean [(0.1~0.6)^3] : " << mean(pow(a, 3)) << "\n";
     std::cout << "span: max [(0.4~0.6)^3] : " << max(pow(a.span(1, all()), 3)) << "\n";
     std::cout << "span: min [(0.4~0.6)^3] : " << min(pow(a.span(1, all()), 3)) << "\n";
-    std::cout << "span: median [(0.4~0.6)^3] : " << median(pow(a.span(1, all()), 3)) << "\n";
+    std::cout << "span: median [(0.1~0.6)^3] : " << median(pow(a, 3)) << "\n";
     std::cout << "span: std [(0.4~0.6)^3] : " << standard_deviation(pow(a.span(1, all()), 3)) << "\n";
     std::cout << "\n";
 

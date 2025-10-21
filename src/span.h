@@ -16,7 +16,7 @@
 
 namespace md {
 
-template <class T, size_t Rank, class Layout = std::layout_right>
+template <typename T, size_t Rank, typename Layout = std::layout_right>
 class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterator_mixin<span<T, Rank, Layout>, T> {
  public:
   using Policy = md::unaligned_policy;
@@ -48,10 +48,10 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
   // 析构使用自动生成 不会销毁指针数组
   ~span() = default;
 
-  template <class E>
+  template <typename E>
   span(const md::tensor_expr<E, T>& expr) = delete;
 
-  template <class E>
+  template <typename E>
   span& operator=(const md::tensor_expr<E, T>& expr) noexcept {
     expr.template eval_to<T, Policy>(this->data());
     return *this;
@@ -77,38 +77,38 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 多维索引
-  template <class... Indices>
+  template <typename... Indices>
   T& operator()(Indices... indices) {
     static_assert(sizeof...(Indices) == Rank, "Number of indices must match rank");
     return mdspan_[indices...];
   }
 
-  template <class... Indices>
+  template <typename... Indices>
   const T& operator()(Indices... indices) const {
     static_assert(sizeof...(Indices) == Rank, "Number of indices must match rank");
     return mdspan_[indices...];
   }
 
-  template <class... Indices>
+  template <typename... Indices>
   T& operator[](Indices... indices) {
     static_assert(sizeof...(Indices) == Rank, "Number of indices must match rank");
     return mdspan_[indices...];
   }
 
-  template <class... Indices>
+  template <typename... Indices>
   const T& operator[](Indices... indices) const {
     static_assert(sizeof...(Indices) == Rank, "Number of indices must match rank");
     return mdspan_[indices...];
   }
 
-  template <class... Indices>
+  template <typename... Indices>
   T& at(Indices... indices) {
     static_assert(sizeof...(Indices) == Rank, "Number of indices must match rank");
     check_indices(indices...);
     return mdspan_[indices...];
   }
 
-  template <class... Indices>
+  template <typename... Indices>
   const T& at(Indices... indices) const {
     static_assert(sizeof...(Indices) == Rank, "Number of indices must match rank");
     check_indices(indices...);
@@ -118,12 +118,12 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 表达式模板数值计算
 
-  template <class T2>
+  template <typename T2>
   typename md::simd<T2>::type eval_simd(size_t i) const noexcept {
     return md::simd<T2>::loadu(this->data() + i);
   }
 
-  template <class T2>
+  template <typename T2>
   typename md::simd<T2>::type eval_simd_mask(size_t i) const noexcept {
     return md::simd<T2>::mask_loadu(this->data() + i, this->used_size() - i);
   }
@@ -148,25 +148,25 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
     return *this;
   }
 
-  template <class E>
+  template <typename E>
   span& operator+=(const md::tensor_expr<E, T>& expr) noexcept {
     (*this + expr).template eval_to<T, Policy>(this->data());
     return *this;
   }
 
-  template <class E>
+  template <typename E>
   span& operator-=(const md::tensor_expr<E, T>& expr) noexcept {
     (*this - expr).template eval_to<T, Policy>(this->data());
     return *this;
   }
 
-  template <class E>
+  template <typename E>
   span& operator*=(const md::tensor_expr<E, T>& expr) noexcept {
     (*this * expr).template eval_to<T, Policy>(this->data());
     return *this;
   }
 
-  template <class E>
+  template <typename E>
   span& operator/=(const md::tensor_expr<E, T>& expr) noexcept {
     (*this / expr).template eval_to<T, Policy>(this->data());
     return *this;

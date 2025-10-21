@@ -3,13 +3,14 @@
 
 #include <concepts>
 #include <type_traits>
+#include <vector>
 
 // 定义容器概念
-template <typename C>
-concept StatisticContainer = requires(C c) {
-  typename C::value_type;
-  { c.begin() } -> std::input_iterator;
-  { c.end() } -> std::input_iterator;
+template <typename T>
+concept StatisticContainer = requires(T v) {
+  typename T::value_type;
+  { v.begin() } -> std::input_iterator;
+  { v.end() } -> std::input_iterator;
 };
 
 // 独立统计函数模板
@@ -42,8 +43,6 @@ auto mean(const Container& c) {
 
 template <StatisticContainer Container>
 auto variance(const Container& c) {
-  if (c.size() <= 1) return typename Container::value_type(0);
-
   auto m = mean(c);
   double sum_sq = std::accumulate(c.begin(), c.end(), 0.0, [m](double acc, auto val) {
     double diff = static_cast<double>(val) - static_cast<double>(m);
@@ -58,16 +57,42 @@ auto standard_deviation(const Container& c) {
 }
 
 template <StatisticContainer Container>
-auto median(Container c) {  // 按值传递以进行排序
-  if (c.empty()) return typename Container::value_type(0);
-
-  std::sort(c.begin(), c.end());
-  size_t n = c.size();
+auto median(const Container& c) {  // 按值传递以进行排序
+  std::vector<typename Container::value_type> vec(c.size());
+  vec.assign(std::begin(c), std::end(c));
+  std::sort(vec.begin(), vec.end());
+  size_t n = vec.size();
   if (n % 2 == 0) {
-    return (c[n / 2 - 1] + c[n / 2]) / typename Container::value_type(2);
+    return (vec[n / 2 - 1] + vec[n / 2]) / typename Container::value_type(2);
   } else {
-    return c[n / 2];
+    return vec[n / 2];
   }
+}
+
+// 最大值索引
+template <StatisticContainer Container>
+size_t max_index(const Container& c) {
+  return std::distance(c.begin(), std::max_element(c.begin(), c.end()));
+}
+
+// 最小值索引
+template <StatisticContainer Container>
+size_t min_index(const Container& c) {
+  return std::distance(c.begin(), std::min_element(c.begin(), c.end()));
+}
+
+// 绝对值最大值
+template <StatisticContainer Container>
+auto abs_max(const Container& c) {
+  if (c.empty()) return typename Container::value_type(0);
+  return *std::max_element(c.begin(), c.end(), [](auto a, auto b) { return std::abs(a) < std::abs(b); });
+}
+
+// 绝对值最小值
+template <StatisticContainer Container>
+auto abs_min(const Container& c) {
+  if (c.empty()) return typename Container::value_type(0);
+  return *std::min_element(c.begin(), c.end(), [](auto a, auto b) { return std::abs(a) < std::abs(b); });
 }
 
 }  // namespace md

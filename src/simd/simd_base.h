@@ -3,7 +3,7 @@
 
 namespace md {
 
-template <class T>
+template <typename T>
 struct simd;
 
 }  // namespace md

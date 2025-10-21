@@ -6,16 +6,16 @@
 #include "mdspan_little.h"
 
 // 前向声明
-template <class T, size_t Rank, class Layout = std::layout_right>
+template <typename T, size_t Rank, typename Layout = std::layout_right>
 class mdvector;
 
 #include <concepts>
 #include <type_traits>
 
 // 定义容器概念
-template <typename C>
-concept MathContainer = requires(C c) {
-  { C::rank_ } -> std::convertible_to<size_t>;
+template <typename T>
+concept MathContainer = requires(T c) {
+  { T::rank_ } -> std::convertible_to<size_t>;
 };
 
 // 独立数学函数模板

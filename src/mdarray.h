@@ -8,7 +8,7 @@
 #include "expression_template/operator.h"
 #include "simd/simd_function.h"
 
-template <class T, class Layout = std::layout_right, size_t... lengths>
+template <typename T, typename Layout = std::layout_right, size_t... lengths>
 class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
                 public md::iterator_mixin<mdarray<T, Layout, lengths...>, T> {
  public:
@@ -56,45 +56,45 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 多维索引
-  template <class... Indices>
+  template <typename... Indices>
   T& operator()(Indices... indices) {
     static_assert(sizeof...(Indices) == sizeof...(lengths), "Number of indices must match rank");
     return mdspan_[indices...];
   }
 
-  template <class... Indices>
+  template <typename... Indices>
   const T& operator()(Indices... indices) const {
     static_assert(sizeof...(Indices) == sizeof...(lengths), "Number of indices must match rank");
     return mdspan_[indices...];
   }
 
-  template <class... Indices>
+  template <typename... Indices>
   T& operator[](Indices... indices) {
     static_assert(sizeof...(Indices) == sizeof...(lengths), "Number of indices must match rank");
     return mdspan_[indices...];
   }
 
-  template <class... Indices>
+  template <typename... Indices>
   const T& operator[](Indices... indices) const {
     static_assert(sizeof...(Indices) == sizeof...(lengths), "Number of indices must match rank");
     return mdspan_[indices...];
   }
 
-  template <class... Indices>
+  template <typename... Indices>
   T& at(Indices... indices) {
     static_assert(sizeof...(Indices) == sizeof...(lengths), "Number of indices must match rank");
     check_indices(indices...);
     return mdspan_[indices...];
   }
 
-  template <class... Indices>
+  template <typename... Indices>
   const T& at(Indices... indices) const {
     static_assert(sizeof...(Indices) == sizeof...(lengths), "Number of indices must match rank");
     check_indices(indices...);
     return mdspan_[indices...];
   }
 
-  template <class... Indices>
+  template <typename... Indices>
   size_t get_1d_index(Indices... indices) const {
     static_assert(sizeof...(Indices) == sizeof...(lengths), "Number of indices must match rank");
     // 使用 mdspan 的 mapping 来获取线性索引
@@ -142,7 +142,7 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 表达式模板数值计算
-  template <class E>
+  template <typename E>
   mdarray& operator=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
@@ -150,14 +150,14 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
     return *this;
   }
 
-  template <class T2>
+  template <typename T2>
   typename md::simd<T2>::type eval_simd(size_t i) const noexcept
     requires Numeric<T>
   {
     return md::simd<T2>::load(this->data() + i);
   }
 
-  template <class T2>
+  template <typename T2>
   typename md::simd<T2>::type eval_simd_mask(size_t i) const noexcept
     requires Numeric<T>
   {
@@ -192,7 +192,7 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
     return *this;
   }
 
-  template <class E>
+  template <typename E>
   mdarray& operator+=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
@@ -200,7 +200,7 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
     return *this;
   }
 
-  template <class E>
+  template <typename E>
   mdarray& operator-=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
@@ -208,7 +208,7 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
     return *this;
   }
 
-  template <class E>
+  template <typename E>
   mdarray& operator*=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
@@ -216,7 +216,7 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
     return *this;
   }
 
-  template <class E>
+  template <typename E>
   mdarray& operator/=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
@@ -268,28 +268,28 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
 };
 
 // 常用别名
-template <class T, size_t... lengths>
+template <typename T, size_t... lengths>
 using mdarray_row_major = mdarray<T, std::layout_right, lengths...>;
 
-template <class T, size_t... lengths>
+template <typename T, size_t... lengths>
 using mdarray_col_major = mdarray<T, std::layout_left, lengths...>;
 
-template <class T, size_t N>
+template <typename T, size_t N>
 using array_1d = mdarray_row_major<T, N>;
 
-template <class T, size_t N1, size_t N2>
+template <typename T, size_t N1, size_t N2>
 using array_2d = mdarray_row_major<T, N1, N2>;
 
-template <class T, size_t N1, size_t N2, size_t N3>
+template <typename T, size_t N1, size_t N2, size_t N3>
 using array_3d = mdarray_row_major<T, N1, N2, N3>;
 
-template <class T, size_t N1, size_t N2, size_t N3, size_t N4>
+template <typename T, size_t N1, size_t N2, size_t N3, size_t N4>
 using array_4d = mdarray_row_major<T, N1, N2, N3, N4>;
 
-template <class T, size_t N1, size_t N2, size_t N3, size_t N4, size_t N5>
+template <typename T, size_t N1, size_t N2, size_t N3, size_t N4, size_t N5>
 using array_5d = mdarray_row_major<T, N1, N2, N3, N4, N5>;
 
-template <class T, size_t N1, size_t N2, size_t N3, size_t N4, size_t N5, size_t N6>
+template <typename T, size_t N1, size_t N2, size_t N3, size_t N4, size_t N5, size_t N6>
 using array_6d = mdarray_row_major<T, N1, N2, N3, N4, N5, N6>;
 
 #endif  // __MDVECTOR_ENGINE_STATIC_H__

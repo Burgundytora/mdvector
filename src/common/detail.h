@@ -28,7 +28,7 @@ size_t calculate_size(const std::array<size_t, Rank>& shape) {
   return std::reduce(shape.begin(), shape.end(), size_t(1), std::multiplies<size_t>());
 }
 
-template <typename T, typename Extents, class Layout>
+template <typename T, typename Extents, typename Layout>
 void print_mdspan(std::mdspan<T, Extents, Layout> mdspan_) {
   constexpr size_t Rank = mdspan_.rank();
   if constexpr (Rank == 1) {
@@ -96,7 +96,7 @@ void print_mdspan(std::mdspan<T, Extents, Layout> mdspan_) {
   }
 }
 
-template <std::size_t Rank, class Layout = std::layout_right>
+template <std::size_t Rank, typename Layout = std::layout_right>
 auto compute_strides(const std::array<std::size_t, Rank>& extents) {
   std::array<std::size_t, Rank> strides;
   if constexpr (std::is_same_v<Layout, std::layout_right>) {
@@ -164,7 +164,7 @@ void check_slice_bounds(const std::array<md::slice, Rank>& slices, const std::ar
   }
 }
 
-template <size_t Rank, class Layout = std::layout_right>
+template <size_t Rank, typename Layout = std::layout_right>
 bool check_slice_contiguous(std::array<std::size_t, Rank> ori, std::array<slice, Rank> slice,
                             std::array<bool, Rank> is_single) {
   bool contiguous = true;
@@ -217,31 +217,31 @@ bool check_slice_contiguous(std::array<std::size_t, Rank> ori, std::array<slice,
 
 //////
 // 辅助类型：判断是否是整数类型
-template <class T>
+template <typename T>
 struct is_integral_slice : std::false_type {};
 
-template <class T>
+template <typename T>
 struct is_integral_slice<std::integral_constant<T, T{}>> : std::true_type {};
 
-template <class T>
+template <typename T>
 constexpr bool is_integral_slice_v = is_integral_slice<T>::value;
 
 // 计算新维度（Rank）的元函数
-template <class... Slices>
+template <typename... Slices>
 struct compressed_rank;
 
 template <>
 struct compressed_rank<> : std::integral_constant<std::size_t, 0> {};
 
-template <class First, class... Rest>
+template <typename First, typename... Rest>
 struct compressed_rank<First, Rest...>
     : std::integral_constant<std::size_t, (!std::is_integral_v<std::decay_t<First>>)+compressed_rank<Rest...>::value> {
 };
 
-template <class... Slices>
+template <typename... Slices>
 constexpr std::size_t compressed_rank_v = compressed_rank<Slices...>::value;
 
-template <class SliceType>
+template <typename SliceType>
 md::slice convert_slice(int this_dim_size, SliceType&& slice_one) {
   if constexpr (std::is_same_v<std::decay_t<SliceType>, md::slice>) {
     return std::forward<SliceType>(slice_one);
@@ -255,7 +255,7 @@ md::slice convert_slice(int this_dim_size, SliceType&& slice_one) {
 }
 
 // 转换切片并收集信息
-template <std::size_t Rank, class... Slices>
+template <std::size_t Rank, typename... Slices>
 auto prepare_slices(std::array<std::size_t, Rank> extents, Slices... slices) {
   std::array<slice, Rank> result;
   std::array<bool, Rank> is_integral{};  // 标记哪些维度是整数索引

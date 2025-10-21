@@ -5,7 +5,7 @@
 
 namespace md {
 
-template <class Derived, class T>
+template <typename Derived, typename T>
 class tensor_expr {
  public:
   const Derived& derived() const noexcept { return static_cast<const Derived&>(*this); }
@@ -14,7 +14,7 @@ class tensor_expr {
 
   auto extents() const noexcept { return derived().extents(); }
 
-  template <class Dest, class DestPolicy>
+  template <typename Dest, typename DestPolicy>
   void eval_to(Dest* dest) const noexcept {
     const size_t n = used_size();
     size_t i = 0;

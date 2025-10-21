@@ -13,7 +13,7 @@
 #include "simd/simd_function.h"
 #include "span.h"
 
-template <class T, size_t Rank, class Layout>
+template <typename T, size_t Rank, typename Layout>
 class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
                  public md::iterator_mixin<mdvector<T, Rank, Layout>, T> {
  public:
@@ -91,31 +91,31 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 多维索引
-  template <class... Indices>
+  template <typename... Indices>
   T& operator()(Indices... indices) {
     static_assert(sizeof...(Indices) == Rank, "Number of indices must match rank");
     return mdspan_[indices...];
   }
 
-  template <class... Indices>
+  template <typename... Indices>
   const T& operator()(Indices... indices) const {
     static_assert(sizeof...(Indices) == Rank, "Number of indices must match rank");
     return mdspan_[indices...];
   }
 
-  template <class... Indices>
+  template <typename... Indices>
   T& operator[](Indices... indices) {
     static_assert(sizeof...(Indices) == Rank, "Number of indices must match rank");
     return mdspan_[indices...];
   }
 
-  template <class... Indices>
+  template <typename... Indices>
   const T& operator[](Indices... indices) const {
     static_assert(sizeof...(Indices) == Rank, "Number of indices must match rank");
     return mdspan_[indices...];
   }
 
-  template <class... Indices>
+  template <typename... Indices>
   T& at(Indices... indices) {
     static_assert(sizeof...(Indices) == Rank, "Number of indices must match rank");
     check_initialized();
@@ -123,7 +123,7 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
     return mdspan_[indices...];
   }
 
-  template <class... Indices>
+  template <typename... Indices>
   const T& at(Indices... indices) const {
     static_assert(sizeof...(Indices) == Rank, "Number of indices must match rank");
     check_initialized();
@@ -131,7 +131,7 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
     return mdspan_[indices...];
   }
 
-  template <class... Indices>
+  template <typename... Indices>
   size_t get_1d_index(Indices... indices) const {
     static_assert(sizeof...(Indices) == Rank, "Number of indices must match rank");
     // 使用 mdspan 的 mapping 来获取线性索引
@@ -184,7 +184,7 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 创建span 内存连续视图
-  template <class... Slices>
+  template <typename... Slices>
   auto span(Slices... slices) {
     static_assert(sizeof...(Slices) == Rank, "Number of slices must match dimensionality");
 
@@ -238,7 +238,7 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 表达式模板数值计算
-  template <class E>
+  template <typename E>
   mdvector(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
@@ -246,7 +246,7 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
     expr.template eval_to<T, Policy>(this->data());
   }
 
-  template <class E>
+  template <typename E>
   mdvector& operator=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
@@ -255,14 +255,14 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
     return *this;
   }
 
-  template <class T2>
+  template <typename T2>
   typename md::simd<T2>::type eval_simd(size_t i) const noexcept
     requires Numeric<T>
   {
     return md::simd<T2>::load(data() + i);
   }
 
-  template <class T2>
+  template <typename T2>
   typename md::simd<T2>::type eval_simd_mask(size_t i) const noexcept
     requires Numeric<T>
   {
@@ -297,7 +297,7 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
     return *this;
   }
 
-  template <class E>
+  template <typename E>
   mdvector& operator+=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
@@ -305,7 +305,7 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
     return *this;
   }
 
-  template <class E>
+  template <typename E>
   mdvector& operator-=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
@@ -313,7 +313,7 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
     return *this;
   }
 
-  template <class E>
+  template <typename E>
   mdvector& operator*=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
@@ -321,7 +321,7 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
     return *this;
   }
 
-  template <class E>
+  template <typename E>
   mdvector& operator/=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
@@ -420,22 +420,22 @@ using shape_4d = std::array<size_t, 4>;
 using shape_5d = std::array<size_t, 5>;
 using shape_6d = std::array<size_t, 6>;
 
-template <class T>
+template <typename T>
 using vector_1d = mdvector<T, 1>;
 
-template <class T>
+template <typename T>
 using vector_2d = mdvector<T, 2>;
 
-template <class T>
+template <typename T>
 using vector_3d = mdvector<T, 3>;
 
-template <class T>
+template <typename T>
 using vector_4d = mdvector<T, 4>;
 
-template <class T>
+template <typename T>
 using vector_5d = mdvector<T, 5>;
 
-template <class T>
+template <typename T>
 using vector_6d = mdvector<T, 6>;
 
 #endif  // __MDVECTOR_H__

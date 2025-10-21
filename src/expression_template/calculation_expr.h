@@ -5,7 +5,7 @@
 
 namespace md {
 
-template <class T, class = void>
+template <typename T, typename = void>
 struct tensor_scalar_type {
   using type = const T&;
   static constexpr size_t rank_ = T::rank_;
@@ -13,7 +13,7 @@ struct tensor_scalar_type {
   static constexpr bool is_scalar = false;
 };
 
-template <class T>
+template <typename T>
 struct tensor_scalar_type<T, std::enable_if_t<std::is_arithmetic_v<T>>> {
   using type = scalar_wrapper<T>;
   static constexpr size_t rank_ = 0;      // 标量 rank 应该是 0
@@ -21,11 +21,11 @@ struct tensor_scalar_type<T, std::enable_if_t<std::is_arithmetic_v<T>>> {
   static constexpr bool is_scalar = true;
 };
 
-template <class T>
+template <typename T>
 using AutoType = typename tensor_scalar_type<T>::type;
 
 // 推导主要操作数的布局类型 - 优先使用非标量类型的layout
-template <class L, class R>
+template <typename L, typename R>
 struct derived_layout_type {
   // 如果 L 不是标量，使用 L 的 layout
   static constexpr bool l_is_scalar = tensor_scalar_type<L>::is_scalar;
@@ -37,18 +37,18 @@ struct derived_layout_type {
                                                      >>;
 };
 
-template <class L, class R>
+template <typename L, typename R>
 using layout_type_t = typename derived_layout_type<L, R>::type;
 
 // 获取主要操作数的 rank
-template <class L, class R>
+template <typename L, typename R>
 constexpr size_t derived_rank() {
   static constexpr size_t l_rank = tensor_scalar_type<L>::rank_;
   static constexpr size_t r_rank = tensor_scalar_type<R>::rank_;
   return (l_rank > r_rank) ? l_rank : r_rank;
 }
 
-template <class T, class L, class R, class Cal>
+template <typename T, typename L, typename R, typename Cal>
 class calculation_expr : public tensor_expr<calculation_expr<T, L, R, Cal>, T> {
  public:
   using value_type = T;
@@ -78,14 +78,14 @@ class calculation_expr : public tensor_expr<calculation_expr<T, L, R, Cal>, T> {
     }
   }
 
-  template <class U>
+  template <typename U>
   typename simd<U>::type eval_simd(size_t i) const {
     auto l = lhs.template eval_simd<U>(i);
     auto r = rhs.template eval_simd<U>(i);
     return simd_cal<U, Cal>(l, r);
   }
 
-  template <class U>
+  template <typename U>
   typename simd<U>::type eval_simd_mask(size_t i) const {
     auto l = lhs.template eval_simd_mask<U>(i);
     auto r = rhs.template eval_simd_mask<U>(i);
