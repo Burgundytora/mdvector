@@ -177,7 +177,7 @@ class layout_stride::mapping {
   // 从其他映射构造（简化版本）
   template <typename OtherMapping>
   constexpr mapping(const OtherMapping& other) noexcept : extents_(other.extents()) {
-    for (rank_type i = 0; i < rank(); ++i) {
+    for (rank_type i = 0; i < extents_type::rank(); ++i) {
       strides_[i] = other.stride(i);
     }
   }
@@ -193,7 +193,7 @@ class layout_stride::mapping {
 
   constexpr index_type required_span_size() const noexcept {
     index_type max_index = 0;
-    for (rank_type i = 0; i < rank(); ++i) {
+    for (rank_type i = 0; i < extents_type::rank(); ++i) {
       max_index += (extents_.extent(i) - 1) * strides_[i];
     }
     return max_index + 1;
