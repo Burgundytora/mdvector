@@ -8,7 +8,7 @@ namespace md {
 template <typename T>
 class scalar_wrapper : public tensor_expr<scalar_wrapper<T>, T> {
   typename simd<T>::type simd_value_;
-  static constexpr size_t rank_ = 1;
+  static constexpr size_t rank_ = 0;
   using value_type = T;
 
  public:

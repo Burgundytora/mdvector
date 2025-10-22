@@ -27,6 +27,7 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
  protected:
   std::mdspan<T, std::dextents<size_t, Rank>, Layout> mdspan_;
   std::array<size_t, Rank> shape_;
+  size_t size_;
 
  public:
   ///////////////////////////////////////////////////////////////////////////////////////
@@ -34,7 +35,9 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
   constexpr span() noexcept = default;
 
   span(T* data, const std::array<std::size_t, Rank>& shape)
-      : mdspan_(create_mdspan(data, shape, std::make_index_sequence<Rank>{})), shape_(shape) {}
+      : mdspan_(create_mdspan(data, shape, std::make_index_sequence<Rank>{})),
+        shape_(shape),
+        size_(md::calculate_size(shape)) {}
 
   span(const span& other) = delete;
 
@@ -63,15 +66,15 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
 
   const T* data() const { return mdspan_.data_handle(); }
 
-  size_t used_size() const noexcept { return this->mdspan_.size(); }
+  size_t used_size() const noexcept { return size_; }
 
-  size_t size() const noexcept { return this->mdspan_.size(); }
+  size_t size() const noexcept { return size_; }
 
   void fill(T val) { std::fill(begin(), end(), val); }
 
   auto extents() const { return shape_; }
 
-  size_t extent(int index) const { return mdspan_.extent(index); }
+  size_t extent(int index) const { return shape_.at(index); }
 
   bool empty() { return mdspan_.empty(); }
 
@@ -113,6 +116,57 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
     static_assert(sizeof...(Indices) == Rank, "Number of indices must match rank");
     check_indices(indices...);
     return mdspan_[indices...];
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////////////
+  /// 索引转换
+  template <typename... Indices>
+  size_t get_1d_index(Indices... indices) const {
+    static_assert(sizeof...(Indices) == Rank, "Number of indices must match rank");
+    // 使用 mdspan 的 mapping 来获取线性索引
+    return mdspan_.mapping()(indices...);
+  }
+
+  // 一维索引转多维索引
+  std::array<size_t, Rank> get_md_index(size_t linear_index) const {
+    if (linear_index >= size_) {
+      throw std::out_of_range("Linear index out of range");
+    }
+
+    std::array<size_t, Rank> indices{};
+
+    if constexpr (std::is_same_v<Layout, std::layout_right>) {
+      // 行优先布局 (C-style)
+      size_t remaining = linear_index;
+      for (int i = Rank - 1; i >= 0; --i) {
+        indices[i] = remaining % shape_[i];
+        remaining /= shape_[i];
+      }
+    } else if constexpr (std::is_same_v<Layout, std::layout_left>) {
+      // 列优先布局 (Fortran-style)
+      size_t remaining = linear_index;
+      for (size_t i = 0; i < Rank; ++i) {
+        indices[i] = remaining % shape_[i];
+        remaining /= shape_[i];
+      }
+    } else {
+      // 通用布局，使用 mdspan 的映射器
+      auto extents = mdspan_.extents();
+      for (size_t i = 0; i < Rank; ++i) {
+        indices[i] = mdspan_.mapping().template operator()<std::size_t>(linear_index, i);
+      }
+    }
+
+    return indices;
+  }
+
+  // 获取指定维度的索引
+  size_t get_dim_index(size_t linear_index, size_t dim) const {
+    if (linear_index >= size_ || dim >= Rank) {
+      throw std::out_of_range("Index out of range");
+    }
+
+    return get_md_index(linear_index)[dim];
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////

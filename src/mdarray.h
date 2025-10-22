@@ -94,11 +94,55 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
     return mdspan_[indices...];
   }
 
+  ///////////////////////////////////////////////////////////////////////////////////////
+  /// 索引转换
   template <typename... Indices>
   size_t get_1d_index(Indices... indices) const {
     static_assert(sizeof...(Indices) == sizeof...(lengths), "Number of indices must match rank");
     // 使用 mdspan 的 mapping 来获取线性索引
     return mdspan_.mapping()(indices...);
+  }
+
+  // 一维索引转多维索引
+  std::array<size_t, sizeof...(lengths)> get_md_index(size_t linear_index) const {
+    if (linear_index >= raw_total_size) {
+      throw std::out_of_range("Linear index out of range");
+    }
+
+    std::array<size_t, sizeof...(lengths)> indices{};
+
+    if constexpr (std::is_same_v<Layout, std::layout_right>) {
+      // 行优先布局 (C-style)
+      size_t remaining = linear_index;
+      for (int i = sizeof...(lengths) - 1; i >= 0; --i) {
+        indices[i] = remaining % shape_[i];
+        remaining /= shape_[i];
+      }
+    } else if constexpr (std::is_same_v<Layout, std::layout_left>) {
+      // 列优先布局 (Fortran-style)
+      size_t remaining = linear_index;
+      for (size_t i = 0; i < sizeof...(lengths); ++i) {
+        indices[i] = remaining % shape_[i];
+        remaining /= shape_[i];
+      }
+    } else {
+      // 通用布局，使用 mdspan 的映射器
+      auto extents = mdspan_.extents();
+      for (size_t i = 0; i < sizeof...(lengths); ++i) {
+        indices[i] = mdspan_.mapping().template operator()<std::size_t>(linear_index, i);
+      }
+    }
+
+    return indices;
+  }
+
+  // 获取指定维度的索引
+  size_t get_dim_index(size_t linear_index, size_t dim) const {
+    if (linear_index >= raw_total_size || dim >= sizeof...(lengths)) {
+      throw std::out_of_range("Index out of range");
+    }
+
+    return get_md_index(linear_index)[dim];
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////
@@ -107,15 +151,15 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
 
   const T* data() const { return array_.data(); }
 
-  size_t used_size() const { return array_.size(); }
+  size_t used_size() const { return total_size; }
 
   size_t size() const { return raw_total_size; }
 
   auto extents() const { return shape_; }
 
-  size_t extent(int i) const { return mdspan_.extent(i); }
+  size_t extent(int index) const { return shape_.at(index); }
 
-  bool empty() { return mdspan_.empty(); }
+  bool empty() { return false; }
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 更改属性
