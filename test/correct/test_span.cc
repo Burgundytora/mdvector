@@ -206,6 +206,7 @@ int main() {
   mdvector<double, 1> length;
 
   length = sqrt(pow(x2 - x1, 2.0) + pow(y2 - y1, 2.0) + pow(z2 - z1, 2.0));
+  // length = hypot(x2 - x1, y2 - y1, z2 - z1);
   length.print();
 
   std::cout << "span test down. \n";
