@@ -13,7 +13,7 @@ constexpr bool do_sub = true;
 constexpr bool do_mul = true;
 constexpr bool do_div = true;
 
-constexpr size_t points = 3E8;
+constexpr size_t points = 2E8;
 
 struct TestPoint {
   TestPoint() = delete;

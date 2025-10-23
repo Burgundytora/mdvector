@@ -1,19 +1,121 @@
 #ifndef __MDVECTOR_DETAIL_H__
 #define __MDVECTOR_DETAIL_H__
 
+#include <algorithm>
 #include <array>
+#include <cmath>
 #include <cstddef>
+#include <iostream>
+#include <numeric>
+#include <print>
 #include <type_traits>
+#include <version>
+
+#include "mdspan_little.h"
 
 namespace md {
 
-struct layout_right {};
-struct layout_left {};
+template <typename MDspan>
+auto get_shape(const MDspan& md) {
+  constexpr size_t rank = MDspan::rank();
+  return [&md]<size_t... Is>(std::index_sequence<Is...>) {
+    return std::array<size_t, rank>{md.extent(Is)...};
+  }(std::make_index_sequence<rank>{});
+}
 
-template <std::size_t Rank, class Layout = layout_right>
+template <size_t Rank>
+size_t calculate_size(const std::array<size_t, Rank>& shape) {
+  return std::reduce(shape.begin(), shape.end(), size_t(1), std::multiplies<size_t>());
+}
+
+template <typename T, typename Extents, typename Layout>
+void print_mdspan(std::mdspan<T, Extents, Layout> mdspan_) {
+  constexpr size_t Rank = mdspan_.rank();
+  if constexpr (Rank == 1) {
+    // 1D 输出
+    std::cout << "[";
+    for (size_t i = 0; i < mdspan_.extent(0); ++i) {
+      std::cout << mdspan_[i];
+      if (i < mdspan_.extent(0) - 1) {
+        std::cout << ", ";
+      }
+    }
+    std::cout << "]" << std::endl;
+  } else if constexpr (Rank == 2) {
+    // 2D 矩阵输出
+    std::cout << "[\n";
+    for (size_t i = 0; i < mdspan_.extent(0); ++i) {
+      std::cout << "  [";
+      for (size_t j = 0; j < mdspan_.extent(1); ++j) {
+        std::cout << std::format("{:3}", mdspan_[i, j]);
+        if (j < mdspan_.extent(1) - 1) {
+          std::cout << ", ";
+        }
+      }
+      std::cout << "]\n";
+    }
+    std::cout << "]" << std::endl;
+  } else if constexpr (Rank == 3) {
+    // 3D 张量输出
+    std::cout << std::format("3D Tensor [{} x {} x {}]:\n", mdspan_.extent(0), mdspan_.extent(1), mdspan_.extent(2));
+
+    for (size_t i = 0; i < mdspan_.extent(0); ++i) {
+      std::cout << std::format("Layer {}:\n", i);
+      std::cout << "  [\n";
+      for (size_t j = 0; j < mdspan_.extent(1); ++j) {
+        std::cout << "    [";
+        for (size_t k = 0; k < mdspan_.extent(2); ++k) {
+          std::cout << std::format("{:3}", mdspan_[i, j, k]);
+          if (k < mdspan_.extent(2) - 1) {
+            std::cout << ", ";
+          }
+        }
+        std::cout << "]";
+        if (j < mdspan_.extent(1) - 1) {
+          std::cout << ",";
+        }
+        std::cout << "\n";
+      }
+      std::cout << "  ]";
+      if (i < mdspan_.extent(0) - 1) {
+        std::cout << ",";
+      }
+      std::cout << std::endl;
+    }
+  } else {
+    // 更高维度输出
+    std::cout << std::format("<{}D Tensor>: [", Rank);
+    for (size_t i = 0; i < Rank; ++i) {
+      std::cout << mdspan_.extent(i);
+      if (i < Rank - 1) {
+        std::cout << " x ";
+      }
+    }
+    std::cout << "]" << std::endl;
+
+    // 对于高维张量，显示前几个元素作为示例
+    std::cout << "First few elements: ";
+    size_t count = 0;
+    constexpr size_t max_elements = 6;
+
+    // 简单的扁平化遍历显示前几个元素
+    for (size_t i = 0; i < mdspan_.size() && count < max_elements; ++i, ++count) {
+      std::cout << *(mdspan_.data_handle() + i);
+      if (i < mdspan_.size() - 1 && count < max_elements - 1) {
+        std::cout << ", ";
+      }
+    }
+    if (mdspan_.size() > max_elements) {
+      std::cout << ", ...";
+    }
+    std::cout << std::endl;
+  }
+}
+
+template <std::size_t Rank, typename Layout = std::layout_right>
 auto compute_strides(const std::array<std::size_t, Rank>& extents) {
   std::array<std::size_t, Rank> strides;
-  if constexpr (std::is_same_v<Layout, layout_right>) {
+  if constexpr (std::is_same_v<Layout, std::layout_right>) {
     strides.back() = 1;
     for (int i = Rank - 2; i >= 0; i--) {
       strides[i] = strides[i + 1] * extents[i + 1];
@@ -78,7 +180,7 @@ void check_slice_bounds(const std::array<md::slice, Rank>& slices, const std::ar
   }
 }
 
-template <size_t Rank, class Layout = layout_right>
+template <size_t Rank, typename Layout = std::layout_right>
 bool check_slice_contiguous(std::array<std::size_t, Rank> ori, std::array<slice, Rank> slice,
                             std::array<bool, Rank> is_single) {
   bool contiguous = true;
@@ -90,7 +192,7 @@ bool check_slice_contiguous(std::array<std::size_t, Rank> ori, std::array<slice,
   int this_level = 3;
   int last_level = 3;
   int loop_i, step, end_val;
-  if constexpr (std::is_same_v<Layout, layout_right>) {
+  if constexpr (std::is_same_v<Layout, std::layout_right>) {
     loop_i = ori.size() - 1;
     step = -1;
     end_val = -1;
@@ -131,32 +233,45 @@ bool check_slice_contiguous(std::array<std::size_t, Rank> ori, std::array<slice,
 
 //////
 // 辅助类型：判断是否是整数类型
-template <class T>
+template <typename T>
 struct is_integral_slice : std::false_type {};
 
-template <class T>
+template <typename T>
 struct is_integral_slice<std::integral_constant<T, T{}>> : std::true_type {};
 
-template <class T>
+template <typename T>
 constexpr bool is_integral_slice_v = is_integral_slice<T>::value;
 
 // 计算新维度（Rank）的元函数
-template <class... Slices>
+template <typename... Slices>
 struct compressed_rank;
 
 template <>
 struct compressed_rank<> : std::integral_constant<std::size_t, 0> {};
 
-template <class First, class... Rest>
+template <typename First, typename... Rest>
 struct compressed_rank<First, Rest...>
     : std::integral_constant<std::size_t, (!std::is_integral_v<std::decay_t<First>>)+compressed_rank<Rest...>::value> {
 };
 
-template <class... Slices>
+template <typename... Slices>
 constexpr std::size_t compressed_rank_v = compressed_rank<Slices...>::value;
 
+template <typename SliceType>
+md::slice convert_slice(int this_dim_size, SliceType&& slice_one) {
+  if constexpr (std::is_same_v<std::decay_t<SliceType>, md::slice>) {
+    return std::forward<SliceType>(slice_one);
+  } else if constexpr (std::is_integral_v<std::decay_t<SliceType>>) {
+    // 整数索引转换为单元素切片
+    std::ptrdiff_t normolize_index = md::normalize_index(slice_one, this_dim_size);
+    return md::slice(static_cast<std::ptrdiff_t>(normolize_index), static_cast<std::ptrdiff_t>(normolize_index), false);
+  } else {
+    static_assert(sizeof(SliceType) == 0, "Unsupported slice type");
+  }
+}
+
 // 转换切片并收集信息
-template <std::size_t Rank, class... Slices>
+template <std::size_t Rank, typename... Slices>
 auto prepare_slices(std::array<std::size_t, Rank> extents, Slices... slices) {
   std::array<slice, Rank> result;
   std::array<bool, Rank> is_integral{};  // 标记哪些维度是整数索引
@@ -170,19 +285,6 @@ auto prepare_slices(std::array<std::size_t, Rank> extents, Slices... slices) {
   return std::make_pair(result, is_integral);
 }
 
-template <class SliceType>
-md::slice convert_slice(int this_dim_size, SliceType&& slice_one) {
-  if constexpr (std::is_same_v<std::decay_t<SliceType>, md::slice>) {
-    return std::forward<SliceType>(slice_one);
-  } else if constexpr (std::is_integral_v<std::decay_t<SliceType>>) {
-    // 整数索引转换为单元素切片
-    std::ptrdiff_t normolize_index = md::normalize_index(slice_one, this_dim_size);
-    return md::slice(static_cast<std::ptrdiff_t>(normolize_index), static_cast<std::ptrdiff_t>(normolize_index), false);
-  } else {
-    static_assert(sizeof(SliceType) == 0, "Unsupported slice type");
-  }
-}
-
 }  // namespace md
 
-#endif  // MDVECTOR_DETAIL_H_
+#endif  // __MDVECTOR_DETAIL_H__

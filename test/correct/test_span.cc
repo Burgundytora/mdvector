@@ -28,7 +28,7 @@ int main() {
   }
 
   std::cout << "原始矩阵:" << std::endl;
-  mat.show_data_matrix_style();
+  mat.print();
 
   // 测试2: 创建子视图
 
@@ -121,28 +121,28 @@ int main() {
   sub_contig1(0) = 99;  // 修改子视图的第一个元素
 
   std::cout << "修改后的原始矩阵:" << std::endl;
-  mat.show_data_matrix_style();
+  mat.print();
   // 预期输出中mat[1][0]变为99
 
   // 表达式计算
   std::cout << "\n=== 测试5: 子视图元素*10 ===" << std::endl;
   sub_contig1 *= 10.0;
   std::cout << "修改后的原始矩阵:" << std::endl;
-  mat.show_data_matrix_style();
+  mat.print();
   // 第二行 990 50 60
 
   std::cout << "\n=== 测试5: 子视图元素+10 ===" << std::endl;
   sub_contig1 = sub_contig1 + 10.0;
   std::cout << "修改后的原始矩阵:" << std::endl;
-  mat.show_data_matrix_style();
+  mat.print();
   // 第二行 1000 60 70
 
   std::cout << "\n=== 测试5: 子视图元素 = 第三行/0.5 ===" << std::endl;
   sub_contig1 = sub_contig_test / 0.5;
   std::cout << "修改后的原始矩阵:" << std::endl;
-  mat.show_data_matrix_style();
+  mat.print();
   // 第二行 14 16 18
-  sub_contig1.show_data_matrix_style();
+  sub_contig1.print();
   // 14 16 18
 
   // // 测试5: 尝试创建非法子视图
@@ -180,11 +180,11 @@ int main() {
   std::cout << "3D张量子视图[1, 1:-1(2), 0:4] 及 +=10 的内容: \n";
   mdvector<double, 2> aa = tensor_sub;
   mdvector<double, 2> bb = tensor_sub + 10.0;
-  aa.show_data_matrix_style();
+  aa.print();
   // 17 18 19 20
   // 21 22 23 24
   std::cout << std::endl;
-  bb.show_data_matrix_style();
+  bb.print();
   // 27 28 29 30
   // 31 32 33 34
 
@@ -196,6 +196,7 @@ int main() {
     pos_info(1, i) = i * (10 + i) + 2;
     pos_info(2, i) = i * (10 + i) + 3;
   }
+  pos_info.print();
   md::span<double, 1> x1 = pos_info.span(0, slice(0, -2));
   md::span<double, 1> y1 = pos_info.span(1, slice(0, -2));
   md::span<double, 1> z1 = pos_info.span(2, slice(0, -2));
@@ -203,10 +204,12 @@ int main() {
   md::span<double, 1> y2 = pos_info.span(1, slice(1, -1));
   md::span<double, 1> z2 = pos_info.span(2, slice(1, -1));
   mdvector<double, 1> length;
-  length = sqrt(pow(x2 - x1, 2.0) + pow(y2 - y1, 2.0) + pow(z2 - z1, 2.0));
-  length.show_data_matrix_style();
 
-  mdvector<double, 1> creat_mdvector_from_span = x1;
+  length = sqrt(pow(x2 - x1, 2.0) + pow(y2 - y1, 2.0) + pow(z2 - z1, 2.0));
+  // length = hypot(x2 - x1, y2 - y1, z2 - z1);
+  length.print();
+
+  std::cout << "span test down. \n";
 
   return 0;
 }

@@ -1,6 +1,8 @@
 #ifndef __MDVECTOR_X86_AVX2_H__
 #define __MDVECTOR_X86_AVX2_H__
 
+#include <ostream>
+
 #include "simd_base.h"
 
 // ======================== AVX2 ========================

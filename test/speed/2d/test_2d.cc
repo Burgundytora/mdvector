@@ -1,25 +1,23 @@
 ﻿
-#include <iostream>
 #include <valarray>
-#include <vector>
+
+//
+#include "test_set.h"
+#include "time_cost.h"
 
 //
 #include "Eigen/Dense"
+#include "unsupported/Eigen/CXX11/Tensor"
 
 //
 #define XTENSOR_USE_XSIMD
-#include "xtensor/xarray.hpp"
-#include "xtensor/xtensor.hpp"
+#include "xtensor/containers/xarray.hpp"
+#include "xtensor/containers/xtensor.hpp"
 
 //
 #include "mdarray.h"
 #include "mdvector.h"
 #include "other_method/base_expr/base_expr.h"
-#include "simd/simd_function.h"
-#include "time_cost.h"
-
-//
-#include "test_set.h"
 
 using std::vector;
 
@@ -195,9 +193,9 @@ void test_mdvector_expr() {
   vector_2d<T> data4_(test_shape);
 
   // 赋值
-  data1_.set_value(1);
-  data2_.set_value(2);
-  data4_.set_value(3);
+  data1_.fill(1);
+  data2_.fill(2);
+  data4_.fill(3);
 
   TimerRecorder a("mdvector");
 
@@ -230,9 +228,9 @@ void test_mdarray_expr() {
   array_2d<T, N1, N2> data4_;
 
   // 赋值
-  data1_.set_value(1);
-  data2_.set_value(2);
-  data4_.set_value(3);
+  data1_.fill(1);
+  data2_.fill(2);
+  data4_.fill(3);
 
   TimerRecorder a("mdarray");
 
@@ -382,13 +380,14 @@ void test_simd() {
 
 void test_eigen_matrixd() {
   // 定义对齐的动态矩阵类型
-  using AlignedMatrixXd =
-      Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor, Eigen::Dynamic, Eigen::Dynamic>;
-
-  AlignedMatrixXd data1_(dim1, dim2);
-  AlignedMatrixXd data2_(dim1, dim2);
-  AlignedMatrixXd data3_(dim1, dim2);
-  AlignedMatrixXd data4_(dim1, dim2);
+  Eigen::Tensor<double, 2> data1_(
+      Eigen::array<Eigen::Index, 2>{static_cast<Eigen::Index>(dim1), static_cast<Eigen::Index>(dim2)});
+  Eigen::Tensor<double, 2> data2_(
+      Eigen::array<Eigen::Index, 2>{static_cast<Eigen::Index>(dim1), static_cast<Eigen::Index>(dim2)});
+  Eigen::Tensor<double, 2> data3_(
+      Eigen::array<Eigen::Index, 2>{static_cast<Eigen::Index>(dim1), static_cast<Eigen::Index>(dim2)});
+  Eigen::Tensor<double, 2> data4_(
+      Eigen::array<Eigen::Index, 2>{static_cast<Eigen::Index>(dim1), static_cast<Eigen::Index>(dim2)});
 
   // 赋值
   for (size_t i = 0; i < dim1; i++) {
@@ -413,11 +412,11 @@ void test_eigen_matrixd() {
     }
 
     if constexpr (do_mul) {
-      data3_ = data1_.cwiseProduct(data2_);
+      data3_ = data1_ * data2_;
     }
 
     if constexpr (do_div) {
-      data3_ = data1_.cwiseQuotient(data2_);
+      data3_ = data1_ / data2_;
     }
     val = data3_(0, 0);
   }

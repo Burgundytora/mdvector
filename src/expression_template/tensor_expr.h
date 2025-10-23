@@ -5,7 +5,7 @@
 
 namespace md {
 
-template <class Derived, class T>
+template <typename Derived, typename T>
 class tensor_expr {
  public:
   const Derived& derived() const noexcept { return static_cast<const Derived&>(*this); }
@@ -14,13 +14,11 @@ class tensor_expr {
 
   auto extents() const noexcept { return derived().extents(); }
 
-  auto eval_simd(size_t i) const noexcept { return static_cast<const Derived&>(*this).eval_simd(i); }
-
-  template <class Dest, class DestPolicy>
+  template <typename Dest, typename DestPolicy>
   void eval_to(Dest* dest) const noexcept {
     const size_t n = used_size();
-    constexpr size_t pack_size = simd<Dest>::pack_size;
     size_t i = 0;
+    constexpr size_t pack_size = simd<Dest>::pack_size;
 
     for (; i + pack_size <= n; i += pack_size) {
       auto simd_val = derived().template eval_simd<std::remove_const_t<Dest>>(i);

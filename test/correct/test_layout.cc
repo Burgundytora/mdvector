@@ -6,10 +6,19 @@ using md::all;
 using md::slice;
 using md::span;
 
+#if defined(_WIN32)
+#include <windows.h>  // 添加Windows头文件
+#endif
+
 int main(int args, char *argv[]) {
+#if defined(_WIN32)
+  // 设置控制台输出为UTF-8编码
+  SetConsoleOutputCP(65001);
+#endif
+
   shape_3d shape({2, 3, 4});
   mdvector<double, 3> test_vector3d(shape);
-  mdvector<double, 3, md::layout_left> test_vector3d_layout_left(shape);
+  mdvector<double, 3, std::layout_left> test_vector3d_layout_left(shape);
   std::cout << "mdvector 3d: shape 2 3 4 :\n";
 
   double t = 1.0;
@@ -70,7 +79,7 @@ int main(int args, char *argv[]) {
 
   // wrong
   try {
-    span<double, 1, md::layout_left> layout_left_span_1 = test_vector3d_layout_left.span(0, 1, all());
+    span<double, 1, std::layout_left> layout_left_span_1 = test_vector3d_layout_left.span(0, 1, all());
   } catch (const std::exception &e) {
     std::cout << "\n捕获异常: layout_left_span_1 " << e.what() << std::endl;
   }
@@ -83,11 +92,14 @@ int main(int args, char *argv[]) {
   }
 
   // right
-  span<double, 1, md::layout_left> layout_left_span_2 = test_vector3d_layout_left.span(all(), 1, 2);
+  span<double, 1, std::layout_left> layout_left_span_2 = test_vector3d_layout_left.span(all(), 1, 2);
   std::cout << "layout_left_span_2: \n";
   for (const auto &it : layout_left_span_2) {
     std::cout << it << " ";
   }
+  std::cout << "\n";
+
+  std::cout << "layout test down. \n";
 
   return 0;
 }
