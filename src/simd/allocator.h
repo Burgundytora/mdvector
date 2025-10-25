@@ -51,11 +51,18 @@ class simd_allocator {
     if (n > max_size()) {
       throw std::bad_alloc();
     }
-    void* ptr =
+    void* ptr = nullptr;
 #ifdef _WIN32
-        _aligned_malloc(n * sizeof(T), alignment_for());
+        ptr = _aligned_malloc(n * sizeof(T), alignment_for());
 #else
-        aligned_alloc(alignment_for(), n * sizeof(T));
+        // aligned_alloc(alignment_for(), n * sizeof(T));
+
+        // macos下奇数个会bad_alloc
+        // 在 macOS 和其他 Unix 系统上，使用 posix_memalign 替代 aligned_alloc
+        // posix_memalign 没有大小必须是 alignment 整数倍的限制
+        if (posix_memalign(&ptr, alignment_for(), n * sizeof(T)) != 0) {
+          ptr = nullptr;
+        }
 #endif
     if (!ptr) throw std::bad_alloc();
     return static_cast<T*>(ptr);

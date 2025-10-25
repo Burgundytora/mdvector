@@ -6,6 +6,8 @@
 // ======================== NEON ========================
 #include <arm_neon.h>
 
+namespace md {
+
 template <>
 struct simd<float> {
   static constexpr size_t alignment = 16;
@@ -111,4 +113,7 @@ struct simd<double> {
 
   static inline type set1(double val) { return vdupq_n_f64(val); }
 };
+
+} // namespace md
+
 #endif  // __ARM_NEON_H__

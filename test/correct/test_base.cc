@@ -17,7 +17,7 @@ int main(int args, char *argv[]) {
   vector_2d<double> dat2_error1(shape_2d{2, 4});  // 第二维长度不同 与data1进行运算会出错 +会unsafe Plus会抛出异常
   vector_2d<double> dat2_direct({a, b});          // 调用array初始化列表
   vector_2d<double> dat3(shape_2d{2, 3});         // 同data1
-  vector_3d<double> dat4(shape_3d{3, 3, 3});      // 同data1
+  vector_3d<double> dat4(shape_3d{1, 1, 6});      // 同data1
   vector_3d<double> dat5;                         // 先声明，后设置维度
   dat5.set_shape(shape_3d{3, 3, 3});
 
