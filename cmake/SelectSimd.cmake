@@ -1,5 +1,5 @@
 # 指令集选项
-set(SIMD_OPTION "AVX2" CACHE STRING "Choose between AVX2, AVX512, SSE, NEON, RISC-V, NONE, AUTO")
+set(SIMD_OPTION "AUTO" CACHE STRING "Choose between AVX2, AVX512, SSE, NEON, RISC-V, NONE, AUTO")
 set_property(CACHE SIMD_OPTION PROPERTY STRINGS "AVX2" "AVX512" "SSE" "NEON" "RISC-V" "NONE" "AUTO")
 message(STATUS "Selected SIMD type: ${SIMD_OPTION}")
 
@@ -7,12 +7,13 @@ function(detect_simd_extension)
   if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86|x86_64|AMD64")
     include(CheckCXXSourceCompiles)
 
-    # 检测AVX512
-    set(CMAKE_REQUIRED_FLAGS "-mavx512f")
-    check_cxx_source_compiles("
-            #include <immintrin.h>
-            int main() { __m512i v = _mm512_setzero_si512(); return 0; }
-        "      HAVE_AVX512)
+    # AVX512暂时禁用
+    # # 检测AVX512
+    # set(CMAKE_REQUIRED_FLAGS "-mavx512f")
+    # check_cxx_source_compiles("
+    #         #include <immintrin.h>
+    #         int main() { __m512i v = _mm512_setzero_si512(); return 0; }
+    #     "      HAVE_AVX512)
 
     # 检测AVX2
     set(CMAKE_REQUIRED_FLAGS "-mavx2 -mfma")

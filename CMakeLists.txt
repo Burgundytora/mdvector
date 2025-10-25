@@ -22,11 +22,19 @@ option(BUILD_SPEED_TEST "" ON)
 if(BUILD_SPEED_TEST)
     if(WIN32)
         set(INCLUDE_DIR "G:/third_party/include")
+    elseif(APPLE)
+        set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/include")
     else()
         set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/include")
     endif()
+    message(STATUS "include dir: ${INCLUDE_DIR}")
     # eigen在C++23下警告处理
     add_compile_definitions(_SILENCE_CXX23_DENORM_DEPRECATION_WARNING)
+    # 处理 Apple Clang 的特殊情况
+    if(APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        add_compile_options(-Wno-deprecated-declarations)
+    endif()
+
     include_directories(
         "${INCLUDE_DIR}/eigen"
         "${INCLUDE_DIR}/highway"

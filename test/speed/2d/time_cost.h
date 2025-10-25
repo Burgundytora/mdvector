@@ -68,11 +68,8 @@ struct TimerRecorder {
   }
 
   string name_ = "";
-#ifdef _WIN32
+
   std::chrono::steady_clock::time_point start_;
-#else
-  std::chrono::_V2::system_clock::time_point start_;
-#endif
 
   static inline vector<string> test_name_;
   static inline vector<string> method_name_;
