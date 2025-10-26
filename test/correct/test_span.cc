@@ -188,27 +188,6 @@ int main() {
   // 27 28 29 30
   // 31 32 33 34
 
-  // 测试8: 快速根据节点三维坐标计算10个梁的长度
-  std::cout << "\n=== 测试8: 快速根据节点三维坐标计算10个梁的长度 ===" << std::endl;
-  mdvector<double, 2> pos_info({3, 11});
-  for (int i = 0; i < 11; i++) {
-    pos_info(0, i) = i * (10 + i) + 1;
-    pos_info(1, i) = i * (10 + i) + 2;
-    pos_info(2, i) = i * (10 + i) + 3;
-  }
-  pos_info.print();
-  md::span<double, 1> x1 = pos_info.span(0, slice(0, -2));
-  md::span<double, 1> y1 = pos_info.span(1, slice(0, -2));
-  md::span<double, 1> z1 = pos_info.span(2, slice(0, -2));
-  md::span<double, 1> x2 = pos_info.span(0, slice(1, -1));
-  md::span<double, 1> y2 = pos_info.span(1, slice(1, -1));
-  md::span<double, 1> z2 = pos_info.span(2, slice(1, -1));
-  mdvector<double, 1> length;
-
-  length = sqrt(pow(x2 - x1, 2.0) + pow(y2 - y1, 2.0) + pow(z2 - z1, 2.0));
-  // length = hypot(x2 - x1, y2 - y1, z2 - z1);
-  length.print();
-
   std::cout << "span test down. \n";
 
   return 0;

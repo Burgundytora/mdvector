@@ -76,12 +76,13 @@ template <MathContainer Container1, MathContainer Container2>
 auto hypot(const Container1& x, const Container2& y) {
   using value_type = typename Container1::value_type;
   mdvector<value_type, Container1::rank_, typename Container1::layout_type> res = x;
+  mdvector<value_type, Container1::rank_, typename Container1::layout_type> y_vec = y;
 
-  auto x_it = x.begin();
-  auto y_it = y.begin();
+  auto x_it = res.begin();
+  auto y_it = y_vec.begin();
   auto res_it = res.begin();
 
-  for (; x_it != x.end() && y_it != y.end(); ++x_it, ++y_it, ++res_it) {
+  for (; x_it != res.end() && y_it != y_vec.end(); ++x_it, ++y_it, ++res_it) {
     *res_it = std::hypot(*x_it, *y_it);
   }
 
@@ -93,13 +94,15 @@ template <MathContainer Container1, MathContainer Container2, MathContainer Cont
 auto hypot(const Container1& x, const Container2& y, const Container3& z) {
   using value_type = typename Container1::value_type;
   mdvector<value_type, Container1::rank_, typename Container1::layout_type> res = x;
+  mdvector<value_type, Container1::rank_, typename Container1::layout_type> y_vec = y;
+  mdvector<value_type, Container1::rank_, typename Container1::layout_type> z_vec = z;
 
-  auto x_it = x.begin();
-  auto y_it = y.begin();
-  auto z_it = z.begin();
+  auto x_it = res.begin();
+  auto y_it = y_vec.begin();
+  auto z_it = z_vec.begin();
   auto res_it = res.begin();
 
-  for (; x_it != x.end() && y_it != y.end() && z_it != z.end(); ++x_it, ++y_it, ++z_it, ++res_it) {
+  for (; x_it != res.end() && y_it != y_vec.end() && z_it != z_vec.end(); ++x_it, ++y_it, ++z_it, ++res_it) {
     *res_it = std::hypot(*x_it, *y_it, *z_it);
   }
 
