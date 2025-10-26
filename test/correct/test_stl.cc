@@ -1,9 +1,5 @@
-#include <string>
 
-#include "mdvector.h"
-
-using md::all;
-using md::slice;
+#include "include_md.h"
 
 int main(int args, char *argv[]) {
   std::cout << "\nVerification:" << std::endl;

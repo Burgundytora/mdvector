@@ -28,4 +28,18 @@ concept Arithmetic = requires(T a, T b) {
   a / b;
 };
 
+// 定义容器概念
+template <typename T>
+concept MathContainer = requires(T c) {
+  { T::rank_ } -> std::convertible_to<size_t>;
+};
+
+// 定义容器概念
+template <typename T>
+concept StatisticContainer = requires(T v) {
+  typename T::value_type;
+  { v.begin() } -> std::input_iterator;
+  { v.end() } -> std::input_iterator;
+};
+
 #endif  //__MDVECTOR_TYPE_CONCEPT_H__

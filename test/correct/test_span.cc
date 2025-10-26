@@ -1,14 +1,9 @@
-#include <iostream>
 
-#include "mdvector.h"
+#include "include_md.h"
 
 #if defined(_WIN32)
 #include <windows.h>  // 添加Windows头文件
 #endif
-
-using md::all;
-using md::slice;
-using md::span;
 
 int main() {
 #if defined(_WIN32)

@@ -1,8 +1,9 @@
-#ifndef __MDVECTOR_ENGINE_STATIC_H__
-#define __MDVECTOR_ENGINE_STATIC_H__
+#ifndef __MDVECTOR_MDARRAY_H__
+#define __MDVECTOR_MDARRAY_H__
 
 #include "common/detail.h"
 #include "common/iterator_mixin.h"
+#include "common/math_function.h"
 #include "common/statistic_function.h"
 #include "common/type_concept.h"
 #include "expression_template/operator.h"
@@ -296,6 +297,22 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
     return *this;
   }
 
+  // 取负
+  auto operator-() const noexcept
+    requires Numeric<T>
+  {
+    mdvector<T, sizeof...(lengths), Layout> result(this->extents());
+    std::transform(this->begin(), this->end(), result.begin(), [](T val) noexcept { return -val; });
+    return result;
+  }
+
+  // 取正
+  auto operator+() const noexcept
+    requires Numeric<T>
+  {
+    return *this;
+  }
+
  private:
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 内部函数
@@ -336,4 +353,4 @@ using array_5d = mdarray_row_major<T, N1, N2, N3, N4, N5>;
 template <typename T, size_t N1, size_t N2, size_t N3, size_t N4, size_t N5, size_t N6>
 using array_6d = mdarray_row_major<T, N1, N2, N3, N4, N5, N6>;
 
-#endif  // __MDVECTOR_ENGINE_STATIC_H__
+#endif  // __MDVECTOR_MDARRAY_H__

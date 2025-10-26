@@ -1,5 +1,5 @@
 
-#include "mdvector.h"
+#include "include_md.h"
 
 void test_mdspan_dynamic() {
   try {
@@ -18,11 +18,11 @@ void test_layout_strided() {
   std::iota(arr.begin(), arr.end(), 1);
   std::println("arr: {}", arr);
   std::mdspan<int, std::extents<std::size_t, 4, 4>, std::layout_right> mdspan_(arr.data());
-  md::print_mdspan(mdspan_);
+  print_mdspan(mdspan_);
 
   std::mdspan<int, std::dextents<std::size_t, 2>, std::layout_stride> mdspan_strided_(
       arr.data(), std::layout_stride::mapping(std::dextents<size_t, 2>{4, 2}, std::array<size_t, 2>{4, 2}));
-  md::print_mdspan(mdspan_strided_);
+  print_mdspan(mdspan_strided_);
   std::println("mdspan_strided_ size: {}", mdspan_strided_.size());
 }
 

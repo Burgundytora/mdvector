@@ -1,14 +1,9 @@
-#include <string>
+
+#include "include_md.h"
 
 #if defined(_WIN32)
 #include <windows.h>  // 添加Windows头文件
 #endif
-
-#include "mdvector.h"
-
-using md::all;
-using md::slice;
-using md::span;
 
 int main(int args, char *argv[]) {
 #if defined(_WIN32)
@@ -76,11 +71,6 @@ int main(int args, char *argv[]) {
     }
     std::cout << "\n";
 
-    using md::max;
-    using md::mean;
-    using md::median;
-    using md::min;
-    using md::standard_deviation;
     std::cout << "span: mean [(0.1~0.6)^3] : " << mean(pow(a, 3)) << "\n";
     std::cout << "span: max [(0.4~0.6)^3] : " << max(pow(a.span(1, all()), 3)) << "\n";
     std::cout << "span: min [(0.4~0.6)^3] : " << min(pow(a.span(1, all()), 3)) << "\n";
@@ -105,9 +95,13 @@ int main(int args, char *argv[]) {
     md::span<double, 1> z2 = pos_info.span(2, slice(1, -1));
     mdvector<double, 1> length;
 
-    // length = sqrt(pow(x2 - x1, 2.0) + pow(y2 - y1, 2.0) + pow(z2 - z1, 2.0));
     length = hypot(x2 - x1, y2 - y1, z2 - z1);
     length.print();
+
+    // operator-
+    std::cout << "\n=== -x2.print ===" << std::endl;
+    auto op_sub = -x2;
+    op_sub.print();
 
   } catch (const std::runtime_error &e) {
     std::cout << "捕获异常: " << e.what() << std::endl;

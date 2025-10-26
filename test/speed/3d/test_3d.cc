@@ -2,10 +2,6 @@
 #include "time_cost.h"
 
 //
-#include "mdarray.h"
-#include "mdvector.h"
-
-//
 #include "Eigen/Dense"
 #include "unsupported/Eigen/CXX11/Tensor"
 
@@ -13,6 +9,9 @@
 #define XTENSOR_USE_XSIMD
 #include "xtensor/containers/xarray.hpp"
 #include "xtensor/containers/xtensor.hpp"
+
+//
+#include "include_md.h"
 
 double val = 0.0;
 

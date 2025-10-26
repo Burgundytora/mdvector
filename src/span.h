@@ -1,11 +1,6 @@
 #ifndef __MDVECTOR_SPAN_H__
 #define __MDVECTOR_SPAN_H__
 
-#include <algorithm>
-#include <cmath>
-#include <iostream>
-#include <stdexcept>
-
 #include "common/detail.h"
 #include "common/iterator_mixin.h"
 #include "common/math_function.h"
@@ -243,6 +238,22 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
 
   span& operator/=(T scalar) noexcept {
     md::simd_div_inplace_scalar<T, Policy>(this->data(), scalar, this->used_size());
+    return *this;
+  }
+
+  // 取负
+  auto operator-() const noexcept
+    requires Numeric<T>
+  {
+    mdvector<T, Rank, Layout> result(this->extents());
+    std::transform(this->begin(), this->end(), result.begin(), [](T val) noexcept { return -val; });
+    return result;
+  }
+
+  // 取正
+  auto operator+() const noexcept
+    requires Numeric<T>
+  {
     return *this;
   }
 

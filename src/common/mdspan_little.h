@@ -1,10 +1,6 @@
 #ifndef __MDVECTOR_MDSPAN_LITTLE_H__
 #define __MDVECTOR_MDSPAN_LITTLE_H__
 
-#include <array>
-#include <cstddef>
-#include <stdexcept>
-#include <type_traits>
 #include <version>
 
 // 检查标准库 mdspan 支持
@@ -13,6 +9,11 @@
 #include <mdspan>
 
 #else
+
+#include <array>
+#include <cstddef>
+#include <stdexcept>
+#include <type_traits>
 
 namespace std {
 

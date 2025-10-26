@@ -5,13 +5,7 @@
 #include <type_traits>
 #include <vector>
 
-// 定义容器概念
-template <typename T>
-concept StatisticContainer = requires(T v) {
-  typename T::value_type;
-  { v.begin() } -> std::input_iterator;
-  { v.end() } -> std::input_iterator;
-};
+#include "type_concept.h"
 
 // 独立统计函数模板
 namespace md {

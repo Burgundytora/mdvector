@@ -1,11 +1,6 @@
 #ifndef __MDVECTOR_VIEW_H__
 #define __MDVECTOR_VIEW_H__
 
-#include <algorithm>
-#include <cmath>
-#include <iostream>
-#include <stdexcept>
-
 #include "common/detail.h"
 #include "common/type_concept.h"
 #include "expression_template/operator.h"

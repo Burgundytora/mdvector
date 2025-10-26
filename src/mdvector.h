@@ -1,7 +1,5 @@
-#ifndef __MDVECTOR_H__
-#define __MDVECTOR_H__
-
-#include <vector>
+#ifndef __MDVECTOR_MDVECTOR_H__
+#define __MDVECTOR_MDVECTOR_H__
 
 #include "common/detail.h"
 #include "common/iterator_mixin.h"
@@ -401,6 +399,22 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
     return *this;
   }
 
+  // 取负
+  auto operator-() const noexcept
+    requires Numeric<T>
+  {
+    mdvector result(this->extents());
+    std::transform(this->begin(), this->end(), result.begin(), [](T val) noexcept { return -val; });
+    return result;
+  }
+
+  // 取正
+  auto operator+() const noexcept
+    requires Numeric<T>
+  {
+    return *this;
+  }
+
  private:
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 内部函数
@@ -482,4 +496,4 @@ using vector_5d = mdvector<T, 5>;
 template <typename T>
 using vector_6d = mdvector<T, 6>;
 
-#endif  // __MDVECTOR_H__
+#endif  // __MDVECTOR_MDVECTOR_H__

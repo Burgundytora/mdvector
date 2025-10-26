@@ -3,20 +3,7 @@
 
 #include <cmath>
 
-#include "mdspan_little.h"
-
-// 前向声明
-template <typename T, size_t Rank, typename Layout = std::layout_right>
-class mdvector;
-
-#include <concepts>
-#include <type_traits>
-
-// 定义容器概念
-template <typename T>
-concept MathContainer = requires(T c) {
-  { T::rank_ } -> std::convertible_to<size_t>;
-};
+#include "mdvector_def.h"
 
 // 独立数学函数模板
 namespace md {

@@ -2,6 +2,7 @@
 #define __MDVECTOR_CALCULATION_EXPR_H__
 
 #include "scalar_expr.h"
+#include "common/mdvector_def.h"
 
 namespace md {
 
@@ -90,6 +91,21 @@ class calculation_expr : public tensor_expr<calculation_expr<T, L, R, Cal>, T> {
     auto l = lhs.template eval_simd_mask<U>(i);
     auto r = rhs.template eval_simd_mask<U>(i);
     return simd_cal<U, Cal>(l, r);
+  }
+
+  // 取负
+  auto operator-() const noexcept
+    requires Numeric<T>
+  {
+    mdvector<T, rank_, layout_type> result = *this;
+    return result;
+  }
+
+  // 取正
+  auto operator+() const noexcept
+    requires Numeric<T>
+  {
+    return *this;
   }
 };
 

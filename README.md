@@ -39,8 +39,8 @@
   md::span<double, 1> x2 = pos_info.span(0, slice(1, -1));
   /// ... y1 y2 z1 z2省略
   
-  /// 每个时间步更新length 仅一行表达式
-  length = sqrt(pow(x2 - x1, 2.0) + pow(y2 - y1, 2.0) + pow(z2 - z1, 2.0));
+  /// 每个时间步更新length 仅调用平方根函数
+  length = hypot(x2 - x1, y2 - y1, z2 - z1);
   ```
 
 ## 🚀 核心特性

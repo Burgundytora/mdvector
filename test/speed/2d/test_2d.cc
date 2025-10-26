@@ -15,8 +15,7 @@
 #include "xtensor/containers/xtensor.hpp"
 
 //
-#include "mdarray.h"
-#include "mdvector.h"
+#include "include_md.h"
 #include "other_method/base_expr/base_expr.h"
 
 using std::vector;

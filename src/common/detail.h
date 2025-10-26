@@ -1,6 +1,7 @@
 #ifndef __MDVECTOR_DETAIL_H__
 #define __MDVECTOR_DETAIL_H__
 
+#include <string>
 #include <algorithm>
 #include <array>
 #include <cmath>
