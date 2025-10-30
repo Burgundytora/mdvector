@@ -1,15 +1,7 @@
 
 #include "include_md.h"
 
-#if defined(_WIN32)
-#include <windows.h>  // 添加Windows头文件
-#endif
-
 int main() {
-#if defined(_WIN32)
-  // 设置控制台输出为UTF-8编码
-  SetConsoleOutputCP(65001);
-#endif
 
   // 测试1: 创建3x3矩阵并填充数据
   std::cout << "=== 测试1: 3x3矩阵基本操作 ===" << std::endl;

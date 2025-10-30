@@ -1,16 +1,7 @@
 
 #include "include_md.h"
 
-#if defined(_WIN32)
-#include <windows.h>  // 添加Windows头文件
-#endif
-
 int main(int args, char *argv[]) {
-#if defined(_WIN32)
-  // 设置控制台输出为UTF-8编码
-  SetConsoleOutputCP(65001);
-#endif
-
   shape_3d shape({2, 3, 4});
   mdvector<double, 3> test_vector3d(shape);
   mdvector<double, 3, std::layout_left> test_vector3d_layout_left(shape);

@@ -1,15 +1,7 @@
 
 #include "include_md.h"
 
-#if defined(_WIN32)
-#include <windows.h>  // 添加Windows头文件
-#endif
-
 int main(int args, char *argv[]) {
-#if defined(_WIN32)
-  // 设置控制台输出为UTF-8编码
-  SetConsoleOutputCP(65001);
-#endif
 
   std::cout << "\nVerification:" << std::endl;
 
