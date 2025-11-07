@@ -1,5 +1,6 @@
 ﻿
 #include <valarray>
+#include <execution>
 
 //
 #include "test_set.h"
@@ -180,6 +181,50 @@ void test_vector() {
     }
 
     val = data1_[0][0];
+  }
+}
+
+template <class T>
+void test_transform() {
+  vector<T> data1_(dim1 * dim2);
+  vector<T> data2_(dim1 * dim2);
+  vector<T> data3_(dim1 * dim2);
+  vector<T> data4_(dim1 * dim2);
+
+  // 赋值
+  for (size_t i = 0; i < dim1; i++) {
+    for (size_t j = 0; j < dim2; j++) {
+      data1_[i * dim2 + j] = 1;
+      data2_[i * dim2 + j] = 2;
+      data4_[i * dim2 + j] = 3;
+    }
+  }
+
+  TimerRecorder a("transform");
+
+  size_t k = 0;
+  while (k++ < loop) {
+    if constexpr (do_add) {
+      std::transform(std::execution::unseq, data1_.begin(), data1_.end(), data2_.begin(), data3_.begin(),
+                     std::plus<>());
+    }
+
+    if constexpr (do_sub) {
+      std::transform(std::execution::unseq, data1_.begin(), data1_.end(), data2_.begin(), data3_.begin(),
+                     std::minus<>());
+    }
+
+    if constexpr (do_mul) {
+      std::transform(std::execution::unseq, data1_.begin(), data1_.end(), data2_.begin(), data3_.begin(),
+                     std::multiplies<>());
+    }
+
+    if constexpr (do_div) {
+      std::transform(std::execution::unseq, data1_.begin(), data1_.end(), data2_.begin(), data3_.begin(),
+                     std::divides<>());
+    }
+
+    val = data1_[0];
   }
 }
 
@@ -514,8 +559,6 @@ int main(int args, char* argv[]) {
     std::cout << "2d matrix ? matrix: " << dim1 << "*" << dim2 << "\n";
 
     // double
-    test_simd<double>();
-    test_mdvector_expr<double>();
 
     // test_mdarray_expr<double, dim1, dim2>();
     // 静态分派 mdarray 测试
@@ -534,12 +577,14 @@ int main(int args, char* argv[]) {
     } else if (dim1 == 100 && dim2 == 100) {
       test_mdarray_expr<double, 100, 100>();
     }
-
+    test_transform<double>();
+    test_simd<double>();
+    test_mdvector_expr<double>();
     test_eigen_matrixd();
-    test_vector<double>();
-    test_norm<double>();
-    test_valarray<double>();
     test_base_expr<double>();
+    test_valarray<double>();
+    test_norm<double>();
+    test_vector<double>();
     test_xtensor<double>();
     test_xarray<double>();
   }
