@@ -2,7 +2,6 @@
 #include "include_md.h"
 
 int main() {
-
   // 测试1: 创建3x3矩阵并填充数据
   std::cout << "=== 测试1: 3x3矩阵基本操作 ===" << std::endl;
   mdvector<double, 2> mat({3, 3});
@@ -77,8 +76,8 @@ int main() {
   // 情况3: 非法情况测试
   std::cout << "\n\n=== 测试非法子视图 ===" << std::endl;
   try {
-    auto invalid_sub = mat.span(slice(0, 2, false),  // 多行
-                                slice(0, 1, false)   // 多列
+    auto invalid_sub = mat.span(slice(0, 2),  // 多行
+                                slice(0, 1)   // 多列
     );
     std::cout << "错误：非法子视图创建成功！" << std::endl;
   } catch (const std::runtime_error& e) {

@@ -144,9 +144,13 @@ constexpr std::size_t linear_index(const std::array<std::size_t, Rank>& strides,
 struct slice {
   std::ptrdiff_t start;
   std::ptrdiff_t end;
+  std::ptrdiff_t step;
   bool is_all;
 
-  slice(std::ptrdiff_t s = 0, std::ptrdiff_t e = 0, bool all = false) : start(s), end(e), is_all(all) {}
+  slice() = default;
+  slice(bool all) : start(0), end(0), step(1), is_all(all) {}
+  slice(std::ptrdiff_t s, std::ptrdiff_t e) : start(s), end(e), step(1), is_all(false) {}
+  slice(std::ptrdiff_t s, std::ptrdiff_t e, std::ptrdiff_t t) : start(s), end(e), step(t), is_all(false) {}
 };
 
 // 将python风格负数索引 转换为正数
@@ -155,7 +159,7 @@ static std::ptrdiff_t normalize_index(std::ptrdiff_t idx, std::ptrdiff_t dim_siz
 }
 
 // 全选切片
-inline md::slice all() { return md::slice(0, 0, true); }
+inline md::slice all() { return md::slice(true); }
 
 template <size_t Rank>
 void check_slice_bounds(const std::array<md::slice, Rank>& slices, const std::array<std::size_t, Rank>& extents) {
