@@ -176,7 +176,7 @@ int main() {
     // 31 32 33 34
 
     std::cout << "span test down. \n";
-  } catch (const std::runtime_error& e) {
+  } catch (const std::exception& e) {
     std::cout << "error: " << e.what() << std::endl;
   }
   return 0;

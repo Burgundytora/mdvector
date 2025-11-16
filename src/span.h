@@ -137,21 +137,14 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
         indices[i] = remaining % shape_[i];
         remaining /= shape_[i];
       }
-    } else if constexpr (std::is_same_v<Layout, std::layout_left>) {
+    } else {
       // 列优先布局 (Fortran-style)
       size_t remaining = linear_index;
       for (int i = 0; i < Rank; ++i) {
         indices[i] = remaining % shape_[i];
         remaining /= shape_[i];
       }
-    } else {
-      // 通用布局，使用 mdspan 的映射器
-      auto extents = mdspan_.extents();
-      for (int i = 0; i < Rank; ++i) {
-        indices[i] = mdspan_.mapping().template operator()<std::size_t>(linear_index, i);
-      }
     }
-
     return indices;
   }
 
