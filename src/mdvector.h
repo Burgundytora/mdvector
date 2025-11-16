@@ -10,6 +10,7 @@
 #include "simd/allocator.h"
 #include "simd/simd_function.h"
 #include "span.h"
+#include "view.h"
 
 template <typename T, size_t Rank, typename Layout>
 class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
@@ -156,14 +157,14 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
     } else if constexpr (std::is_same_v<Layout, std::layout_left>) {
       // 列优先布局 (Fortran-style)
       size_t remaining = linear_index;
-      for (size_t i = 0; i < Rank; ++i) {
+      for (int i = 0; i < Rank; ++i) {
         indices[i] = remaining % shape_[i];
         remaining /= shape_[i];
       }
     } else {
       // 通用布局，使用 mdspan 的映射器
       auto extents = mdspan_.extents();
-      for (size_t i = 0; i < Rank; ++i) {
+      for (int i = 0; i < Rank; ++i) {
         indices[i] = mdspan_.mapping().template operator()<std::size_t>(linear_index, i);
       }
     }
@@ -246,12 +247,15 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
     std::array<std::size_t, NewRank> new_extents;
     std::size_t new_idx = 0;
 
-    for (std::size_t i = 0; i < Rank; ++i) {
+    for (int i = 0; i < Rank; ++i) {
       if (!is_integral[i]) {  // 只保留非整数索引的维度
         const auto& s = slice_array[i];
         std::ptrdiff_t start = md::normalize_index(s.start, extent(i));
         std::ptrdiff_t end = md::normalize_index(s.end, extent(i));
         new_extents[new_idx++] = s.is_all ? extent(i) : (end - start + 1);
+        if (s.step != 1) {
+          throw std::invalid_argument("span slice's step must be 1.");
+        }
       }
     }
 
@@ -264,6 +268,68 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
       return data() + offset;
     } else {
       return md::span<T, NewRank, Layout>(data() + offset, new_extents);
+    }
+  }
+
+  /// 创建view 视图
+  template <typename... Slices>
+  auto view(Slices... slices) {
+    static_assert(sizeof...(Slices) == Rank, "Number of slices must match dimensionality");
+
+    constexpr std::size_t NewRank = md::compressed_rank_v<Slices...>;
+
+    auto [slice_array, is_integral] = md::prepare_slices<Rank>(extents(), slices...);
+
+    // 检查越界
+    md::check_slice_bounds<Rank>(slice_array, extents());
+
+    // 计算新的extents
+    std::array<std::size_t, NewRank> new_extents;
+    std::size_t new_idx = 0;
+
+    for (int i = 0; i < Rank; ++i) {
+      if (!is_integral[i]) {  // 只保留非整数索引的维度
+        const auto& s = slice_array[i];
+        std::ptrdiff_t start = md::normalize_index(s.start, extent(i));
+        std::ptrdiff_t end = md::normalize_index(s.end, extent(i));
+        new_extents[new_idx++] = s.is_all ? extent(i) : 1 + std::floor((end - start) / s.step);
+        std::println("i:{}, num:{}, step:{}", i, (end - start + 1), slice_array[i].step);
+      }
+    }
+
+    // 计算步长
+    std::array<size_t, NewRank> stride;
+    new_idx = 0;
+    size_t stride_single = 1;
+    size_t last_extent = 1;
+    if constexpr (std::is_same_v<Layout, std::layout_right>) {
+      for (int i = Rank - 1; i >= 0; --i) {
+        stride_single *= slice_array[i].step * last_extent;
+        std::println("i:{}, step:{}, stride:{}, last_extent:{}", i, slice_array[i].step, stride_single, last_extent);
+        if (!is_integral[i]) {  // 只保留非整数索引的维度
+          stride[new_idx++] = stride_single;
+        }
+        last_extent = extent(i);
+      }
+    } else {
+      for (int i = 0; i >= Rank - 1; --i) {
+        stride_single *= slice_array[i].step * last_extent;
+        if (!is_integral[i]) {  // 只保留非整数索引的维度
+          stride[new_idx++] = stride_single;
+        }
+        last_extent = extent(i);
+      }
+    }
+
+    // 计算新的数据指针偏移
+    std::size_t offset = calculate_offset(slice_array, is_integral);
+
+    // 返回适当维度的span
+    if constexpr (NewRank == 0) {
+      // 所有维度都是整数索引，返回标量引用
+      return data() + offset;
+    } else {
+      return md::view<T, NewRank>(data() + offset, new_extents, stride);
     }
   }
 
@@ -434,7 +500,7 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
     static_assert(sizeof...(Indices) == Rank, "Number of indices must match the rank of mdvector");
 
     const size_t idx_array[Rank] = {static_cast<size_t>(indices)...};
-    for (size_t i = 0; i < Rank; ++i) {
+    for (int i = 0; i < Rank; ++i) {
       if (idx_array[i] >= shape_[i]) {
         throw std::out_of_range(
             std::format("Index {} out of range for dimension {} (size: {})", idx_array[i], i, shape_[i]));
@@ -448,15 +514,27 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
     std::size_t stride = 1;
 
     // 按内存布局计算偏移（这里以行优先为例）
-    for (int i = Rank - 1; i >= 0; --i) {
-      if (!is_integral[i]) {
-        offset += slices[i].start * stride;
-        stride *= extent(i);
-      } else {
-        offset += static_cast<std::size_t>(slices[i].start) * stride;
+    if constexpr (std::is_same_v<Layout, std::layout_right>) {
+      for (int i = Rank - 1; i >= 0; --i) {
+        if (!is_integral[i]) {
+          offset += slices[i].start * stride;
+          stride *= extent(i);
+        } else {
+          offset += static_cast<std::size_t>(slices[i].start) * stride;
+        }
+      }
+    } else {
+      for (int i = 0; i <= Rank - 1; ++i) {
+        if (!is_integral[i]) {
+          offset += slices[i].start * stride;
+          stride *= extent(i);
+        } else {
+          offset += static_cast<std::size_t>(slices[i].start) * stride;
+        }
       }
     }
 
+    std::println("offset: {}", offset);
     return offset;
   }
 };

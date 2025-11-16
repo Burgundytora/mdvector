@@ -21,7 +21,7 @@ void test_layout_strided() {
   print_mdspan(mdspan_);
 
   std::mdspan<int, std::dextents<std::size_t, 2>, std::layout_stride> mdspan_strided_(
-      arr.data(), std::layout_stride::mapping(std::dextents<size_t, 2>{4, 2}, std::array<size_t, 2>{4, 2}));
+      arr.data(), std::layout_stride::mapping(std::dextents<size_t, 2>{2, 3}, std::array<size_t, 2>{2, 5}));
   print_mdspan(mdspan_strided_);
   std::println("mdspan_strided_ size: {}", mdspan_strided_.size());
 }

@@ -49,7 +49,7 @@ void test_norm() {
   T*** data4_ = create_3d_array<T>(dim1, dim2, dim3);
 
   // 赋值
-  for (size_t i = 0; i < dim1; i++) {
+  for (int i = 0; i < dim1; i++) {
     for (size_t j = 0; j < dim2; j++) {
       for (size_t k = 0; k < dim3; k++) {
         data1_[i][j][k] = 1;
@@ -64,7 +64,7 @@ void test_norm() {
   size_t k = 0;
   while (k++ < loop) {
     if constexpr (do_add) {
-      for (size_t i = 0; i < dim1; i++) {
+      for (int i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
           for (size_t k = 0; k < dim3; k++) {
             data3_[i][j][k] = data1_[i][j][k] + data2_[i][j][k];
@@ -74,7 +74,7 @@ void test_norm() {
     }
 
     if constexpr (do_sub) {
-      for (size_t i = 0; i < dim1; i++) {
+      for (int i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
           for (size_t k = 0; k < dim3; k++) {
             data3_[i][j][k] = data1_[i][j][k] - data2_[i][j][k];
@@ -84,7 +84,7 @@ void test_norm() {
     }
 
     if constexpr (do_mul) {
-      for (size_t i = 0; i < dim1; i++) {
+      for (int i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
           for (size_t k = 0; k < dim3; k++) {
             data3_[i][j][k] = data1_[i][j][k] * data2_[i][j][k];
@@ -94,7 +94,7 @@ void test_norm() {
     }
 
     if constexpr (do_div) {
-      for (size_t i = 0; i < dim1; i++) {
+      for (int i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
           for (size_t k = 0; k < dim3; k++) {
             data3_[i][j][k] = data1_[i][j][k] / data2_[i][j][k];
@@ -120,7 +120,7 @@ void test_transform() {
   vector<T> data4_(dim1 * dim2 * dim3);
 
   // 赋值
-  for (size_t i = 0; i < dim1; i++) {
+  for (int i = 0; i < dim1; i++) {
     for (size_t j = 0; j < dim2; j++) {
       for (size_t k = 0; j < dim3; j++) {
         data1_[i * dim2 * dim3 + j * dim3 + k] = 1;
@@ -168,7 +168,7 @@ void test_simd() {
   T* data4_ = allocator_.allocate(total_element);
 
   // 赋值
-  for (size_t i = 0; i < total_element; i++) {
+  for (int i = 0; i < total_element; i++) {
     data1_[i] = 1;
     data2_[i] = 2;
     data4_[i] = 4;
@@ -324,7 +324,7 @@ void test_xarray() {
   xt::xarray<T> data4_ = xt::zeros<T>({dim1, dim2, dim3});
 
   // 赋值
-  for (size_t i = 0; i < dim1; i++) {
+  for (int i = 0; i < dim1; i++) {
     for (size_t j = 0; j < dim2; j++) {
       for (size_t k = 0; k < dim3; k++) {
         data1_(i, j, k) = 1;
@@ -365,7 +365,7 @@ void test_xtensor() {
   xt::xtensor<T, 3> data4_ = xt::zeros<T>({dim1, dim2, dim3});
 
   // 赋值
-  for (size_t i = 0; i < dim1; i++) {
+  for (int i = 0; i < dim1; i++) {
     for (size_t j = 0; j < dim2; j++) {
       for (size_t k = 0; k < dim3; k++) {
         data1_(i, j, k) = 1;

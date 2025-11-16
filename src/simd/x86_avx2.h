@@ -52,7 +52,7 @@ struct simd<float> {
       return _mm256_setzero_ps();
     }
     alignas(32) float buf[8] = {0};
-    for (size_t i = 0; i < remaining; ++i) {
+    for (int i = 0; i < remaining; ++i) {
       buf[i] = p[i];
     }
     return _mm256_load_ps(buf);
@@ -63,7 +63,7 @@ struct simd<float> {
     }
     alignas(32) float buf[8];
     _mm256_store_ps(buf, v);
-    for (size_t i = 0; i < remaining; ++i) {
+    for (int i = 0; i < remaining; ++i) {
       p[i] = buf[i];
     }
   }
@@ -110,7 +110,7 @@ struct simd<double> {
       return _mm256_setzero_pd();
     }
     alignas(32) double buf[4] = {0};
-    for (size_t i = 0; i < remaining; ++i) {
+    for (int i = 0; i < remaining; ++i) {
       buf[i] = p[i];
     }
     return _mm256_load_pd(buf);
@@ -122,7 +122,7 @@ struct simd<double> {
     }
     alignas(32) double buf[4];
     _mm256_store_pd(buf, v);
-    for (size_t i = 0; i < remaining; ++i) {
+    for (int i = 0; i < remaining; ++i) {
       p[i] = buf[i];
     }
   }

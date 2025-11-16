@@ -122,14 +122,14 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
     } else if constexpr (std::is_same_v<Layout, std::layout_left>) {
       // 列优先布局 (Fortran-style)
       size_t remaining = linear_index;
-      for (size_t i = 0; i < sizeof...(lengths); ++i) {
+      for (int i = 0; i < sizeof...(lengths); ++i) {
         indices[i] = remaining % shape_[i];
         remaining /= shape_[i];
       }
     } else {
       // 通用布局，使用 mdspan 的映射器
       auto extents = mdspan_.extents();
-      for (size_t i = 0; i < sizeof...(lengths); ++i) {
+      for (int i = 0; i < sizeof...(lengths); ++i) {
         indices[i] = mdspan_.mapping().template operator()<std::size_t>(linear_index, i);
       }
     }
@@ -319,7 +319,7 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
   template <typename... Indices>
   void check_indices(Indices... indices) const {
     const size_t idx_array[sizeof...(lengths)] = {static_cast<size_t>(indices)...};
-    for (size_t i = 0; i < sizeof...(lengths); ++i) {
+    for (int i = 0; i < sizeof...(lengths); ++i) {
       if (idx_array[i] >= mdspan_.extent(i)) {
         throw std::out_of_range(std::string("Index ") + std::to_string(idx_array[i]) + " out of range for dimension " +
                                 std::to_string(i) + " (size: " + std::to_string(mdspan_.extent(i)) + ")");

@@ -61,7 +61,7 @@ void test_norm() {
   T** data3_ = new T*[dim1];
   T** data4_ = new T*[dim1];
 
-  for (size_t i = 0; i < dim1; i++) {
+  for (int i = 0; i < dim1; i++) {
     data1_[i] = new T[dim2];
     data2_[i] = new T[dim2];
     data3_[i] = new T[dim2];
@@ -69,7 +69,7 @@ void test_norm() {
   }
 
   // 赋值
-  for (size_t i = 0; i < dim1; i++) {
+  for (int i = 0; i < dim1; i++) {
     for (size_t j = 0; j < dim2; j++) {
       data1_[i][j] = 1;
       data2_[i][j] = 2;
@@ -82,7 +82,7 @@ void test_norm() {
   size_t k = 0;
   while (k++ < loop) {
     if constexpr (do_add) {
-      for (size_t i = 0; i < dim1; i++) {
+      for (int i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
           data3_[i][j] = data1_[i][j] + data2_[i][j];
         }
@@ -90,7 +90,7 @@ void test_norm() {
     }
 
     if constexpr (do_sub) {
-      for (size_t i = 0; i < dim1; i++) {
+      for (int i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
           data3_[i][j] = data1_[i][j] - data2_[i][j];
         }
@@ -98,7 +98,7 @@ void test_norm() {
     }
 
     if constexpr (do_mul) {
-      for (size_t i = 0; i < dim1; i++) {
+      for (int i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
           data3_[i][j] = data1_[i][j] * data2_[i][j];
         }
@@ -106,7 +106,7 @@ void test_norm() {
     }
 
     if constexpr (do_div) {
-      for (size_t i = 0; i < dim1; i++) {
+      for (int i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
           data3_[i][j] = data1_[i][j] / data2_[i][j];
         }
@@ -128,7 +128,7 @@ void test_vector() {
   vector<vector<T>> data3_;
   vector<vector<T>> data4_;
 
-  for (size_t i = 0; i < dim1; i++) {
+  for (int i = 0; i < dim1; i++) {
     data1_.push_back(vector<T>(dim2, 1));
     data2_.push_back(vector<T>(dim2, 2));
     data3_.push_back(vector<T>(dim2, 0));
@@ -136,7 +136,7 @@ void test_vector() {
   }
 
   // 赋值
-  for (size_t i = 0; i < dim1; i++) {
+  for (int i = 0; i < dim1; i++) {
     for (size_t j = 0; j < dim2; j++) {
       data1_[i][j] = 1;
       data2_[i][j] = 2;
@@ -149,7 +149,7 @@ void test_vector() {
   size_t k = 0;
   while (k++ < loop) {
     if constexpr (do_add) {
-      for (size_t i = 0; i < dim1; i++) {
+      for (int i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
           data3_[i][j] = data1_[i][j] + data2_[i][j];
         }
@@ -157,7 +157,7 @@ void test_vector() {
     }
 
     if constexpr (do_sub) {
-      for (size_t i = 0; i < dim1; i++) {
+      for (int i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
           data3_[i][j] = data1_[i][j] - data2_[i][j];
         }
@@ -165,7 +165,7 @@ void test_vector() {
     }
 
     if constexpr (do_mul) {
-      for (size_t i = 0; i < dim1; i++) {
+      for (int i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
           data3_[i][j] = data1_[i][j] * data2_[i][j];
         }
@@ -173,7 +173,7 @@ void test_vector() {
     }
 
     if constexpr (do_div) {
-      for (size_t i = 0; i < dim1; i++) {
+      for (int i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
           data3_[i][j] = data1_[i][j] / data2_[i][j];
         }
@@ -192,7 +192,7 @@ void test_transform() {
   vector<T> data4_(dim1 * dim2);
 
   // 赋值
-  for (size_t i = 0; i < dim1; i++) {
+  for (int i = 0; i < dim1; i++) {
     for (size_t j = 0; j < dim2; j++) {
       data1_[i * dim2 + j] = 1;
       data2_[i * dim2 + j] = 2;
@@ -308,7 +308,7 @@ void test_base_expr() {
   Array<T> data4_(total_element);
 
   // 赋值
-  for (size_t i = 0; i < total_element; i++) {
+  for (int i = 0; i < total_element; i++) {
     data1_[i] = 1;
     data2_[i] = 2;
     data4_[i] = 3;
@@ -347,7 +347,7 @@ void test_base_expr() {
 //   T* data4_ = allocator_.allocate(total_element);
 
 //   // 赋值
-//   for (size_t i = 0; i < total_element; i++) {
+//   for (int i = 0; i < total_element; i++) {
 //     data1_[i] = 1;
 //     data2_[i] = 2;
 //     data4_[i] = 4;
@@ -389,7 +389,7 @@ void test_simd() {
   T* data4_ = allocator_.allocate(total_element);
 
   // 赋值
-  for (size_t i = 0; i < total_element; i++) {
+  for (int i = 0; i < total_element; i++) {
     data1_[i] = 1;
     data2_[i] = 2;
     data4_[i] = 4;
@@ -434,7 +434,7 @@ void test_eigen_matrixd() {
       Eigen::array<Eigen::Index, 2>{static_cast<Eigen::Index>(dim1), static_cast<Eigen::Index>(dim2)});
 
   // 赋值
-  for (size_t i = 0; i < dim1; i++) {
+  for (int i = 0; i < dim1; i++) {
     for (size_t j = 0; j < dim2; j++) {
       data1_(i, j) = 1;
       data2_(i, j) = 2;
@@ -476,7 +476,7 @@ void test_xarray() {
   xt::xarray<T> data4_ = xt::zeros<T>({dim1, dim2});
 
   // 赋值
-  for (size_t i = 0; i < dim1; i++) {
+  for (int i = 0; i < dim1; i++) {
     for (size_t j = 0; j < dim2; j++) {
       data1_(i, j) = 1;
       data2_(i, j) = 2;
@@ -515,7 +515,7 @@ void test_xtensor() {
   xt::xtensor<T, 2> data4_ = xt::zeros<T>({dim1, dim2});
 
   // 赋值
-  for (size_t i = 0; i < dim1; i++) {
+  for (int i = 0; i < dim1; i++) {
     for (size_t j = 0; j < dim2; j++) {
       data1_(i, j) = 1;
       data2_(i, j) = 2;

@@ -140,14 +140,14 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
     } else if constexpr (std::is_same_v<Layout, std::layout_left>) {
       // 列优先布局 (Fortran-style)
       size_t remaining = linear_index;
-      for (size_t i = 0; i < Rank; ++i) {
+      for (int i = 0; i < Rank; ++i) {
         indices[i] = remaining % shape_[i];
         remaining /= shape_[i];
       }
     } else {
       // 通用布局，使用 mdspan 的映射器
       auto extents = mdspan_.extents();
-      for (size_t i = 0; i < Rank; ++i) {
+      for (int i = 0; i < Rank; ++i) {
         indices[i] = mdspan_.mapping().template operator()<std::size_t>(linear_index, i);
       }
     }
@@ -293,7 +293,7 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
     static_assert(sizeof...(Indices) == Rank, "Number of indices must match the rank of mdvector");
 
     const size_t idx_array[Rank] = {static_cast<size_t>(indices)...};
-    for (size_t i = 0; i < Rank; ++i) {
+    for (int i = 0; i < Rank; ++i) {
       if (idx_array[i] >= mdspan_.extent(i)) {
         throw std::out_of_range(
             std::format("Index {} out of range for dimension {} (size: {})", idx_array[i], i, mdspan_.extent(i)));

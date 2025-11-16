@@ -13,7 +13,7 @@ include(SelectSimd)
 
 # 添加子目录
 include_directories(${PROJECT_SOURCE_DIR}/src)
-add_subdirectory(test/correct)
+add_subdirectory(test/unit_test)
 add_subdirectory(test/demo)
 
 
@@ -43,5 +43,5 @@ if(BUILD_SPEED_TEST)
         "${INCLUDE_DIR}/xsimd/include"
     )
     include_directories(${PROJECT_SOURCE_DIR}/test)
-    add_subdirectory(test/speed)
+    add_subdirectory(test/benchmark)
 endif()
