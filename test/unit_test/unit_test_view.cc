@@ -15,14 +15,9 @@ int main() {
   std::println("mat:");
   mat.print();
 
-  std::println("span(1, all()):");
-  auto span_1 = mat.span(1, slice(0, 5));
-  span_1.print();
-
-  std::println("view(2, slice(1, 3, 7)):");
-  auto view_1 = mat.view(slice(1, 2, 5), slice(1, 2, 3));
+  std::println("view(slice(1, 2, -1), slice(1, 2, -1)):");
+  auto view_1 = mat.view(slice(1, 2, -1), slice(1, 2, -1));
   view_1.print();
-  // std::println("view_1:{}", *view_1);
 
   return 0;
 }

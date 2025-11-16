@@ -293,7 +293,6 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
         std::ptrdiff_t start = md::normalize_index(s.start, extent(i));
         std::ptrdiff_t end = md::normalize_index(s.end, extent(i));
         new_extents[new_idx++] = s.is_all ? extent(i) : 1 + std::floor((end - start) / s.step);
-        std::println("i:{}, num:{}, step:{}", i, (end - start + 1), slice_array[i].step);
       }
     }
 
@@ -304,20 +303,19 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
     size_t last_extent = 1;
     if constexpr (std::is_same_v<Layout, std::layout_right>) {
       for (int i = Rank - 1; i >= 0; --i) {
-        stride_single *= slice_array[i].step * last_extent;
-        std::println("i:{}, step:{}, stride:{}, last_extent:{}", i, slice_array[i].step, stride_single, last_extent);
+        stride_single = slice_array[i].step * last_extent;
         if (!is_integral[i]) {  // 只保留非整数索引的维度
-          stride[new_idx++] = stride_single;
+          stride[NewRank - new_idx++ - 1] = stride_single;
         }
-        last_extent = extent(i);
+        last_extent *= extent(i);
       }
     } else {
-      for (int i = 0; i >= Rank - 1; --i) {
-        stride_single *= slice_array[i].step * last_extent;
+      for (int i = 0; i >= Rank - 1; ++i) {
+        stride_single = slice_array[i].step * last_extent;
         if (!is_integral[i]) {  // 只保留非整数索引的维度
-          stride[new_idx++] = stride_single;
+          stride[NewRank - new_idx++ - 1] = stride_single;
         }
-        last_extent = extent(i);
+        last_extent *= extent(i);
       }
     }
 
@@ -534,7 +532,6 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
       }
     }
 
-    std::println("offset: {}", offset);
     return offset;
   }
 };
