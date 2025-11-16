@@ -1,7 +1,7 @@
 #ifndef __MDVECTOR_VIEW_H__
 #define __MDVECTOR_VIEW_H__
 
-#include "common/interator_view.h"
+#include "common/iterator_view.h"
 #include "expression_template/operator.h"
 #include "simd/simd_function.h"
 
