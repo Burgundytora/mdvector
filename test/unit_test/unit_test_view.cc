@@ -26,9 +26,9 @@ int main() {
 
     std::println("view[1,1]:{}", view_1[1, 1]);
 
-    std::println("view: 1d_index of [1,1]:{}", view_1.get_1d_index(2, 2));
+    std::println("view: 1d_index of [2,2]:{}", view_1.get_1d_index(2, 2));
 
-    std::println("view: md_index of 10:{}", view_1.get_md_index(13));
+    std::println("view: md_index of 13:{}", view_1.get_md_index(13));
 
     std::println("iterator of view:");
     int index = 0;
