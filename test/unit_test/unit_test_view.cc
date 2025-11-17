@@ -4,7 +4,7 @@
 int main() {
   try {
     std::cout << "=== 测试1: 10x10矩阵基本操作 ===" << std::endl;
-    mdvector<double, 2> mat({10, 10});
+    md::vector<double, 2> mat({10, 10});
 
     // 填充数据
     for (int i = 0; i < mat.extent(0); ++i) {

@@ -3,18 +3,19 @@
 
 #include "common/detail.h"
 #include "common/iterator_mixin.h"
-#include "common/math_function.h"
-#include "common/statistic_function.h"
 #include "common/type_concept.h"
 #include "expression_template/operator.h"
 #include "simd/allocator.h"
 #include "simd/simd_function.h"
+#include "math_function.h"
 #include "span.h"
 #include "view.h"
 
+namespace md {
+
 template <typename T, size_t Rank, typename Layout>
-class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
-                 public md::iterator_mixin<mdvector<T, Rank, Layout>, T> {
+class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
+               public md::iterator_mixin<vector<T, Rank, Layout>, T> {
  public:
   using Policy = md::aligned_policy;
   using value_type = T;
@@ -31,29 +32,29 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
  public:
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 构造函数
-  mdvector() = default;
+  vector() = default;
 
-  explicit mdvector(const std::array<std::size_t, Rank>& shape)
+  explicit vector(const std::array<std::size_t, Rank>& shape)
       : vector_(md::calculate_size(shape)),
         shape_(shape),
         size_(md::calculate_size(shape)),
         mdspan_(create_mdspan(shape, std::make_index_sequence<Rank>{})) {}
 
-  ~mdvector() = default;
+  ~vector() = default;
 
-  mdvector(const mdvector& other)
+  vector(const vector& other)
       : vector_(other.vector_),
         shape_(other.shape_),
         size_(other.size_),
         mdspan_(create_mdspan(other.shape_, std::make_index_sequence<Rank>{})) {}
 
-  mdvector(mdvector&& other) noexcept
+  vector(vector&& other) noexcept
       : vector_(std::move(other.vector_)),
         shape_(std::move(other.shape_)),
         size_(other.size_),
         mdspan_(std::move(other.mdspan_)) {}
 
-  mdvector& operator=(const mdvector& other) {
+  vector& operator=(const vector& other) {
     if (this != &other) {
       vector_ = other.vector_;
       shape_ = other.shape_;
@@ -63,7 +64,7 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
     return *this;
   }
 
-  mdvector& operator=(mdvector&& other) noexcept {
+  vector& operator=(vector&& other) noexcept {
     if (this != &other) {
       vector_ = std::move(other.vector_);
       shape_ = std::move(other.shape_);
@@ -74,14 +75,14 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
   }
 
   // 从span创建
-  mdvector(const md::span<T, Rank, Layout>& span) noexcept
+  vector(const md::span<T, Rank, Layout>& span) noexcept
     requires Numeric<T>
   {
     this->set_shape(span.extents());
     span.template eval_to<T, Policy>(this->data());
   }
 
-  mdvector& operator=(const md::span<T, Rank, Layout>& span) noexcept
+  vector& operator=(const md::span<T, Rank, Layout>& span) noexcept
     requires Numeric<T>
   {
     span.template eval_to<T, Policy>(this->data());
@@ -215,7 +216,7 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
     if (!mdspan_.empty()) {
       md::print_mdspan(mdspan_);
     } else {
-      throw std::logic_error("mdvector need to be initialized before print!!!");
+      throw std::logic_error("vector need to be initialized before print!!!");
     }
   }
 
@@ -327,19 +328,19 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
 
   // ///////////////////////////////////////////////////////////////////////////////////////
   // /// 迭代器
-  using md::iterator_mixin<mdvector<T, Rank, Layout>, T>::begin;
-  using md::iterator_mixin<mdvector<T, Rank, Layout>, T>::end;
-  using md::iterator_mixin<mdvector<T, Rank, Layout>, T>::cbegin;
-  using md::iterator_mixin<mdvector<T, Rank, Layout>, T>::cend;
-  using md::iterator_mixin<mdvector<T, Rank, Layout>, T>::rbegin;
-  using md::iterator_mixin<mdvector<T, Rank, Layout>, T>::rend;
-  using md::iterator_mixin<mdvector<T, Rank, Layout>, T>::crbegin;
-  using md::iterator_mixin<mdvector<T, Rank, Layout>, T>::crend;
+  using md::iterator_mixin<vector<T, Rank, Layout>, T>::begin;
+  using md::iterator_mixin<vector<T, Rank, Layout>, T>::end;
+  using md::iterator_mixin<vector<T, Rank, Layout>, T>::cbegin;
+  using md::iterator_mixin<vector<T, Rank, Layout>, T>::cend;
+  using md::iterator_mixin<vector<T, Rank, Layout>, T>::rbegin;
+  using md::iterator_mixin<vector<T, Rank, Layout>, T>::rend;
+  using md::iterator_mixin<vector<T, Rank, Layout>, T>::crbegin;
+  using md::iterator_mixin<vector<T, Rank, Layout>, T>::crend;
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 表达式模板数值计算
   template <typename E>
-  mdvector(const md::tensor_expr<E, T>& expr) noexcept
+  vector(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     this->set_shape(expr.extents());
@@ -347,7 +348,7 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
   }
 
   template <typename E>
-  mdvector& operator=(const md::tensor_expr<E, T>& expr) noexcept
+  vector& operator=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     this->set_shape(expr.extents());
@@ -369,28 +370,28 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
     return md::simd<T2>::mask_load(data() + i, used_size() - i);
   }
 
-  mdvector& operator+=(const mdvector& other) noexcept
+  vector& operator+=(const vector& other) noexcept
     requires Numeric<T>
   {
     md::simd_add_inplace<T, Policy>(this->data(), other.data(), this->used_size());
     return *this;
   }
 
-  mdvector& operator-=(const mdvector& other) noexcept
+  vector& operator-=(const vector& other) noexcept
     requires Numeric<T>
   {
     md::simd_sub_inplace<T, Policy>(this->data(), other.data(), this->used_size());
     return *this;
   }
 
-  mdvector& operator*=(const mdvector& other) noexcept
+  vector& operator*=(const vector& other) noexcept
     requires Numeric<T>
   {
     md::simd_mul_inplace<T, Policy>(this->data(), other.data(), this->used_size());
     return *this;
   }
 
-  mdvector& operator/=(const mdvector& other) noexcept
+  vector& operator/=(const vector& other) noexcept
     requires Numeric<T>
   {
     md::simd_div_inplace<T, Policy>(this->data(), other.data(), this->used_size());
@@ -398,7 +399,7 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
   }
 
   template <typename E>
-  mdvector& operator+=(const md::tensor_expr<E, T>& expr) noexcept
+  vector& operator+=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this + expr).template eval_to<T, Policy>(this->data());
@@ -406,7 +407,7 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
   }
 
   template <typename E>
-  mdvector& operator-=(const md::tensor_expr<E, T>& expr) noexcept
+  vector& operator-=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this - expr).template eval_to<T, Policy>(this->data());
@@ -414,7 +415,7 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
   }
 
   template <typename E>
-  mdvector& operator*=(const md::tensor_expr<E, T>& expr) noexcept
+  vector& operator*=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this * expr).template eval_to<T, Policy>(this->data());
@@ -422,35 +423,35 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
   }
 
   template <typename E>
-  mdvector& operator/=(const md::tensor_expr<E, T>& expr) noexcept
+  vector& operator/=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this / expr).template eval_to<T, Policy>(this->data());
     return *this;
   }
 
-  mdvector& operator+=(T scalar) noexcept
+  vector& operator+=(T scalar) noexcept
     requires Numeric<T>
   {
     md::simd_add_inplace_scalar<T, Policy>(this->data(), scalar, this->used_size());
     return *this;
   }
 
-  mdvector& operator-=(T scalar) noexcept
+  vector& operator-=(T scalar) noexcept
     requires Numeric<T>
   {
     md::simd_sub_inplace_scalar<T, Policy>(this->data(), scalar, this->used_size());
     return *this;
   }
 
-  mdvector& operator*=(T scalar) noexcept
+  vector& operator*=(T scalar) noexcept
     requires Numeric<T>
   {
     md::simd_mul_inplace_scalar<T, Policy>(this->data(), scalar, this->used_size());
     return *this;
   }
 
-  mdvector& operator/=(T scalar) noexcept
+  vector& operator/=(T scalar) noexcept
     requires Numeric<T>
   {
     md::simd_div_inplace_scalar<T, Policy>(this->data(), scalar, this->used_size());
@@ -461,7 +462,7 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
   auto operator-() const noexcept
     requires Numeric<T>
   {
-    mdvector result(this->extents());
+    vector result(this->extents());
     std::transform(this->begin(), this->end(), result.begin(), [](T val) noexcept { return -val; });
     return result;
   }
@@ -483,13 +484,13 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
 
   void check_initialized() const {
     if (mdspan_.empty()) {
-      throw std::logic_error("mdvector not initialized");
+      throw std::logic_error("md::vector not initialized");
     }
   }
 
   template <typename... Indices>
   void check_indices(Indices... indices) const {
-    static_assert(sizeof...(Indices) == Rank, "Number of indices must match the rank of mdvector");
+    static_assert(sizeof...(Indices) == Rank, "Number of indices must match the rank of md::vector");
 
     const size_t idx_array[Rank] = {static_cast<size_t>(indices)...};
     for (int i = 0; i < Rank; ++i) {
@@ -530,15 +531,17 @@ class mdvector : public md::tensor_expr<mdvector<T, Rank, Layout>, T>,
   }
 };
 
+template <size_t Rank>
+using shape = std::array<size_t, Rank>;
+
+}  // namespace md
+
 // 常用别名
 template <typename T, size_t Rank>
-using mdvector_row_major = mdvector<T, Rank, std::layout_right>;
+using mdvector_row_major = md::vector<T, Rank, std::layout_right>;
 
 template <typename T, size_t Rank>
-using mdvector_col_major = mdvector<T, Rank, std::layout_left>;
-
-template <size_t Rank>
-using mdshape = std::array<size_t, Rank>;
+using mdvector_col_major = md::vector<T, Rank, std::layout_left>;
 
 using shape_1d = std::array<size_t, 1>;
 using shape_2d = std::array<size_t, 2>;
@@ -548,21 +551,21 @@ using shape_5d = std::array<size_t, 5>;
 using shape_6d = std::array<size_t, 6>;
 
 template <typename T>
-using vector_1d = mdvector<T, 1>;
+using vector_1d = md::vector<T, 1>;
 
 template <typename T>
-using vector_2d = mdvector<T, 2>;
+using vector_2d = md::vector<T, 2>;
 
 template <typename T>
-using vector_3d = mdvector<T, 3>;
+using vector_3d = md::vector<T, 3>;
 
 template <typename T>
-using vector_4d = mdvector<T, 4>;
+using vector_4d = md::vector<T, 4>;
 
 template <typename T>
-using vector_5d = mdvector<T, 5>;
+using vector_5d = md::vector<T, 5>;
 
 template <typename T>
-using vector_6d = mdvector<T, 6>;
+using vector_6d = md::vector<T, 6>;
 
 #endif  // __MDVECTOR_MDVECTOR_H__

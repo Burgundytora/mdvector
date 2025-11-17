@@ -97,7 +97,7 @@ class calculation_expr : public tensor_expr<calculation_expr<T, L, R, Cal>, T> {
   auto operator-() const noexcept
     requires Numeric<T>
   {
-    mdvector<T, rank_, layout_type> result = *this * (-1.0);
+    md::vector<T, rank_, layout_type> result = *this * (-1.0);
     return result;
   }
 

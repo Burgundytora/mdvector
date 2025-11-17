@@ -2,9 +2,9 @@
 #include "include_md.h"
 
 int main(int args, char *argv[]) {
-  shape_3d shape({2, 3, 4});
-  mdvector<double, 3> test_vector3d(shape);
-  mdvector<double, 3, std::layout_left> test_vector3d_layout_left(shape);
+  md::shape<3> shape({2, 3, 4});
+  md::vector<double, 3> test_vector3d(shape);
+  md::vector<double, 3, std::layout_left> test_vector3d_layout_left(shape);
   std::cout << "mdvector 3d: shape 2 3 4 :\n";
 
   double t = 1.0;
@@ -57,7 +57,7 @@ int main(int args, char *argv[]) {
   std::cout << "\n";
 
   // ok
-  span<double, 1> layout_right_span_1 = test_vector3d.span(0, 1, all());
+  md::span<double, 1> layout_right_span_1 = test_vector3d.span(0, 1, all());
   std::cout << "layout_right_span_1: \n";
   for (const auto &it : layout_right_span_1) {
     std::cout << it << " ";
@@ -65,20 +65,20 @@ int main(int args, char *argv[]) {
 
   // wrong
   try {
-    span<double, 1, std::layout_left> layout_left_span_1 = test_vector3d_layout_left.span(0, 1, all());
+    md::span<double, 1, std::layout_left> layout_left_span_1 = test_vector3d_layout_left.span(0, 1, all());
   } catch (const std::exception &e) {
     std::cout << "\n捕获异常: layout_left_span_1 " << e.what() << std::endl;
   }
 
   // wrong
   try {
-    span<double, 1> layout_right_span_2 = test_vector3d.span(all(), 0, 0);
+    md::span<double, 1> layout_right_span_2 = test_vector3d.span(all(), 0, 0);
   } catch (const std::exception &e) {
     std::cout << "\n捕获异常: layout_right_span_2 " << e.what() << std::endl;
   }
 
   // right
-  span<double, 1, std::layout_left> layout_left_span_2 = test_vector3d_layout_left.span(all(), 1, 2);
+  md::span<double, 1, std::layout_left> layout_left_span_2 = test_vector3d_layout_left.span(all(), 1, 2);
   std::cout << "layout_left_span_2: \n";
   for (const auto &it : layout_left_span_2) {
     std::cout << it << " ";

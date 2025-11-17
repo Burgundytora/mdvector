@@ -204,11 +204,11 @@ void test_simd() {
 
 template <class T>
 void test_mdvector_expr() {
-  shape_3d test_shape = {dim1, dim2, dim3};
-  vector_3d<T> data1_(test_shape);
-  vector_3d<T> data2_(test_shape);
-  vector_3d<T> data3_(test_shape);
-  vector_3d<T> data4_(test_shape);
+  md::shape<3> test_shape = {dim1, dim2, dim3};
+  md::vector<T, 3> data1_(test_shape);
+  md::vector<T, 3> data2_(test_shape);
+  md::vector<T, 3> data3_(test_shape);
+  md::vector<T, 3> data4_(test_shape);
 
   // 赋值
   data1_.fill(1);
@@ -240,10 +240,10 @@ void test_mdvector_expr() {
 
 template <class T, size_t N1, size_t N2, size_t N3>
 void test_mdarray_expr() {
-  array_3d<T, N1, N2, N3> data1_;
-  array_3d<T, N1, N2, N3> data2_;
-  array_3d<T, N1, N2, N3> data3_;
-  array_3d<T, N1, N2, N3> data4_;
+  md::array<T, std::layout_right, N1, N2, N3> data1_;
+  md::array<T, std::layout_right, N1, N2, N3> data2_;
+  md::array<T, std::layout_right, N1, N2, N3> data3_;
+  md::array<T, std::layout_right, N1, N2, N3> data4_;
 
   // 赋值
   data1_.fill(1);

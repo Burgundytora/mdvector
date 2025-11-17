@@ -230,11 +230,11 @@ void test_transform() {
 
 template <class T>
 void test_mdvector_expr() {
-  shape_2d test_shape = {dim1, dim2};
-  vector_2d<T> data1_(test_shape);
-  vector_2d<T> data2_(test_shape);
-  vector_2d<T> data3_(test_shape);
-  vector_2d<T> data4_(test_shape);
+  md::shape<2> test_shape = {dim1, dim2};
+  md::vector<T, 2> data1_(test_shape);
+  md::vector<T, 2> data2_(test_shape);
+  md::vector<T, 2> data3_(test_shape);
+  md::vector<T, 2> data4_(test_shape);
 
   // 赋值
   data1_.fill(1);
@@ -266,10 +266,10 @@ void test_mdvector_expr() {
 
 template <class T, size_t N1, size_t N2>
 void test_mdarray_expr() {
-  array_2d<T, N1, N2> data1_;
-  array_2d<T, N1, N2> data2_;
-  array_2d<T, N1, N2> data3_;
-  array_2d<T, N1, N2> data4_;
+  md::array<T, std::layout_right, N1, N2> data1_;
+  md::array<T, std::layout_right, N1, N2> data2_;
+  md::array<T, std::layout_right, N1, N2> data3_;
+  md::array<T, std::layout_right, N1, N2> data4_;
 
   // 赋值
   data1_.fill(1);

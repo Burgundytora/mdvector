@@ -3,11 +3,10 @@
 
 #include "common/detail.h"
 #include "common/iterator_mixin.h"
-#include "common/math_function.h"
-#include "common/statistic_function.h"
 #include "common/type_concept.h"
 #include "expression_template/operator.h"
 #include "simd/simd_function.h"
+#include "math_function.h"
 
 namespace md {
 
@@ -238,7 +237,7 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
   auto operator-() const noexcept
     requires Numeric<T>
   {
-    mdvector<T, Rank, Layout> result(this->extents());
+    md::vector<T, Rank, Layout> result(this->extents());
     std::transform(this->begin(), this->end(), result.begin(), [](T val) noexcept { return -val; });
     return result;
   }

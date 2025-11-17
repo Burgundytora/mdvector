@@ -3,15 +3,16 @@
 
 #include "common/detail.h"
 #include "common/iterator_mixin.h"
-#include "common/math_function.h"
-#include "common/statistic_function.h"
 #include "common/type_concept.h"
 #include "expression_template/operator.h"
 #include "simd/simd_function.h"
+#include "math_function.h"
+
+namespace md {
 
 template <typename T, typename Layout = std::layout_right, size_t... lengths>
-class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
-                public md::iterator_mixin<mdarray<T, Layout, lengths...>, T> {
+class array : public md::tensor_expr<array<T, Layout, lengths...>, T>,
+              public md::iterator_mixin<array<T, Layout, lengths...>, T> {
  public:
   using Policy = md::aligned_policy;
   using value_type = T;
@@ -31,15 +32,15 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
  public:
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 构造函数
-  explicit mdarray() : mdspan_(array_.data()) {}
+  explicit array() : mdspan_(array_.data()) {}
 
-  ~mdarray() = default;
+  ~array() = default;
 
-  mdarray(const mdarray& other) : array_(other.array_), mdspan_(array_.data()) {}
+  array(const array& other) : array_(other.array_), mdspan_(array_.data()) {}
 
-  mdarray(mdarray&& other) noexcept : array_(std::move(other.array_)), mdspan_(array_.data()) {}
+  array(array&& other) noexcept : array_(std::move(other.array_)), mdspan_(array_.data()) {}
 
-  mdarray& operator=(const mdarray& other) {
+  array& operator=(const array& other) {
     if (this != &other) {
       array_ = other.array_;
       mdspan_ = std::mdspan<T, std::extents<std::size_t, lengths...>, Layout>(array_.data());
@@ -47,7 +48,7 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
     return *this;
   }
 
-  mdarray& operator=(mdarray&& other) noexcept {
+  array& operator=(array&& other) noexcept {
     if (this != &other) {
       array_ = std::move(other.array_);
       mdspan_ = std::mdspan<T, std::extents<std::size_t, lengths...>, Layout>(array_.data());
@@ -176,19 +177,19 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 迭代器
-  using md::iterator_mixin<mdarray<T, Layout, lengths...>, T>::begin;
-  using md::iterator_mixin<mdarray<T, Layout, lengths...>, T>::end;
-  using md::iterator_mixin<mdarray<T, Layout, lengths...>, T>::cbegin;
-  using md::iterator_mixin<mdarray<T, Layout, lengths...>, T>::cend;
-  using md::iterator_mixin<mdarray<T, Layout, lengths...>, T>::rbegin;
-  using md::iterator_mixin<mdarray<T, Layout, lengths...>, T>::rend;
-  using md::iterator_mixin<mdarray<T, Layout, lengths...>, T>::crbegin;
-  using md::iterator_mixin<mdarray<T, Layout, lengths...>, T>::crend;
+  using md::iterator_mixin<array<T, Layout, lengths...>, T>::begin;
+  using md::iterator_mixin<array<T, Layout, lengths...>, T>::end;
+  using md::iterator_mixin<array<T, Layout, lengths...>, T>::cbegin;
+  using md::iterator_mixin<array<T, Layout, lengths...>, T>::cend;
+  using md::iterator_mixin<array<T, Layout, lengths...>, T>::rbegin;
+  using md::iterator_mixin<array<T, Layout, lengths...>, T>::rend;
+  using md::iterator_mixin<array<T, Layout, lengths...>, T>::crbegin;
+  using md::iterator_mixin<array<T, Layout, lengths...>, T>::crend;
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 表达式模板数值计算
   template <typename E>
-  mdarray& operator=(const md::tensor_expr<E, T>& expr) noexcept
+  array& operator=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     expr.template eval_to<T, Policy>(this->data());
@@ -209,28 +210,28 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
     return md::simd<T2>::mask_load(this->data() + i, used_size() - i);
   }
 
-  mdarray& operator+=(const mdarray& other) noexcept
+  array& operator+=(const array& other) noexcept
     requires Numeric<T>
   {
     md::simd_add_inplace<T, Policy>(this->data(), other.data(), this->used_size());
     return *this;
   }
 
-  mdarray& operator-=(const mdarray& other) noexcept
+  array& operator-=(const array& other) noexcept
     requires Numeric<T>
   {
     md::simd_sub_inplace<T, Policy>(this->data(), other.data(), this->used_size());
     return *this;
   }
 
-  mdarray& operator*=(const mdarray& other) noexcept
+  array& operator*=(const array& other) noexcept
     requires Numeric<T>
   {
     md::simd_mul_inplace<T, Policy>(this->data(), other.data(), this->used_size());
     return *this;
   }
 
-  mdarray& operator/=(const mdarray& other) noexcept
+  array& operator/=(const array& other) noexcept
     requires Numeric<T>
   {
     md::simd_div_inplace<T, Policy>(this->data(), other.data(), this->used_size());
@@ -238,7 +239,7 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
   }
 
   template <typename E>
-  mdarray& operator+=(const md::tensor_expr<E, T>& expr) noexcept
+  array& operator+=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this + expr).template eval_to<T, Policy>(this->data());
@@ -246,7 +247,7 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
   }
 
   template <typename E>
-  mdarray& operator-=(const md::tensor_expr<E, T>& expr) noexcept
+  array& operator-=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this - expr).template eval_to<T, Policy>(this->data());
@@ -254,7 +255,7 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
   }
 
   template <typename E>
-  mdarray& operator*=(const md::tensor_expr<E, T>& expr) noexcept
+  array& operator*=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this * expr).template eval_to<T, Policy>(this->data());
@@ -262,35 +263,35 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
   }
 
   template <typename E>
-  mdarray& operator/=(const md::tensor_expr<E, T>& expr) noexcept
+  array& operator/=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this / expr).template eval_to<T, Policy>(this->data());
     return *this;
   }
 
-  mdarray& operator+=(T scalar) noexcept
+  array& operator+=(T scalar) noexcept
     requires Numeric<T>
   {
     md::simd_add_inplace_scalar<T, Policy>(this->data(), scalar, this->used_size());
     return *this;
   }
 
-  mdarray& operator-=(T scalar) noexcept
+  array& operator-=(T scalar) noexcept
     requires Numeric<T>
   {
     md::simd_sub_inplace_scalar<T, Policy>(this->data(), scalar, this->used_size());
     return *this;
   }
 
-  mdarray& operator*=(T scalar) noexcept
+  array& operator*=(T scalar) noexcept
     requires Numeric<T>
   {
     md::simd_mul_inplace_scalar<T, Policy>(this->data(), scalar, this->used_size());
     return *this;
   }
 
-  mdarray& operator/=(T scalar) noexcept
+  array& operator/=(T scalar) noexcept
     requires Numeric<T>
   {
     md::simd_div_inplace_scalar<T, Policy>(this->data(), scalar, this->used_size());
@@ -301,7 +302,7 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
   auto operator-() const noexcept
     requires Numeric<T>
   {
-    mdvector<T, sizeof...(lengths), Layout> result(this->extents());
+    md::vector<T, sizeof...(lengths), Layout> result(this->extents());
     std::transform(this->begin(), this->end(), result.begin(), [](T val) noexcept { return -val; });
     return result;
   }
@@ -328,12 +329,14 @@ class mdarray : public md::tensor_expr<mdarray<T, Layout, lengths...>, T>,
   }
 };
 
+}  // namespace md
+
 // 常用别名
 template <typename T, size_t... lengths>
-using mdarray_row_major = mdarray<T, std::layout_right, lengths...>;
+using mdarray_row_major = md::array<T, std::layout_right, lengths...>;
 
 template <typename T, size_t... lengths>
-using mdarray_col_major = mdarray<T, std::layout_left, lengths...>;
+using mdarray_col_major = md::array<T, std::layout_left, lengths...>;
 
 template <typename T, size_t N>
 using array_1d = mdarray_row_major<T, N>;
