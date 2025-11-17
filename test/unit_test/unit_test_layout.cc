@@ -2,7 +2,7 @@
 #include "include_md.h"
 
 int main(int args, char *argv[]) {
-  md::shape<3> shape({2, 3, 4});
+  md::shape<3> shape = {2, 3, 4};
   md::vector<double, 3> test_vector3d(shape);
   md::vector<double, 3, std::layout_left> test_vector3d_layout_left(shape);
   std::cout << "mdvector 3d: shape 2 3 4 :\n";

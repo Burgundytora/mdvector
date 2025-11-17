@@ -5,7 +5,7 @@ int main() {
   try {
     // 测试1: 创建3x3矩阵并填充数据
     std::cout << "=== 测试1: 3x3矩阵基本操作 ===" << std::endl;
-    md::vector<double, 2> mat({3, 3});
+    md::vector<double, 2> mat(3, 3);
 
     // 填充数据
     for (int i = 0; i < 3; ++i) {
@@ -142,7 +142,7 @@ int main() {
 
     // 测试6: 3D数组子视图
     std::cout << "\n=== 测试6: 3D数组测试 ===" << std::endl;
-    md::vector<double, 3> tensor({2, 3, 4});
+    md::vector<double, 3> tensor(2, 3, 4);
 
     // 填充3D张量
     double val = 1.0f;

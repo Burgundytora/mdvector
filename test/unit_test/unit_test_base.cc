@@ -11,14 +11,14 @@ int main(int args, char *argv[]) {
   md::shape ss = {a, b};
 
   // 创建mdvector
-  md::vector<double, 2> dat1(ss);                     // 使用定义好的shape构造
-  md::vector<double, 2> dat2(shape_2d{2, 3});         // 临时创建shape构造
-  md::vector<double, 2> dat2_error1(shape_2d{2, 4});  // 第二维长度不同 与data1进行运算会出错 +会unsafe Plus会抛出异常
-  md::vector<double, 2> dat2_direct({a, b});          // 调用array初始化列表
-  md::vector<double, 2> dat3(shape_2d{2, 3});         // 同data1
-  md::vector<double, 3> dat4(shape_3d{1, 1, 6});      // 同data1
-  md::vector<double, 3> dat5;                         // 先声明，后设置维度
-  dat5.set_shape(shape_3d{3, 3, 3});
+  md::vector<double, 2> dat1(ss);           // 使用定义好的shape构造
+  md::vector<double, 2> dat2(2, 3);         // 临时创建shape构造
+  md::vector<double, 2> dat2_error1(2, 4);  // 第二维长度不同 与data1进行运算会出错 +会unsafe Plus会抛出异常
+  md::vector<double, 2> dat2_direct(a, b);  // 调用array初始化列表
+  md::vector<double, 2> dat3(2, 3);         // 同data1
+  md::vector<double, 3> dat4(1, 1, 6);      // 同data1
+  md::vector<double, 3> dat5;               // 先声明，后设置维度
+  dat5.set_shape(3, 3, 3);
 
   // 输入参数
   std::cout << "data1(1,1):" << dat1(1, 1) << "\n";

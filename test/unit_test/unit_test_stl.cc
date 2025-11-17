@@ -4,7 +4,7 @@
 int main(int args, char *argv[]) {
   std::cout << "\nVerification:" << std::endl;
 
-  md::vector<double, 2> a({2, 3});
+  md::vector<double, 2> a(2, 3);
   a.fill(0.1);
 
   double sum;

@@ -40,6 +40,14 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
         size_(md::calculate_size(shape)),
         mdspan_(create_mdspan(shape, std::make_index_sequence<Rank>{})) {}
 
+  template <typename... Sizes>
+    requires(sizeof...(Sizes) == Rank && (std::is_convertible_v<Sizes, size_t> && ...))
+  explicit vector(Sizes... sizes)
+      : vector_(md::calculate_size(std::array<size_t, Rank>{static_cast<size_t>(sizes)...})),
+        shape_(std::array<size_t, Rank>{static_cast<size_t>(sizes)...}),
+        size_(md::calculate_size(shape_)),
+        mdspan_(create_mdspan(shape_, std::make_index_sequence<Rank>{})) {}
+
   ~vector() = default;
 
   vector(const vector& other)
@@ -206,6 +214,13 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
     vector_.resize(size_);
     shape_ = shape;
     mdspan_ = create_mdspan(shape, std::make_index_sequence<Rank>{});
+  }
+
+  template <typename... Sizes>
+    requires(sizeof...(Sizes) == Rank && (std::is_convertible_v<Sizes, size_t> && ...))
+  void set_shape(Sizes... sizes) {
+    std::array<size_t, Rank> new_shape{static_cast<size_t>(sizes)...};
+    set_shape(new_shape);
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////

@@ -34,6 +34,8 @@ class array : public md::tensor_expr<array<T, Layout, lengths...>, T>,
   /// 构造函数
   explicit array() : mdspan_(array_.data()) {}
 
+  explicit array(T val) : mdspan_(array_.data()) { fill(val); }
+
   ~array() = default;
 
   array(const array& other) : array_(other.array_), mdspan_(array_.data()) {}
