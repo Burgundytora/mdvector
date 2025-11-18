@@ -39,6 +39,11 @@ class view_iterator {
     }
   }
 
+  // 允许从非 const 迭代器构造 const 迭代器
+  template <bool OtherIsConst, typename = std::enable_if_t<IsConst && !OtherIsConst>>
+  view_iterator(const view_iterator<T, Rank, OtherIsConst>& other)
+      : view_ptr_(other.view_ptr_), current_indices_(other.current_indices_), linear_pos_(other.linear_pos_) {}
+
   // 解引用
   reference operator*() const {
     return std::apply([this](auto... indices) -> reference { return (*view_ptr_)(indices...); }, current_indices_);
@@ -123,6 +128,9 @@ class view_iterator {
   // 获取当前位置
   size_t linear_position() const { return linear_pos_; }
   const std::array<size_t, Rank>& indices() const { return current_indices_; }
+
+  // 获取底层视图指针（用于调试）
+  view_type* get_view_ptr() const { return view_ptr_; }
 
  private:
   void increment() {
