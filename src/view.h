@@ -1,6 +1,9 @@
 #ifndef __MDVECTOR_VIEW_H__
 #define __MDVECTOR_VIEW_H__
 
+#include <execution>
+#include <functional>
+
 #include "common/iterator_view.h"
 #include "expression_template/operator.h"
 #include "simd/simd_function.h"
@@ -11,7 +14,7 @@ namespace md {
 template <typename T, size_t Rank>
 class view : public md::tensor_expr<view<T, Rank>, T> {
  public:
-  using Policy = md::unaligned_policy;
+  using Policy = md::aligned_policy;  // view使用对齐array转存simd
   using value_type = T;
   using layout_type = std::layout_stride;
   static constexpr size_t rank_ = Rank;
@@ -52,12 +55,12 @@ class view : public md::tensor_expr<view<T, Rank>, T> {
   template <typename E>
   view(const md::tensor_expr<E, T>& expr) = delete;
 
-  // TODO
-  // template <typename E>
-  // view& operator=(const md::tensor_expr<E, T>& expr) noexcept {
-  //   expr.template eval_to<T, Policy>(this->data());
-  //   return *this;
-  // }
+  //
+  template <typename E>
+  view& operator=(const md::tensor_expr<E, T>& expr) noexcept {
+    expr.template eval_to<>(*this);
+    return *this;
+  }
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 访问属性
@@ -176,6 +179,142 @@ class view : public md::tensor_expr<view<T, Rank>, T> {
   const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(cend()); }
 
   const_reverse_iterator crend() const noexcept { return const_reverse_iterator(cbegin()); }
+
+  ///////////////////////////////////////////////////////////////////////////////////////
+  /// 表达式模板数值计算
+
+  template <typename T2>
+  typename md::simd<T2>::type load_simd(size_t i) const noexcept {
+    // 内存不连续 使用对齐的std::array转存
+    alignas(md::simd<T>::alignment) std::array<T, md::simd<T>::pack_size> temp_array;
+    size_t temp_i = i;
+    for (size_t j = 0; j < md::simd<T>::pack_size && temp_i < this->used_size(); ++j, ++temp_i) {
+      temp_array[j] = *const_iterator(this, temp_i);  // 使用 const_iterator
+    }
+    return Policy::template load<T2>(temp_array.data());
+  }
+
+  template <typename T2>
+  typename md::simd<T2>::type load_simd_mask(size_t i) const noexcept {
+    // 内存不连续 使用对齐的std::array转存
+    alignas(md::simd<T>::alignment) std::array<T, md::simd<T>::pack_size> temp_array;
+    size_t temp_i = i;
+    size_t count = 0;
+    for (; count < md::simd<T>::pack_size && temp_i < this->used_size(); ++count, ++temp_i) {
+      temp_array[count] = *const_iterator(this, temp_i);  // 使用 const_iterator
+    }
+    return Policy::template mask_load<T2>(temp_array.data(), this->used_size() - i);
+  }
+
+  template <typename T2>
+  void store_simd(size_t i, typename md::simd<T2>::const_ref_type simd_val) noexcept {
+    // 先将simd转换为普通变量再用迭代器赋值
+    alignas(md::simd<T>::alignment) std::array<T, md::simd<T>::pack_size> temp_array;
+    Policy::template store<T>(temp_array.data(), simd_val);
+    for (size_t j = 0; j < md::simd<T>::pack_size && (i + j) < this->used_size(); ++j) {
+      *iterator(this, i + j) = temp_array[j];
+    }
+  }
+
+  template <typename T2>
+  void store_simd_mask(size_t i, size_t remaining, typename md::simd<T2>::const_ref_type simd_val) noexcept {
+    // 先将simd转换为普通变量再用迭代器赋值
+    alignas(md::simd<T>::alignment) std::array<T, md::simd<T>::pack_size> temp_array;
+    Policy::template mask_store<T>(temp_array.data(), remaining, simd_val);
+    for (size_t j = 0; j < remaining && (i + j) < this->used_size(); ++j) {
+      *iterator(this, i + j) = temp_array[j];
+    }
+  }
+
+  // 非连续内存使用迭代器
+  view& operator+=(const view& other) noexcept {
+    std::transform(std::execution::unseq, this->begin(), this->end(), other.begin(), this->begin(), std::plus<>());
+    return *this;
+  }
+
+  view& operator-=(const view& other) noexcept {
+    std::transform(std::execution::unseq, this->begin(), this->end(), other.begin(), this->begin(), std::minus<>());
+    return *this;
+  }
+
+  view& operator*=(const view& other) noexcept {
+    std::transform(std::execution::unseq, this->begin(), this->end(), other.begin(), this->begin(),
+                   std::multiplies<>());
+    return *this;
+  }
+
+  view& operator/=(const view& other) noexcept {
+    std::transform(std::execution::unseq, this->begin(), this->end(), other.begin(), this->begin(), std::divides<>());
+    return *this;
+  }
+
+  template <typename E>
+  view& operator+=(const md::tensor_expr<E, T>& expr) noexcept {
+    (*this + expr).template eval_to<>(*this);
+    return *this;
+  }
+
+  template <typename E>
+  view& operator-=(const md::tensor_expr<E, T>& expr) noexcept {
+    (*this - expr).template eval_to<>(*this);
+    return *this;
+  }
+
+  template <typename E>
+  view& operator*=(const md::tensor_expr<E, T>& expr) noexcept {
+    (*this * expr).template eval_to<>(*this);
+    return *this;
+  }
+
+  template <typename E>
+  view& operator/=(const md::tensor_expr<E, T>& expr) noexcept {
+    (*this / expr).template eval_to<>(*this);
+    return *this;
+  }
+
+  view& operator+=(T scalar) noexcept {
+    for (auto& it : *this) {
+      it += scalar;
+    }
+    return *this;
+  }
+
+  view& operator-=(T scalar) noexcept {
+    for (auto& it : *this) {
+      it -= scalar;
+    }
+    return *this;
+  }
+
+  view& operator*=(T scalar) noexcept {
+    for (auto& it : *this) {
+      it *= scalar;
+    }
+    return *this;
+  }
+
+  view& operator/=(T scalar) noexcept {
+    for (auto& it : *this) {
+      it /= scalar;
+    }
+    return *this;
+  }
+
+  // 取负
+  auto operator-() const noexcept
+    requires Numeric<T>
+  {
+    md::vector<T, Rank, std::layout_right> result(this->extents());
+    std::transform(this->begin(), this->end(), result.begin(), [](T val) noexcept { return -val; });
+    return result;
+  }
+
+  // 取正
+  auto operator+() const noexcept
+    requires Numeric<T>
+  {
+    return *this;
+  }
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 打印

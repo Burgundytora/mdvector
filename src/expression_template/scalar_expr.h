@@ -17,12 +17,12 @@ class scalar_wrapper : public tensor_expr<scalar_wrapper<T>, T> {
   scalar_wrapper(const scalar_wrapper &) = delete;
 
   template <typename U>
-  typename simd<U>::type eval_simd(size_t) const {
+  typename simd<U>::type load_simd(size_t) const {
     return simd_value_;
   }
 
   template <typename U>
-  typename simd<U>::type eval_simd_mask(size_t) const {
+  typename simd<U>::type load_simd_mask(size_t) const {
     return simd_value_;
   }
 

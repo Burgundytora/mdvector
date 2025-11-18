@@ -194,22 +194,33 @@ class array : public md::tensor_expr<array<T, Layout, lengths...>, T>,
   array& operator=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
-    expr.template eval_to<T, Policy>(this->data());
+    expr.template eval_to<>(*this);
     return *this;
   }
 
   template <typename T2>
-  typename md::simd<T2>::type eval_simd(size_t i) const noexcept
+  typename md::simd<T2>::type load_simd(size_t i) const noexcept
     requires Numeric<T>
   {
-    return md::simd<T2>::load(this->data() + i);
+    return Policy::load<T2>(this->data() + i);
   }
 
   template <typename T2>
-  typename md::simd<T2>::type eval_simd_mask(size_t i) const noexcept
+  typename md::simd<T2>::type load_simd_mask(size_t i) const noexcept
     requires Numeric<T>
   {
-    return md::simd<T2>::mask_load(this->data() + i, used_size() - i);
+    return Policy::mask_load<T2>(this->data() + i, used_size() - i);
+  }
+
+  template <typename T2>
+  typename void store_simd(const size_t& i, md::simd<T2>::const_ref_type simd_val) noexcept {
+    return Policy::store<T>(this->data() + i, simd_val);
+  }
+
+  template <typename T2>
+  typename void store_simd_mask(const size_t& i, const size_t& remaining,
+                                md::simd<T2>::const_ref_type simd_val) noexcept {
+    return Policy::mask_store<T>(this->data() + i, remaining, simd_val);
   }
 
   array& operator+=(const array& other) noexcept
@@ -244,7 +255,7 @@ class array : public md::tensor_expr<array<T, Layout, lengths...>, T>,
   array& operator+=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
-    (*this + expr).template eval_to<T, Policy>(this->data());
+    (*this + expr).template eval_to<>(*this);
     return *this;
   }
 
@@ -252,7 +263,7 @@ class array : public md::tensor_expr<array<T, Layout, lengths...>, T>,
   array& operator-=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
-    (*this - expr).template eval_to<T, Policy>(this->data());
+    (*this - expr).template eval_to<>(*this);
     return *this;
   }
 
@@ -260,7 +271,7 @@ class array : public md::tensor_expr<array<T, Layout, lengths...>, T>,
   array& operator*=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
-    (*this * expr).template eval_to<T, Policy>(this->data());
+    (*this * expr).template eval_to<>(*this);
     return *this;
   }
 
@@ -268,7 +279,7 @@ class array : public md::tensor_expr<array<T, Layout, lengths...>, T>,
   array& operator/=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
-    (*this / expr).template eval_to<T, Policy>(this->data());
+    (*this / expr).template eval_to<>(*this);
     return *this;
   }
 

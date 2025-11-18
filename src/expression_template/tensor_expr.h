@@ -14,20 +14,20 @@ class tensor_expr {
 
   auto extents() const noexcept { return derived().extents(); }
 
-  template <typename Dest, typename DestPolicy>
-  void eval_to(Dest* dest) const noexcept {
+  template <typename Dest>
+  void eval_to(Dest& dest) const noexcept {
     const size_t n = used_size();
     size_t i = 0;
-    constexpr size_t pack_size = simd<Dest>::pack_size;
+    constexpr size_t pack_size = simd<T>::pack_size;
 
     for (; i + pack_size <= n; i += pack_size) {
-      auto simd_val = derived().template eval_simd<std::remove_const_t<Dest>>(i);
-      DestPolicy::template store<std::remove_const_t<Dest>>(dest + i, simd_val);
+      auto simd_val = derived().template load_simd<T>(i);
+      dest.template store_simd<T>(i, simd_val);
     }
 
     const size_t remaining = n - i;
-    auto simd_val = derived().template eval_simd_mask<std::remove_const_t<Dest>>(i);
-    DestPolicy::template mask_store<std::remove_const_t<Dest>>(dest + i, remaining, simd_val);
+    auto simd_val = derived().template load_simd_mask<T>(i);
+    dest.template store_simd_mask<T>(i, remaining, simd_val);
   }
 };
 

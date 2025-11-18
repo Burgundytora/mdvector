@@ -50,7 +50,7 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
 
   template <typename E>
   span& operator=(const md::tensor_expr<E, T>& expr) noexcept {
-    expr.template eval_to<T, Policy>(this->data());
+    expr.template eval_to<>(*this);
     return *this;
   }
 
@@ -160,13 +160,24 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
   /// 表达式模板数值计算
 
   template <typename T2>
-  typename md::simd<T2>::type eval_simd(size_t i) const noexcept {
-    return md::simd<T2>::loadu(this->data() + i);
+  typename md::simd<T2>::type load_simd(size_t i) const noexcept {
+    return Policy::load<T2>(this->data() + i);
   }
 
   template <typename T2>
-  typename md::simd<T2>::type eval_simd_mask(size_t i) const noexcept {
-    return md::simd<T2>::mask_loadu(this->data() + i, this->used_size() - i);
+  typename md::simd<T2>::type load_simd_mask(size_t i) const noexcept {
+    return Policy::mask_load<T2>(this->data() + i, this->used_size() - i);
+  }
+
+  template <typename T2>
+  typename void store_simd(const size_t& i, md::simd<T2>::const_ref_type simd_val) noexcept {
+    return Policy::store<T>(this->data() + i, simd_val);
+  }
+
+  template <typename T2>
+  typename void store_simd_mask(const size_t& i, const size_t& remaining,
+                                md::simd<T2>::const_ref_type simd_val) noexcept {
+    return Policy::mask_store<T>(this->data() + i, remaining, simd_val);
   }
 
   span& operator+=(const span& other) noexcept {
@@ -191,25 +202,25 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
 
   template <typename E>
   span& operator+=(const md::tensor_expr<E, T>& expr) noexcept {
-    (*this + expr).template eval_to<T, Policy>(this->data());
+    (*this + expr).template eval_to<>(*this);
     return *this;
   }
 
   template <typename E>
   span& operator-=(const md::tensor_expr<E, T>& expr) noexcept {
-    (*this - expr).template eval_to<T, Policy>(this->data());
+    (*this - expr).template eval_to<>(*this);
     return *this;
   }
 
   template <typename E>
   span& operator*=(const md::tensor_expr<E, T>& expr) noexcept {
-    (*this * expr).template eval_to<T, Policy>(this->data());
+    (*this * expr).template eval_to<>(*this);
     return *this;
   }
 
   template <typename E>
   span& operator/=(const md::tensor_expr<E, T>& expr) noexcept {
-    (*this / expr).template eval_to<T, Policy>(this->data());
+    (*this / expr).template eval_to<>(*this);
     return *this;
   }
 

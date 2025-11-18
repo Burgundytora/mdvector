@@ -80,16 +80,16 @@ class calculation_expr : public tensor_expr<calculation_expr<T, L, R, Cal>, T> {
   }
 
   template <typename U>
-  typename simd<U>::type eval_simd(size_t i) const {
-    auto l = lhs.template eval_simd<U>(i);
-    auto r = rhs.template eval_simd<U>(i);
+  typename simd<U>::type load_simd(size_t i) const {
+    auto l = lhs.template load_simd<U>(i);
+    auto r = rhs.template load_simd<U>(i);
     return simd_cal<U, Cal>(l, r);
   }
 
   template <typename U>
-  typename simd<U>::type eval_simd_mask(size_t i) const {
-    auto l = lhs.template eval_simd_mask<U>(i);
-    auto r = rhs.template eval_simd_mask<U>(i);
+  typename simd<U>::type load_simd_mask(size_t i) const {
+    auto l = lhs.template load_simd_mask<U>(i);
+    auto r = rhs.template load_simd_mask<U>(i);
     return simd_cal<U, Cal>(l, r);
   }
 
