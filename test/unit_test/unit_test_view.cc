@@ -41,12 +41,16 @@ int main() {
     view_neg.print();
 
     md::vector<double, 2> mat2(5, 5);
-    mat2.fill(1);
+    mat2.fill(2);
 
     view_1 *= 1.0;
     md::vector<double, 2> mat_res = view_1 * 2.0 + mat2 + cos(view_neg);
     std::println("view*2 + mat2 + cos(-view):");
     mat_res.print();
+
+    view_1 = view_1 * -mat2;
+    std::println("view_1 * -mat2:");
+    view_1.print();
 
   } catch (const std::exception& e) {
     std::cout << "error: " << e.what() << std::endl;
