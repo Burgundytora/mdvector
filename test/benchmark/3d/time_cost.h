@@ -31,11 +31,11 @@ struct TimerRecorder {
     }
 
     // 获取开始时间点
-    start_ = std::chrono::high_resolution_clock::now();
+    start_ = std::chrono::steady_clock::now();
   }
 
   ~TimerRecorder() {
-    auto end = std::chrono::high_resolution_clock::now();
+    auto end = std::chrono::steady_clock::now();
 
     // 计算持续时间
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start_);

@@ -213,12 +213,12 @@ class array : public md::tensor_expr<array<T, Layout, lengths...>, T>,
   }
 
   template <typename T2>
-  typename void store_simd(const size_t& i, md::simd<T2>::const_ref_type simd_val) noexcept {
+  void store_simd(const size_t& i, md::simd<T2>::const_ref_type simd_val) noexcept {
     return Policy::store<T>(this->data() + i, simd_val);
   }
 
   template <typename T2>
-  typename void store_simd_mask(const size_t& i, const size_t& remaining,
+  void store_simd_mask(const size_t& i, const size_t& remaining,
                                 md::simd<T2>::const_ref_type simd_val) noexcept {
     return Policy::mask_store<T>(this->data() + i, remaining, simd_val);
   }
