@@ -226,11 +226,11 @@ void test_mdarray_expr() {
 
 template <class T, size_t N1, size_t N2>
 void test_mdinpvec_expr() {
-  md::inplace_vector<T, 2, N1 * N2 * 4 / 3, std::layout_right> data1_;
-  md::inplace_vector<T, 2, N1 * N2 * 4 / 3, std::layout_right> data2_;
-  md::inplace_vector<T, 2, N1 * N2 * 4 / 3, std::layout_right> data3_;
-  md::inplace_vector<T, 2, N1 * N2 * 4 / 3, std::layout_right> data4_;
-  md::inplace_vector<T, 2, N1 * N2 * 4 / 3, std::layout_right> data_res;
+  md::inplace_vector<T, 2, N1 * N2 * 5 / 4, std::layout_right> data1_;
+  md::inplace_vector<T, 2, N1 * N2 * 5 / 4, std::layout_right> data2_;
+  md::inplace_vector<T, 2, N1 * N2 * 5 / 4, std::layout_right> data3_;
+  md::inplace_vector<T, 2, N1 * N2 * 5 / 4, std::layout_right> data4_;
+  md::inplace_vector<T, 2, N1 * N2 * 5 / 4, std::layout_right> data_res;
 
   data1_.set_shape(N1, N2);
   data2_.set_shape(N1, N2);

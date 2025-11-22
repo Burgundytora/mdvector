@@ -24,9 +24,9 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
 
  private:
   /// 成员变量
-  std::vector<T, md::auto_allocator<T>> vector_;
   std::array<size_t, Rank> shape_;
   size_t size_;
+  std::vector<T, md::auto_allocator<T>> vector_;
   std::mdspan<T, std::dextents<size_t, Rank>, Layout> mdspan_;
 
  public:
@@ -35,38 +35,38 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
   vector() = default;
 
   explicit vector(const std::array<std::size_t, Rank>& shape)
-      : vector_(md::calculate_size(shape)),
-        shape_(shape),
+      : shape_(shape),
         size_(md::calculate_size(shape)),
+        vector_(md::get_aliged_size<T>(size_)),
         mdspan_(create_mdspan(shape, std::make_index_sequence<Rank>{})) {}
 
   template <typename... Sizes>
     requires(sizeof...(Sizes) == Rank && (std::is_convertible_v<Sizes, size_t> && ...))
   explicit vector(Sizes... sizes)
-      : vector_(md::calculate_size(std::array<size_t, Rank>{static_cast<size_t>(sizes)...})),
-        shape_(std::array<size_t, Rank>{static_cast<size_t>(sizes)...}),
+      : shape_(std::array<size_t, Rank>{static_cast<size_t>(sizes)...}),
         size_(md::calculate_size(shape_)),
+        vector_(md::get_aliged_size<T>(size_)),
         mdspan_(create_mdspan(shape_, std::make_index_sequence<Rank>{})) {}
 
   ~vector() = default;
 
   vector(const vector& other)
-      : vector_(other.vector_),
-        shape_(other.shape_),
+      : shape_(other.shape_),
         size_(other.size_),
+        vector_(other.vector_),
         mdspan_(create_mdspan(other.shape_, std::make_index_sequence<Rank>{})) {}
 
   vector(vector&& other) noexcept
-      : vector_(std::move(other.vector_)),
-        shape_(std::move(other.shape_)),
+      : shape_(std::move(other.shape_)),
         size_(other.size_),
+        vector_(std::move(other.vector_)),
         mdspan_(std::move(other.mdspan_)) {}
 
   vector& operator=(const vector& other) {
     if (this != &other) {
-      vector_ = other.vector_;
       shape_ = other.shape_;
       size_ = other.size_;
+      vector_ = other.vector_;
       mdspan_ = create_mdspan(other.shape_, std::make_index_sequence<Rank>{});
     }
     return *this;
@@ -74,9 +74,9 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
 
   vector& operator=(vector&& other) noexcept {
     if (this != &other) {
-      vector_ = std::move(other.vector_);
       shape_ = std::move(other.shape_);
       size_ = other.size_;
+      vector_ = std::move(other.vector_);
       mdspan_ = std::move(other.mdspan_);
     }
     return *this;
@@ -87,13 +87,13 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
     requires Numeric<T>
   {
     this->set_shape(span.extents());
-    span.template eval_to<>(*this);
+    span.template eval_to<vector, false>(*this);
   }
 
   vector& operator=(const md::span<T, Rank, Layout>& span) noexcept
     requires Numeric<T>
   {
-    span.template eval_to<>(*this);
+    span.template eval_to<vector, false>(*this);
     return *this;
   }
 
@@ -190,7 +190,7 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
 
   const T* data() const { return vector_.data(); }
 
-  size_t used_size() const { return size_; }
+  size_t used_size() const { return vector_.size(); }
 
   size_t size() const { return size_; }
 
@@ -211,7 +211,7 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
       return;
     }
     size_ = md::calculate_size(shape);
-    vector_.resize(size_);
+    vector_.resize(md::get_aliged_size<T>(size_));
     shape_ = shape;
     mdspan_ = create_mdspan(shape, std::make_index_sequence<Rank>{});
   }
@@ -359,15 +359,15 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
     requires Numeric<T>
   {
     this->set_shape(expr.extents());
-    expr.template eval_to<>(*this);
+    expr.template eval_to<vector, false>(*this);
   }
 
   template <typename E>
   vector& operator=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
-    this->set_shape(expr.extents());
-    expr.template eval_to<>(*this);
+    // this->set_shape(expr.extents());
+    expr.template eval_to<vector, false>(*this);
     return *this;
   }
 
@@ -391,8 +391,7 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
   }
 
   template <typename T2>
-  void store_simd_mask(const size_t& i, const size_t& remaining,
-                                md::simd<T2>::const_ref_type simd_val) noexcept {
+  void store_simd_mask(const size_t& i, const size_t& remaining, md::simd<T2>::const_ref_type simd_val) noexcept {
     return Policy::mask_store<T>(this->data() + i, remaining, simd_val);
   }
 
@@ -428,7 +427,7 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
   vector& operator+=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
-    (*this + expr).template eval_to<>(*this);
+    (*this + expr).template eval_to<vector, false>(*this);
     return *this;
   }
 
@@ -436,7 +435,7 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
   vector& operator-=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
-    (*this - expr).template eval_to<>(*this);
+    (*this - expr).template eval_to<vector, false>(*this);
     return *this;
   }
 
@@ -444,7 +443,7 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
   vector& operator*=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
-    (*this * expr).template eval_to<>(*this);
+    (*this * expr).template eval_to<vector, false>(*this);
     return *this;
   }
 
@@ -452,7 +451,7 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
   vector& operator/=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
-    (*this / expr).template eval_to<>(*this);
+    (*this / expr).template eval_to<vector, false>(*this);
     return *this;
   }
 

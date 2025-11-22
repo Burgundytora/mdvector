@@ -5,7 +5,7 @@ void test_mdspan_dynamic() {
   try {
     constexpr size_t Rank = 3;
     std::array<size_t, Rank> shape{3, 3, 4};
-    md::vector<int, Rank> mdvector_(shape);
+    md::vector<double, Rank> mdvector_(shape);
     mdvector_.print();
     std::println("[0,0,0]: {}", mdvector_.at(1, 1, 1));
   } catch (const std::runtime_error& e) {
@@ -34,9 +34,23 @@ void test_md_inplace_vector() {
   inp_vec.print();
 }
 
+void test_mdvector() {
+  md::vector<double, 2> data1(4, 4);
+  md::vector<double, 2> data2(4, 4);
+  md::vector<double, 2> data3(4, 4);
+  data1.fill(1.0);
+  data2.fill(2.0);
+  data3.fill(3.0);
+  std::println("before = &&tensor_extr");
+  data3 = data1 + data2;
+  std::println("before = &tensor_extr");
+  md::vector<double, 2> data_new = data1 + data2;
+}
+
 int main() {
   // test_mdspan_dynamic();
   // test_layout_strided();
-  test_md_inplace_vector();
+  // test_md_inplace_vector();
+  test_mdvector();
   return 0;
 }

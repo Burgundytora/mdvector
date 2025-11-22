@@ -5,6 +5,15 @@
 
 namespace md {
 
+template <typename T>
+size_t get_aliged_size(size_t size) {
+  if constexpr (Numeric<T>) {
+    return (size % simd<T>::pack_size == 0) ? size : ((size / simd<T>::pack_size) + 1) * simd<T>::pack_size;
+  } else {
+    return size;
+  }
+}
+
 // ======================== 向量与向量操作 ========================
 template <typename T, typename Policy>
 void simd_add(const T* __restrict a, const T* __restrict b, T* __restrict c, const size_t n) {
