@@ -47,64 +47,37 @@ void test_norm() {
   T*** data2_ = create_3d_array<T>(dim1, dim2, dim3);
   T*** data3_ = create_3d_array<T>(dim1, dim2, dim3);
   T*** data4_ = create_3d_array<T>(dim1, dim2, dim3);
+  T*** data_res = create_3d_array<T>(dim1, dim2, dim3);
 
   // 赋值
   for (int i = 0; i < dim1; i++) {
     for (size_t j = 0; j < dim2; j++) {
       for (size_t k = 0; k < dim3; k++) {
-        data1_[i][j][k] = 1;
-        data2_[i][j][k] = 2;
-        data4_[i][j][k] = 3;
+        data1_[i][j][k] = 1.0;
+        data2_[i][j][k] = 2.0;
+        data3_[i][j][k] = 3.0;
+        data4_[i][j][k] = 4.0;
+        data_res[i][j][k] = 0.0;
       }
     }
   }
 
-  TimerRecorder a("** 3d");
+  {
+    TimerRecorder a("** 3d");
 
-  size_t k = 0;
-  while (k++ < loop) {
-    if constexpr (do_add) {
+    size_t k = 0;
+    while (k++ < loop) {
       for (int i = 0; i < dim1; i++) {
         for (size_t j = 0; j < dim2; j++) {
           for (size_t k = 0; k < dim3; k++) {
-            data3_[i][j][k] = data1_[i][j][k] + data2_[i][j][k];
+            data_res[i][j][k] =
+                data_res[i][j][k] + data1_[i][j][k] - data2_[i][j][k] * data3_[i][j][k] / data4_[i][j][k];
           }
         }
       }
     }
-
-    if constexpr (do_sub) {
-      for (int i = 0; i < dim1; i++) {
-        for (size_t j = 0; j < dim2; j++) {
-          for (size_t k = 0; k < dim3; k++) {
-            data3_[i][j][k] = data1_[i][j][k] - data2_[i][j][k];
-          }
-        }
-      }
-    }
-
-    if constexpr (do_mul) {
-      for (int i = 0; i < dim1; i++) {
-        for (size_t j = 0; j < dim2; j++) {
-          for (size_t k = 0; k < dim3; k++) {
-            data3_[i][j][k] = data1_[i][j][k] * data2_[i][j][k];
-          }
-        }
-      }
-    }
-
-    if constexpr (do_div) {
-      for (int i = 0; i < dim1; i++) {
-        for (size_t j = 0; j < dim2; j++) {
-          for (size_t k = 0; k < dim3; k++) {
-            data3_[i][j][k] = data1_[i][j][k] / data2_[i][j][k];
-          }
-        }
-      }
-    }
-
-    val = data3_[0][0][0];
   }
+  val = data_res[0][0][0];
 
   free_3d_array(data1_, dim1, dim2);
   free_3d_array(data2_, dim1, dim2);
@@ -118,14 +91,17 @@ void test_transform() {
   vector<T> data2_(dim1 * dim2 * dim3);
   vector<T> data3_(dim1 * dim2 * dim3);
   vector<T> data4_(dim1 * dim2 * dim3);
+  vector<T> data_res(dim1 * dim2 * dim3);
 
   // 赋值
   for (int i = 0; i < dim1; i++) {
     for (size_t j = 0; j < dim2; j++) {
       for (size_t k = 0; j < dim3; j++) {
-        data1_[i * dim2 * dim3 + j * dim3 + k] = 1;
-        data2_[i * dim2 * dim3 + j * dim3 + k] = 2;
-        data4_[i * dim2 * dim3 + j * dim3 + k] = 3;
+        data1_[i * dim2 * dim3 + j * dim3 + k] = 1.0;
+        data2_[i * dim2 * dim3 + j * dim3 + k] = 2.0;
+        data3_[i * dim2 * dim3 + j * dim3 + k] = 3.0;
+        data4_[i * dim2 * dim3 + j * dim3 + k] = 4.0;
+        data_res[i * dim2 * dim3 + j * dim3 + k] = 0.0;
       }
     }
   }
@@ -134,28 +110,16 @@ void test_transform() {
 
   size_t k = 0;
   while (k++ < loop) {
-    if constexpr (do_add) {
-      std::transform(std::execution::unseq, data1_.begin(), data1_.end(), data2_.begin(), data3_.begin(),
-                     std::plus<>());
-    }
-
-    if constexpr (do_sub) {
-      std::transform(std::execution::unseq, data1_.begin(), data1_.end(), data2_.begin(), data3_.begin(),
-                     std::minus<>());
-    }
-
-    if constexpr (do_mul) {
-      std::transform(std::execution::unseq, data1_.begin(), data1_.end(), data2_.begin(), data3_.begin(),
-                     std::multiplies<>());
-    }
-
-    if constexpr (do_div) {
-      std::transform(std::execution::unseq, data1_.begin(), data1_.end(), data2_.begin(), data3_.begin(),
-                     std::divides<>());
-    }
-
-    val = data1_[0];
+    std::transform(std::execution::unseq, data_res.begin(), data_res.end(), data_res.begin(), data_res.begin(),
+                   std::plus<>());
+    std::transform(std::execution::unseq, data_res.begin(), data_res.end(), data2_.begin(), data_res.begin(),
+                   std::minus<>());
+    std::transform(std::execution::unseq, data_res.begin(), data_res.end(), data3_.begin(), data_res.begin(),
+                   std::multiplies<>());
+    std::transform(std::execution::unseq, data_res.begin(), data_res.end(), data4_.begin(), data_res.begin(),
+                   std::divides<>());
   }
+  val = data_res[0];
 }
 
 template <class T>
@@ -166,36 +130,30 @@ void test_simd() {
   T* data2_ = allocator_.allocate(total_element);
   T* data3_ = allocator_.allocate(total_element);
   T* data4_ = allocator_.allocate(total_element);
+  T* data_res = allocator_.allocate(total_element);
 
   // 赋值
   for (int i = 0; i < total_element; i++) {
-    data1_[i] = 1;
-    data2_[i] = 2;
-    data4_[i] = 4;
+    data1_[i] = 1.0;
+    data2_[i] = 2.0;
+    data3_[i] = 3.0;
+    data4_[i] = 4.0;
+    data_res[i] = 0.0;
   }
 
-  TimerRecorder a("simd 1d");
+  {
+    TimerRecorder a("simd 1d");
 
-  size_t k = 0;
-  while (k++ < loop) {
-    if constexpr (do_add) {
-      md::simd_add<T, md::aligned_policy>(data1_, data2_, data3_, total_element);
+    size_t k = 0;
+    while (k++ < loop) {
+      md::simd_add<T, md::aligned_policy>(data_res, data1_, data_res, total_element);
+      md::simd_sub<T, md::aligned_policy>(data_res, data2_, data_res, total_element);
+      md::simd_mul<T, md::aligned_policy>(data_res, data3_, data_res, total_element);
+      md::simd_div<T, md::aligned_policy>(data_res, data4_, data_res, total_element);
     }
-
-    if constexpr (do_sub) {
-      md::simd_sub<T, md::aligned_policy>(data1_, data2_, data3_, total_element);
-    }
-
-    if constexpr (do_mul) {
-      md::simd_mul<T, md::aligned_policy>(data1_, data2_, data3_, total_element);
-    }
-
-    if constexpr (do_div) {
-      md::simd_div<T, md::aligned_policy>(data1_, data2_, data3_, total_element);
-    }
-
-    val = data3_[0];
   }
+
+  val = data_res[0];
 
   allocator_.deallocate(data1_);
   allocator_.deallocate(data2_);
@@ -209,33 +167,26 @@ void test_mdvector_expr() {
   md::vector<T, 3> data2_(test_shape);
   md::vector<T, 3> data3_(test_shape);
   md::vector<T, 3> data4_(test_shape);
+  md::vector<T, 3> data_res(test_shape);
 
   // 赋值
-  data1_.fill(1);
-  data2_.fill(2);
-  data4_.fill(3);
+  data1_.fill(1.0);
+  data2_.fill(2.0);
+  data3_.fill(3.0);
+  data4_.fill(4.0);
+  data4_.fill(4.0);
+  data_res.fill(0.0);
 
-  TimerRecorder a("mdvector");
+  {
+    TimerRecorder a("mdvector");
 
-  size_t k = 0;
-  while (k++ < loop) {
-    if constexpr (do_add) {
-      data3_ = data1_ + data2_;
+    size_t k = 0;
+    while (k++ < loop) {
+      data_res = data_res + data1_ - data2_ * data3_ / data4_;
     }
-
-    if constexpr (do_sub) {
-      data3_ = data1_ - data2_;
-    }
-
-    if constexpr (do_mul) {
-      data3_ = data1_ * data2_;
-    }
-
-    if constexpr (do_div) {
-      data3_ = data1_ / data2_;
-    }
-    val = data3_(0, 0, 0);
   }
+
+  val = data_res(0, 0, 0);
 }
 
 template <class T, size_t N1, size_t N2, size_t N3>
@@ -244,36 +195,28 @@ void test_mdarray_expr() {
   md::array<T, std::layout_right, N1, N2, N3> data2_;
   md::array<T, std::layout_right, N1, N2, N3> data3_;
   md::array<T, std::layout_right, N1, N2, N3> data4_;
+  md::array<T, std::layout_right, N1, N2, N3> data_res;
 
   // 赋值
-  data1_.fill(1);
-  data2_.fill(2);
-  data4_.fill(3);
+  data1_.fill(1.0);
+  data2_.fill(2.0);
+  data3_.fill(3.0);
+  data4_.fill(4.0);
+  data_res.fill(0.0);
 
-  TimerRecorder a("mdarray");
+  {
+    TimerRecorder a("mdarray");
 
-  size_t k = 0;
-  while (k++ < loop) {
-    if constexpr (do_add) {
-      data3_ = data1_ + data2_;
+    size_t k = 0;
+    while (k++ < loop) {
+      data_res = data_res + data1_ - data2_ * data3_ / data4_;
     }
-
-    if constexpr (do_sub) {
-      data3_ = data1_ - data2_;
-    }
-
-    if constexpr (do_mul) {
-      data3_ = data1_ * data2_;
-    }
-
-    if constexpr (do_div) {
-      data3_ = data1_ / data2_;
-    }
-    val = data3_(0, 0, 0);
   }
+
+  val = data_res(0, 0, 0);
 }
 
-void test_eigen() {
+void test_eigen_tensor() {
   Eigen::Tensor<double, 3> data1_(Eigen::array<Eigen::Index, 3>{
       static_cast<Eigen::Index>(dim1), static_cast<Eigen::Index>(dim2), static_cast<Eigen::Index>(dim3)});
   Eigen::Tensor<double, 3> data2_(Eigen::array<Eigen::Index, 3>{
@@ -282,38 +225,31 @@ void test_eigen() {
       static_cast<Eigen::Index>(dim1), static_cast<Eigen::Index>(dim2), static_cast<Eigen::Index>(dim3)});
   Eigen::Tensor<double, 3> data4_(Eigen::array<Eigen::Index, 3>{
       static_cast<Eigen::Index>(dim1), static_cast<Eigen::Index>(dim2), static_cast<Eigen::Index>(dim3)});
+  Eigen::Tensor<double, 3> data_res(Eigen::array<Eigen::Index, 3>{
+      static_cast<Eigen::Index>(dim1), static_cast<Eigen::Index>(dim2), static_cast<Eigen::Index>(dim3)});
 
   for (int i = 0; i < dim1; ++i) {
     for (int j = 0; j < dim2; ++j) {
       for (int k = 0; k < dim3; ++k) {
-        data1_(i, j, k) = 1;  // 示例值
-        data2_(i, j, k) = 2;  // 示例值
-        data4_(i, j, k) = 3;  // 示例值
+        data1_(i, j, k) = 1.0;
+        data2_(i, j, k) = 2.0;
+        data3_(i, j, k) = 3.0;
+        data4_(i, j, k) = 4.0;
+        data_res(i, j, k) = 0.0;
       }
     }
   }
 
-  TimerRecorder a("eigen");
+  {
+    TimerRecorder a("eigen");
 
-  size_t k = 0;
-  while (k++ < loop) {
-    if constexpr (do_add) {
-      data3_ = data1_ + data2_;
+    size_t k = 0;
+    while (k++ < loop) {
+      data_res = data_res + data1_ - data2_ * data3_ / data4_;
     }
-
-    if constexpr (do_sub) {
-      data3_ = data1_ - data2_;
-    }
-
-    if constexpr (do_mul) {
-      data3_ = data1_ * data2_;
-    }
-
-    if constexpr (do_div) {
-      data3_ = data1_ / data2_;
-    }
-    val = data3_(0, 0, 0);
   }
+
+  val = data_res(0, 0, 0);
 }
 
 template <class T>
@@ -322,39 +258,31 @@ void test_xarray() {
   xt::xarray<T> data2_ = xt::zeros<T>({dim1, dim2, dim3});
   xt::xarray<T> data3_ = xt::zeros<T>({dim1, dim2, dim3});
   xt::xarray<T> data4_ = xt::zeros<T>({dim1, dim2, dim3});
+  xt::xarray<T> data_res = xt::zeros<T>({dim1, dim2, dim3});
 
   // 赋值
   for (int i = 0; i < dim1; i++) {
     for (size_t j = 0; j < dim2; j++) {
       for (size_t k = 0; k < dim3; k++) {
-        data1_(i, j, k) = 1;
-        data2_(i, j, k) = 2;
-        data4_(i, j, k) = 3;
+        data1_(i, j, k) = 1.0;
+        data2_(i, j, k) = 2.0;
+        data3_(i, j, k) = 3.0;
+        data4_(i, j, k) = 4.0;
+        data_res(i, j, k) = 0.0;
       }
     }
   }
 
-  TimerRecorder a("xarray");
+  {
+    TimerRecorder a("xarray");
 
-  size_t k = 0;
-  while (k++ < loop) {
-    if constexpr (do_add) {
-      data3_ = data1_ + data2_;
+    size_t k = 0;
+    while (k++ < loop) {
+      data_res = data_res + data1_ - data2_ * data3_ / data4_;
     }
-
-    if constexpr (do_sub) {
-      data3_ = data1_ - data2_;
-    }
-
-    if constexpr (do_mul) {
-      data3_ = data1_ * data2_;
-    }
-
-    if constexpr (do_div) {
-      data3_ = data1_ / data2_;
-    }
-    val = data3_(0, 0, 0);
   }
+
+  val = data_res(0, 0, 0);
 }
 
 template <class T>
@@ -363,39 +291,31 @@ void test_xtensor() {
   xt::xtensor<T, 3> data2_ = xt::zeros<T>({dim1, dim2, dim3});
   xt::xtensor<T, 3> data3_ = xt::zeros<T>({dim1, dim2, dim3});
   xt::xtensor<T, 3> data4_ = xt::zeros<T>({dim1, dim2, dim3});
+  xt::xtensor<T, 3> data_res = xt::zeros<T>({dim1, dim2, dim3});
 
   // 赋值
   for (int i = 0; i < dim1; i++) {
     for (size_t j = 0; j < dim2; j++) {
       for (size_t k = 0; k < dim3; k++) {
-        data1_(i, j, k) = 1;
-        data2_(i, j, k) = 2;
-        data4_(i, j, k) = 3;
+        data1_(i, j, k) = 1.0;
+        data2_(i, j, k) = 2.0;
+        data3_(i, j, k) = 3.0;
+        data4_(i, j, k) = 4.0;
+        data_res(i, j, k) = 0.0;
       }
     }
   }
 
-  TimerRecorder a("xtensor");
+  {
+    TimerRecorder a("xtensor");
 
-  size_t k = 0;
-  while (k++ < loop) {
-    if constexpr (do_add) {
-      data3_ = data1_ + data2_;
+    size_t k = 0;
+    while (k++ < loop) {
+      data_res = data_res + data1_ - data2_ * data3_ / data4_;
     }
-
-    if constexpr (do_sub) {
-      data3_ = data1_ - data2_;
-    }
-
-    if constexpr (do_mul) {
-      data3_ = data1_ * data2_;
-    }
-
-    if constexpr (do_div) {
-      data3_ = data1_ / data2_;
-    }
-    val = data3_(0, 0, 0);
   }
+
+  val = data_res(0, 0, 0);
 }
 
 int main(int args, char* argv[]) {
@@ -434,7 +354,7 @@ int main(int args, char* argv[]) {
       test_transform<double>();
       test_simd<double>();
       test_mdvector_expr<double>();
-      test_eigen();
+      test_eigen_tensor();
       test_norm<double>();
       test_xtensor<double>();
       test_xarray<double>();

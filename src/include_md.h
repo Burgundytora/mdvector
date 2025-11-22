@@ -2,6 +2,7 @@
 #define __MDVECTOR_INCLUDE_MD_H__
 
 #include "vector.h"
+#include "inplace_vector.h"
 #include "array.h"
 #include "span.h"
 #include "view.h"
@@ -47,5 +48,6 @@ using md::standard_deviation;
 // using md::array;
 // using md::span;
 // using md::view;
+// using md::inplace_vector;
 
 #endif  // __MDVECTOR_INCLUDE_MD_H__

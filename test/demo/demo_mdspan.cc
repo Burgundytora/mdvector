@@ -26,8 +26,17 @@ void test_layout_strided() {
   std::println("mdspan_strided_ size: {}", mdspan_strided_.size());
 }
 
+void test_md_inplace_vector() {
+  md::inplace_vector<double, 3, 100> inp_vec;
+  inp_vec.set_shape(2, 5, 10);
+  inp_vec.fill(0.0);
+  inp_vec += 2.0;
+  inp_vec.print();
+}
+
 int main() {
-  test_mdspan_dynamic();
-  test_layout_strided();
+  // test_mdspan_dynamic();
+  // test_layout_strided();
+  test_md_inplace_vector();
   return 0;
 }
