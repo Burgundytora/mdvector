@@ -189,6 +189,20 @@ class array : public md::tensor_expr<array<T, Layout, lengths...>, T>,
   using md::iterator_mixin<array<T, Layout, lengths...>, T>::crend;
 
   ///////////////////////////////////////////////////////////////////////////////////////
+  /// simd接口
+  template <typename T2>
+  typename md::simd<T2>::type load_simd(size_t i) const noexcept
+    requires Numeric<T>
+  {
+    return Policy::load<T2>(this->data() + i);
+  }
+
+  template <typename T2>
+  void store_simd(const size_t& i, md::simd<T2>::const_ref_type simd_val) noexcept {
+    return Policy::store<T>(this->data() + i, simd_val);
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////////////
   /// 表达式模板数值计算
   template <typename E>
   array& operator=(const md::tensor_expr<E, T>& expr) noexcept
@@ -198,56 +212,10 @@ class array : public md::tensor_expr<array<T, Layout, lengths...>, T>,
     return *this;
   }
 
-  template <typename T2>
-  typename md::simd<T2>::type load_simd(size_t i) const noexcept
-    requires Numeric<T>
-  {
-    return Policy::load<T2>(this->data() + i);
-  }
-
-  template <typename T2>
-  typename md::simd<T2>::type load_simd_mask(size_t i) const noexcept
-    requires Numeric<T>
-  {
-    return Policy::mask_load<T2>(this->data() + i, used_size() - i);
-  }
-
-  template <typename T2>
-  void store_simd(const size_t& i, md::simd<T2>::const_ref_type simd_val) noexcept {
-    return Policy::store<T>(this->data() + i, simd_val);
-  }
-
-  template <typename T2>
-  void store_simd_mask(const size_t& i, const size_t& remaining,
-                                md::simd<T2>::const_ref_type simd_val) noexcept {
-    return Policy::mask_store<T>(this->data() + i, remaining, simd_val);
-  }
-
   array& operator+=(const array& other) noexcept
     requires Numeric<T>
   {
     md::simd_add_inplace<T, Policy>(this->data(), other.data(), this->used_size());
-    return *this;
-  }
-
-  array& operator-=(const array& other) noexcept
-    requires Numeric<T>
-  {
-    md::simd_sub_inplace<T, Policy>(this->data(), other.data(), this->used_size());
-    return *this;
-  }
-
-  array& operator*=(const array& other) noexcept
-    requires Numeric<T>
-  {
-    md::simd_mul_inplace<T, Policy>(this->data(), other.data(), this->used_size());
-    return *this;
-  }
-
-  array& operator/=(const array& other) noexcept
-    requires Numeric<T>
-  {
-    md::simd_div_inplace<T, Policy>(this->data(), other.data(), this->used_size());
     return *this;
   }
 
@@ -286,28 +254,28 @@ class array : public md::tensor_expr<array<T, Layout, lengths...>, T>,
   array& operator+=(T scalar) noexcept
     requires Numeric<T>
   {
-    md::simd_add_inplace_scalar<T, Policy>(this->data(), scalar, this->used_size());
+    (*this + scalar).template eval_to<>(*this);
     return *this;
   }
 
   array& operator-=(T scalar) noexcept
     requires Numeric<T>
   {
-    md::simd_sub_inplace_scalar<T, Policy>(this->data(), scalar, this->used_size());
+    (*this - scalar).template eval_to<>(*this);
     return *this;
   }
 
   array& operator*=(T scalar) noexcept
     requires Numeric<T>
   {
-    md::simd_mul_inplace_scalar<T, Policy>(this->data(), scalar, this->used_size());
+    (*this * scalar).template eval_to<>(*this);
     return *this;
   }
 
   array& operator/=(T scalar) noexcept
     requires Numeric<T>
   {
-    md::simd_div_inplace_scalar<T, Policy>(this->data(), scalar, this->used_size());
+    (*this / scalar).template eval_to<>(*this);
     return *this;
   }
 
@@ -315,9 +283,7 @@ class array : public md::tensor_expr<array<T, Layout, lengths...>, T>,
   auto operator-() const noexcept
     requires Numeric<T>
   {
-    md::vector<T, sizeof...(lengths), Layout> result(this->extents());
-    std::transform(this->begin(), this->end(), result.begin(), [](T val) noexcept { return -val; });
-    return result;
+    return (*this * static_cast<T>(-1));
   }
 
   // 取正

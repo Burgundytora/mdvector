@@ -29,6 +29,8 @@ class view : public md::tensor_expr<view<T, Rank>, T> {
   std::mdspan<T, std::dextents<size_t, Rank>, std::layout_stride> mdspan_;
   std::array<size_t, Rank> shape_;
   size_t size_;
+  size_t align_size_;
+  size_t remaining_size_;
 
  public:
   ///////////////////////////////////////////////////////////////////////////////////////
@@ -38,7 +40,9 @@ class view : public md::tensor_expr<view<T, Rank>, T> {
   view(T* data, const std::array<std::size_t, Rank>& shape, const std::array<std::size_t, Rank>& stride)
       : mdspan_(create_mdspan(data, shape, stride, std::make_index_sequence<Rank>{})),
         shape_(shape),
-        size_(md::calculate_size(shape)) {}
+        size_(md::calculate_size(shape)),
+        align_size_(md::get_aligned_size<T>(size_)),
+        remaining_size_(size_ > md::simd<T>::pack_size ? align_size_ - size_ : size_) {}
 
   view(const view& other) = delete;
 
@@ -68,7 +72,7 @@ class view : public md::tensor_expr<view<T, Rank>, T> {
 
   const T* data() const { return mdspan_.data_handle(); }
 
-  size_t used_size() const noexcept { return size_; }
+  size_t used_size() const noexcept { return align_size_; }
 
   size_t size() const noexcept { return size_; }
 
@@ -186,68 +190,44 @@ class view : public md::tensor_expr<view<T, Rank>, T> {
   template <typename T2>
   typename md::simd<T2>::type load_simd(size_t i) const noexcept {
     // 内存不连续 使用对齐的std::array转存
-    alignas(md::simd<T>::alignment) std::array<T, md::simd<T>::pack_size> temp_array;
-    size_t temp_i = i;
-    for (size_t j = 0; j < md::simd<T>::pack_size && temp_i < this->used_size(); ++j, ++temp_i) {
-      temp_array[j] = *const_iterator(this, temp_i);  // 使用 const_iterator
+    if (i + md::simd<T2>::pack_size <= size_) {
+      alignas(md::simd<T>::alignment) std::array<T, md::simd<T>::pack_size> temp_array;
+      size_t temp_i = i;
+      for (size_t j = 0; j < md::simd<T>::pack_size && temp_i < this->used_size(); ++j, ++temp_i) {
+        temp_array[j] = *const_iterator(this, temp_i);  // 使用 const_iterator
+      }
+      return Policy::template load<T2>(temp_array.data());
+    } else {
+      alignas(md::simd<T>::alignment) std::array<T, md::simd<T>::pack_size> temp_array;
+      size_t temp_i = i;
+      size_t count = 0;
+      for (; count < md::simd<T>::pack_size && temp_i < this->used_size(); ++count, ++temp_i) {
+        temp_array[count] = *const_iterator(this, temp_i);  // 使用 const_iterator
+      }
+      return Policy::template mask_load<T2>(temp_array.data(), remaining_size_);
     }
-    return Policy::template load<T2>(temp_array.data());
-  }
-
-  template <typename T2>
-  typename md::simd<T2>::type load_simd_mask(size_t i) const noexcept {
-    // 内存不连续 使用对齐的std::array转存
-    alignas(md::simd<T>::alignment) std::array<T, md::simd<T>::pack_size> temp_array;
-    size_t temp_i = i;
-    size_t count = 0;
-    for (; count < md::simd<T>::pack_size && temp_i < this->used_size(); ++count, ++temp_i) {
-      temp_array[count] = *const_iterator(this, temp_i);  // 使用 const_iterator
-    }
-    return Policy::template mask_load<T2>(temp_array.data(), this->used_size() - i);
   }
 
   template <typename T2>
   void store_simd(size_t i, typename md::simd<T2>::const_ref_type simd_val) noexcept {
     // 先将simd转换为普通变量再用迭代器赋值
-    alignas(md::simd<T>::alignment) std::array<T, md::simd<T>::pack_size> temp_array;
-    Policy::template store<T>(temp_array.data(), simd_val);
-    for (size_t j = 0; j < md::simd<T>::pack_size && (i + j) < this->used_size(); ++j) {
-      *iterator(this, i + j) = temp_array[j];
+    if (i + md::simd<T2>::pack_size <= size_) {
+      alignas(md::simd<T>::alignment) std::array<T, md::simd<T>::pack_size> temp_array;
+      Policy::template store<T>(temp_array.data(), simd_val);
+      for (size_t j = 0; j < md::simd<T>::pack_size && (i + j) < this->used_size(); ++j) {
+        *iterator(this, i + j) = temp_array[j];
+      }
+    } else {
+      alignas(md::simd<T>::alignment) std::array<T, md::simd<T>::pack_size> temp_array;
+      Policy::template mask_store<T>(temp_array.data(), remaining_size_, simd_val);
+      for (size_t j = 0; j < remaining_size_ && (i + j) < this->used_size(); ++j) {
+        *iterator(this, i + j) = temp_array[j];
+      }
     }
   }
 
-  template <typename T2>
-  void store_simd_mask(size_t i, size_t remaining, typename md::simd<T2>::const_ref_type simd_val) noexcept {
-    // 先将simd转换为普通变量再用迭代器赋值
-    alignas(md::simd<T>::alignment) std::array<T, md::simd<T>::pack_size> temp_array;
-    Policy::template mask_store<T>(temp_array.data(), remaining, simd_val);
-    for (size_t j = 0; j < remaining && (i + j) < this->used_size(); ++j) {
-      *iterator(this, i + j) = temp_array[j];
-    }
-  }
-
-  // 非连续内存使用迭代器
-  view& operator+=(const view& other) noexcept {
-    std::transform(std::execution::unseq, this->begin(), this->end(), other.begin(), this->begin(), std::plus<>());
-    return *this;
-  }
-
-  view& operator-=(const view& other) noexcept {
-    std::transform(std::execution::unseq, this->begin(), this->end(), other.begin(), this->begin(), std::minus<>());
-    return *this;
-  }
-
-  view& operator*=(const view& other) noexcept {
-    std::transform(std::execution::unseq, this->begin(), this->end(), other.begin(), this->begin(),
-                   std::multiplies<>());
-    return *this;
-  }
-
-  view& operator/=(const view& other) noexcept {
-    std::transform(std::execution::unseq, this->begin(), this->end(), other.begin(), this->begin(), std::divides<>());
-    return *this;
-  }
-
+  ///////////////////////////////////////////////////////////////////////////////////////
+  /// 表达式模板数值计算
   template <typename E>
   view& operator+=(const md::tensor_expr<E, T>& expr) noexcept {
     (*this + expr).template eval_to<>(*this);
@@ -304,9 +284,7 @@ class view : public md::tensor_expr<view<T, Rank>, T> {
   auto operator-() const noexcept
     requires Numeric<T>
   {
-    md::vector<T, Rank, std::layout_right> result(this->extents());
-    std::transform(this->begin(), this->end(), result.begin(), [](T val) noexcept { return -val; });
-    return result;
+    return (*this * static_cast<T>(-1));
   }
 
   // 取正

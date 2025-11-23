@@ -14,23 +14,14 @@ class tensor_expr {
 
   auto extents() const noexcept { return derived().extents(); }
 
-  template <typename Dest, bool DoMask = true>
+  template <typename Dest>
   void eval_to(Dest& dest) const noexcept {
     const size_t n = used_size();
-    size_t i = 0;
     constexpr size_t pack_size = simd<T>::pack_size;
 
-    for (; i + pack_size <= n; i += pack_size) {
+    for (size_t i = 0; i + pack_size <= n; i += pack_size) {
       auto simd_val = derived().template load_simd<T>(i);
       dest.template store_simd<T>(i, simd_val);
-    }
-
-    if constexpr (DoMask) {
-      const size_t remaining = n - i;
-      if (remaining > 0) {
-        auto simd_val = derived().template load_simd_mask<T>(i);
-        dest.template store_simd_mask<T>(i, remaining, simd_val);
-      }
     }
   }
 };

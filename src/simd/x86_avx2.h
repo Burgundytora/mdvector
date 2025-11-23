@@ -48,9 +48,6 @@ struct simd<float> {
   }
 
   static inline type mask_loadu(const float* p, const size_t& remaining) {
-    if (remaining == 0) {
-      return _mm256_setzero_ps();
-    }
     alignas(32) float buf[8] = {0};
     for (int i = 0; i < remaining; ++i) {
       buf[i] = p[i];
@@ -58,9 +55,6 @@ struct simd<float> {
     return _mm256_load_ps(buf);
   }
   static inline void mask_storeu(float* p, const size_t& remaining, const_ref_type v) {
-    if (remaining == 0) {
-      return;
-    }
     alignas(32) float buf[8];
     _mm256_store_ps(buf, v);
     for (int i = 0; i < remaining; ++i) {
@@ -106,9 +100,6 @@ struct simd<double> {
   }
 
   static inline type mask_loadu(const double* p, const size_t& remaining) {
-    if (remaining == 0) {
-      return _mm256_setzero_pd();
-    }
     alignas(32) double buf[4] = {0};
     for (int i = 0; i < remaining; ++i) {
       buf[i] = p[i];
@@ -117,9 +108,6 @@ struct simd<double> {
   }
 
   static inline void mask_storeu(double* p, const size_t& remaining, const_ref_type v) {
-    if (remaining == 0) {
-      return;
-    }
     alignas(32) double buf[4];
     _mm256_store_pd(buf, v);
     for (int i = 0; i < remaining; ++i) {

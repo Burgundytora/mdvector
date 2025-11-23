@@ -6,7 +6,7 @@
 namespace md {
 
 template <typename T>
-size_t get_aliged_size(size_t size) {
+size_t get_aligned_size(size_t size) {
   if constexpr (Numeric<T>) {
     return (size % simd<T>::pack_size == 0) ? size : ((size / simd<T>::pack_size) + 1) * simd<T>::pack_size;
   } else {

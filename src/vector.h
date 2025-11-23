@@ -37,7 +37,7 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
   explicit vector(const std::array<std::size_t, Rank>& shape)
       : shape_(shape),
         size_(md::calculate_size(shape)),
-        vector_(md::get_aliged_size<T>(size_)),
+        vector_(md::get_aligned_size<T>(size_)),
         mdspan_(create_mdspan(shape, std::make_index_sequence<Rank>{})) {}
 
   template <typename... Sizes>
@@ -45,7 +45,7 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
   explicit vector(Sizes... sizes)
       : shape_(std::array<size_t, Rank>{static_cast<size_t>(sizes)...}),
         size_(md::calculate_size(shape_)),
-        vector_(md::get_aliged_size<T>(size_)),
+        vector_(md::get_aligned_size<T>(size_)),
         mdspan_(create_mdspan(shape_, std::make_index_sequence<Rank>{})) {}
 
   ~vector() = default;
@@ -79,21 +79,6 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
       vector_ = std::move(other.vector_);
       mdspan_ = std::move(other.mdspan_);
     }
-    return *this;
-  }
-
-  // 从span创建
-  vector(const md::span<T, Rank, Layout>& span) noexcept
-    requires Numeric<T>
-  {
-    this->set_shape(span.extents());
-    span.template eval_to<vector, false>(*this);
-  }
-
-  vector& operator=(const md::span<T, Rank, Layout>& span) noexcept
-    requires Numeric<T>
-  {
-    span.template eval_to<vector, false>(*this);
     return *this;
   }
 
@@ -211,7 +196,7 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
       return;
     }
     size_ = md::calculate_size(shape);
-    vector_.resize(md::get_aliged_size<T>(size_));
+    vector_.resize(md::get_aligned_size<T>(size_));
     shape_ = shape;
     mdspan_ = create_mdspan(shape, std::make_index_sequence<Rank>{});
   }
@@ -353,24 +338,7 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
   using md::iterator_mixin<vector<T, Rank, Layout>, T>::crend;
 
   ///////////////////////////////////////////////////////////////////////////////////////
-  /// 表达式模板数值计算
-  template <typename E>
-  vector(const md::tensor_expr<E, T>& expr) noexcept
-    requires Numeric<T>
-  {
-    this->set_shape(expr.extents());
-    expr.template eval_to<vector, false>(*this);
-  }
-
-  template <typename E>
-  vector& operator=(const md::tensor_expr<E, T>& expr) noexcept
-    requires Numeric<T>
-  {
-    // this->set_shape(expr.extents());
-    expr.template eval_to<vector, false>(*this);
-    return *this;
-  }
-
+  /// simd接口
   template <typename T2>
   typename md::simd<T2>::type load_simd(const size_t& i) const noexcept
     requires Numeric<T>
@@ -379,47 +347,25 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
   }
 
   template <typename T2>
-  typename md::simd<T2>::type load_simd_mask(const size_t& i) const noexcept
-    requires Numeric<T>
-  {
-    return Policy::mask_load<T2>(data() + i, used_size() - i);
-  }
-
-  template <typename T2>
   void store_simd(const size_t& i, md::simd<T2>::const_ref_type simd_val) noexcept {
     return Policy::store<T>(this->data() + i, simd_val);
   }
 
-  template <typename T2>
-  void store_simd_mask(const size_t& i, const size_t& remaining, md::simd<T2>::const_ref_type simd_val) noexcept {
-    return Policy::mask_store<T>(this->data() + i, remaining, simd_val);
-  }
-
-  vector& operator+=(const vector& other) noexcept
+  ///////////////////////////////////////////////////////////////////////////////////////
+  /// 表达式模板数值计算
+  template <typename E>
+  vector(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
-    md::simd_add_inplace<T, Policy>(this->data(), other.data(), this->used_size());
-    return *this;
+    this->set_shape(expr.extents());
+    expr.template eval_to<>(*this);
   }
 
-  vector& operator-=(const vector& other) noexcept
+  template <typename E>
+  vector& operator=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
-    md::simd_sub_inplace<T, Policy>(this->data(), other.data(), this->used_size());
-    return *this;
-  }
-
-  vector& operator*=(const vector& other) noexcept
-    requires Numeric<T>
-  {
-    md::simd_mul_inplace<T, Policy>(this->data(), other.data(), this->used_size());
-    return *this;
-  }
-
-  vector& operator/=(const vector& other) noexcept
-    requires Numeric<T>
-  {
-    md::simd_div_inplace<T, Policy>(this->data(), other.data(), this->used_size());
+    expr.template eval_to<>(*this);
     return *this;
   }
 
@@ -427,7 +373,7 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
   vector& operator+=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
-    (*this + expr).template eval_to<vector, false>(*this);
+    (*this + expr).template eval_to<>(*this);
     return *this;
   }
 
@@ -435,7 +381,7 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
   vector& operator-=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
-    (*this - expr).template eval_to<vector, false>(*this);
+    (*this - expr).template eval_to<>(*this);
     return *this;
   }
 
@@ -443,7 +389,7 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
   vector& operator*=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
-    (*this * expr).template eval_to<vector, false>(*this);
+    (*this * expr).template eval_to<>(*this);
     return *this;
   }
 
@@ -451,35 +397,35 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
   vector& operator/=(const md::tensor_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
-    (*this / expr).template eval_to<vector, false>(*this);
+    (*this / expr).template eval_to<>(*this);
     return *this;
   }
 
   vector& operator+=(T scalar) noexcept
     requires Numeric<T>
   {
-    md::simd_add_inplace_scalar<T, Policy>(this->data(), scalar, this->used_size());
+    (*this + scalar).template eval_to<>(*this);
     return *this;
   }
 
   vector& operator-=(T scalar) noexcept
     requires Numeric<T>
   {
-    md::simd_sub_inplace_scalar<T, Policy>(this->data(), scalar, this->used_size());
+    (*this - scalar).template eval_to<>(*this);
     return *this;
   }
 
   vector& operator*=(T scalar) noexcept
     requires Numeric<T>
   {
-    md::simd_mul_inplace_scalar<T, Policy>(this->data(), scalar, this->used_size());
+    (*this * scalar).template eval_to<>(*this);
     return *this;
   }
 
   vector& operator/=(T scalar) noexcept
     requires Numeric<T>
   {
-    md::simd_div_inplace_scalar<T, Policy>(this->data(), scalar, this->used_size());
+    (*this / scalar).template eval_to<>(*this);
     return *this;
   }
 
@@ -487,9 +433,7 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
   auto operator-() const noexcept
     requires Numeric<T>
   {
-    vector result(this->extents());
-    std::transform(this->begin(), this->end(), result.begin(), [](T val) noexcept { return -val; });
-    return result;
+    return (*this * static_cast<T>(-1));
   }
 
   // 取正

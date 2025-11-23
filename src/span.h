@@ -22,6 +22,8 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
   std::mdspan<T, std::dextents<size_t, Rank>, Layout> mdspan_;
   std::array<size_t, Rank> shape_;
   size_t size_;
+  size_t align_size_;
+  size_t remaining_size_;
 
  public:
   ///////////////////////////////////////////////////////////////////////////////////////
@@ -31,7 +33,9 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
   span(T* data, const std::array<std::size_t, Rank>& shape)
       : mdspan_(create_mdspan(data, shape, std::make_index_sequence<Rank>{})),
         shape_(shape),
-        size_(md::calculate_size(shape)) {}
+        size_(calculate_size(shape)),
+        align_size_(md::get_aligned_size<T>(size_)),
+        remaining_size_(size_ > md::simd<T>::pack_size ? align_size_ - size_ : size_) {}
 
   span(const span& other) = delete;
 
@@ -60,7 +64,7 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
 
   const T* data() const { return mdspan_.data_handle(); }
 
-  size_t used_size() const noexcept { return size_; }
+  size_t used_size() const noexcept { return align_size_; }
 
   size_t size() const noexcept { return size_; }
 
@@ -157,49 +161,27 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////
-  /// 表达式模板数值计算
-
+  /// simd接口
   template <typename T2>
   typename md::simd<T2>::type load_simd(size_t i) const noexcept {
-    return Policy::load<T2>(this->data() + i);
-  }
-
-  template <typename T2>
-  typename md::simd<T2>::type load_simd_mask(size_t i) const noexcept {
-    return Policy::mask_load<T2>(this->data() + i, this->used_size() - i);
+    if (i + md::simd<T2>::pack_size <= size_) {
+      return Policy::load<T2>(this->data() + i);
+    } else {
+      return Policy::mask_load<T2>(this->data() + i, remaining_size_);
+    }
   }
 
   template <typename T2>
   void store_simd(const size_t& i, md::simd<T2>::const_ref_type simd_val) noexcept {
-    return Policy::store<T>(this->data() + i, simd_val);
+    if (i + md::simd<T2>::pack_size <= size_) {
+      Policy::store<T>(this->data() + i, simd_val);
+    } else {
+      Policy::mask_store<T>(this->data() + i, remaining_size_, simd_val);
+    }
   }
 
-  template <typename T2>
-  void store_simd_mask(const size_t& i, const size_t& remaining,
-                                md::simd<T2>::const_ref_type simd_val) noexcept {
-    return Policy::mask_store<T>(this->data() + i, remaining, simd_val);
-  }
-
-  span& operator+=(const span& other) noexcept {
-    simd_add_inplace<T, Policy>(this->data(), other.data(), this->used_size());
-    return *this;
-  }
-
-  span& operator-=(const span& other) noexcept {
-    simd_sub_inplace<T, Policy>(this->data(), other.data(), this->used_size());
-    return *this;
-  }
-
-  span& operator*=(const span& other) noexcept {
-    simd_mul_inplace<T, Policy>(this->data(), other.data(), this->used_size());
-    return *this;
-  }
-
-  span& operator/=(const span& other) noexcept {
-    simd_div_inplace<T, Policy>(this->data(), other.data(), this->used_size());
-    return *this;
-  }
-
+  ///////////////////////////////////////////////////////////////////////////////////////
+  /// 表达式模板数值计算
   template <typename E>
   span& operator+=(const md::tensor_expr<E, T>& expr) noexcept {
     (*this + expr).template eval_to<>(*this);
@@ -225,22 +207,22 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
   }
 
   span& operator+=(T scalar) noexcept {
-    md::simd_add_inplace_scalar<T, Policy>(this->data(), scalar, this->used_size());
+    (*this + scalar).template eval_to<>(*this);
     return *this;
   }
 
   span& operator-=(T scalar) noexcept {
-    md::simd_sub_inplace_scalar<T, Policy>(this->data(), scalar, this->used_size());
+    (*this - scalar).template eval_to<>(*this);
     return *this;
   }
 
   span& operator*=(T scalar) noexcept {
-    md::simd_mul_inplace_scalar<T, Policy>(this->data(), scalar, this->used_size());
+    (*this * scalar).template eval_to<>(*this);
     return *this;
   }
 
   span& operator/=(T scalar) noexcept {
-    md::simd_div_inplace_scalar<T, Policy>(this->data(), scalar, this->used_size());
+    (*this / scalar).template eval_to<>(*this);
     return *this;
   }
 
@@ -248,9 +230,7 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
   auto operator-() const noexcept
     requires Numeric<T>
   {
-    md::vector<T, Rank, Layout> result(this->extents());
-    std::transform(this->begin(), this->end(), result.begin(), [](T val) noexcept { return -val; });
-    return result;
+    return (*this * static_cast<T>(-1));
   }
 
   // 取正
