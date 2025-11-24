@@ -4,7 +4,7 @@
 #include "common/detail.h"
 #include "common/iterator_mixin.h"
 #include "common/type_concept.h"
-#include "expression_template/operator.h"
+#include "expression_template/operator_overload.h"
 #include "simd/allocator.h"
 #include "simd/simd_function.h"
 #include "math_function.h"
@@ -14,8 +14,7 @@
 namespace md {
 
 template <typename T, size_t Rank, typename Layout>
-class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
-               public md::iterator_mixin<vector<T, Rank, Layout>, T> {
+class vector : public md::base_expr<vector<T, Rank, Layout>, T>, public md::iterator_mixin<vector<T, Rank, Layout>, T> {
  public:
   using Policy = md::aligned_policy;
   using value_type = T;
@@ -354,7 +353,7 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 表达式模板数值计算
   template <typename E>
-  vector(const md::tensor_expr<E, T>& expr) noexcept
+  vector(const md::base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     this->set_shape(expr.extents());
@@ -362,7 +361,7 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
   }
 
   template <typename E>
-  vector& operator=(const md::tensor_expr<E, T>& expr) noexcept
+  vector& operator=(const md::base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     expr.template eval_to<>(*this);
@@ -370,7 +369,7 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
   }
 
   template <typename E>
-  vector& operator+=(const md::tensor_expr<E, T>& expr) noexcept
+  vector& operator+=(const md::base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this + expr).template eval_to<>(*this);
@@ -378,7 +377,7 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
   }
 
   template <typename E>
-  vector& operator-=(const md::tensor_expr<E, T>& expr) noexcept
+  vector& operator-=(const md::base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this - expr).template eval_to<>(*this);
@@ -386,7 +385,7 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
   }
 
   template <typename E>
-  vector& operator*=(const md::tensor_expr<E, T>& expr) noexcept
+  vector& operator*=(const md::base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this * expr).template eval_to<>(*this);
@@ -394,7 +393,7 @@ class vector : public md::tensor_expr<vector<T, Rank, Layout>, T>,
   }
 
   template <typename E>
-  vector& operator/=(const md::tensor_expr<E, T>& expr) noexcept
+  vector& operator/=(const md::base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this / expr).template eval_to<>(*this);

@@ -1,12 +1,12 @@
-#ifndef __MDVECTOR_TENSOR_EXPR_H__
-#define __MDVECTOR_TENSOR_EXPR_H__
+#ifndef __MDVECTOR_BASE_EXPR_H__
+#define __MDVECTOR_BASE_EXPR_H__
 
 #include "simd/simd.h"
 
 namespace md {
 
 template <typename Derived, typename T>
-class tensor_expr {
+class base_expr {
  public:
   const Derived& derived() const noexcept { return static_cast<const Derived&>(*this); }
 
@@ -28,4 +28,4 @@ class tensor_expr {
 
 }  // namespace md
 
-#endif  // __TENSOR_EXPR_H__
+#endif  // __BASE_EXPR_H__

@@ -1,12 +1,12 @@
 #ifndef __MDVECTOR_SCALAR_EXPR_H__
 #define __MDVECTOR_SCALAR_EXPR_H__
 
-#include "tensor_expr.h"
+#include "base_expr.h"
 
 namespace md {
 
 template <typename T>
-class scalar_wrapper : public tensor_expr<scalar_wrapper<T>, T> {
+class scalar_wrapper : public base_expr<scalar_wrapper<T>, T> {
   typename simd<T>::type simd_value_;
   static constexpr size_t rank_ = 0;
   using value_type = T;

@@ -4,14 +4,14 @@
 #include "common/detail.h"
 #include "common/iterator_mixin.h"
 #include "common/type_concept.h"
-#include "expression_template/operator.h"
+#include "expression_template/operator_overload.h"
 #include "simd/simd_function.h"
 #include "math_function.h"
 
 namespace md {
 
 template <typename T, size_t Rank, typename Layout = std::layout_right>
-class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterator_mixin<span<T, Rank, Layout>, T> {
+class span : public md::base_expr<span<T, Rank, Layout>, T>, public md::iterator_mixin<span<T, Rank, Layout>, T> {
  public:
   using Policy = md::unaligned_policy;
   using value_type = T;
@@ -50,10 +50,10 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
   ~span() = default;
 
   template <typename E>
-  span(const md::tensor_expr<E, T>& expr) = delete;
+  span(const md::base_expr<E, T>& expr) = delete;
 
   template <typename E>
-  span& operator=(const md::tensor_expr<E, T>& expr) noexcept {
+  span& operator=(const md::base_expr<E, T>& expr) noexcept {
     expr.template eval_to<>(*this);
     return *this;
   }
@@ -183,25 +183,25 @@ class span : public md::tensor_expr<span<T, Rank, Layout>, T>, public md::iterat
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 表达式模板数值计算
   template <typename E>
-  span& operator+=(const md::tensor_expr<E, T>& expr) noexcept {
+  span& operator+=(const md::base_expr<E, T>& expr) noexcept {
     (*this + expr).template eval_to<>(*this);
     return *this;
   }
 
   template <typename E>
-  span& operator-=(const md::tensor_expr<E, T>& expr) noexcept {
+  span& operator-=(const md::base_expr<E, T>& expr) noexcept {
     (*this - expr).template eval_to<>(*this);
     return *this;
   }
 
   template <typename E>
-  span& operator*=(const md::tensor_expr<E, T>& expr) noexcept {
+  span& operator*=(const md::base_expr<E, T>& expr) noexcept {
     (*this * expr).template eval_to<>(*this);
     return *this;
   }
 
   template <typename E>
-  span& operator/=(const md::tensor_expr<E, T>& expr) noexcept {
+  span& operator/=(const md::base_expr<E, T>& expr) noexcept {
     (*this / expr).template eval_to<>(*this);
     return *this;
   }

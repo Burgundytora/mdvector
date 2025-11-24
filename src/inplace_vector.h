@@ -4,14 +4,14 @@
 #include "common/detail.h"
 #include "common/iterator_mixin.h"
 #include "common/type_concept.h"
-#include "expression_template/operator.h"
+#include "expression_template/operator_overload.h"
 #include "simd/simd_function.h"
 #include "math_function.h"
 
 namespace md {
 
 template <typename T, size_t Rank, size_t Capacity, typename Layout = std::layout_right>
-class inplace_vector : public md::tensor_expr<inplace_vector<T, Rank, Capacity, Layout>, T>,
+class inplace_vector : public md::base_expr<inplace_vector<T, Rank, Capacity, Layout>, T>,
                        public md::iterator_mixin<inplace_vector<T, Rank, Capacity, Layout>, T> {
  public:
   using Policy = md::aligned_policy;
@@ -241,7 +241,7 @@ class inplace_vector : public md::tensor_expr<inplace_vector<T, Rank, Capacity, 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 表达式模板数值计算
   template <typename E>
-  inplace_vector& operator=(const md::tensor_expr<E, T>& expr) noexcept
+  inplace_vector& operator=(const md::base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     expr.template eval_to<>(*this);
@@ -301,7 +301,7 @@ class inplace_vector : public md::tensor_expr<inplace_vector<T, Rank, Capacity, 
   }
 
   template <typename E>
-  inplace_vector& operator+=(const md::tensor_expr<E, T>& expr) noexcept
+  inplace_vector& operator+=(const md::base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this + expr).template eval_to<>(*this);
@@ -309,7 +309,7 @@ class inplace_vector : public md::tensor_expr<inplace_vector<T, Rank, Capacity, 
   }
 
   template <typename E>
-  inplace_vector& operator-=(const md::tensor_expr<E, T>& expr) noexcept
+  inplace_vector& operator-=(const md::base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this - expr).template eval_to<>(*this);
@@ -317,7 +317,7 @@ class inplace_vector : public md::tensor_expr<inplace_vector<T, Rank, Capacity, 
   }
 
   template <typename E>
-  inplace_vector& operator*=(const md::tensor_expr<E, T>& expr) noexcept
+  inplace_vector& operator*=(const md::base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this * expr).template eval_to<>(*this);
@@ -325,7 +325,7 @@ class inplace_vector : public md::tensor_expr<inplace_vector<T, Rank, Capacity, 
   }
 
   template <typename E>
-  inplace_vector& operator/=(const md::tensor_expr<E, T>& expr) noexcept
+  inplace_vector& operator/=(const md::base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this / expr).template eval_to<>(*this);

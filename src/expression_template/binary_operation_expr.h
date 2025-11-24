@@ -71,7 +71,7 @@ constexpr size_t derived_rank() {
 }
 
 template <typename T, typename L, typename R, typename Cal>
-class calculation_expr : public tensor_expr<calculation_expr<T, L, R, Cal>, T> {
+class binary_operation_expr : public base_expr<binary_operation_expr<T, L, R, Cal>, T> {
  public:
   using value_type = T;
   static constexpr size_t rank_ = derived_rank<L, R>();
@@ -82,7 +82,7 @@ class calculation_expr : public tensor_expr<calculation_expr<T, L, R, Cal>, T> {
   AutoType<R> rhs;
 
  public:
-  calculation_expr(const L& l, const R& r) : lhs(l), rhs(r) {}
+  binary_operation_expr(const L& l, const R& r) : lhs(l), rhs(r) {}
 
   size_t used_size() const {
     if constexpr (std::is_arithmetic_v<R>) {

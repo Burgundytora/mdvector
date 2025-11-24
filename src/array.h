@@ -4,14 +4,14 @@
 #include "common/detail.h"
 #include "common/iterator_mixin.h"
 #include "common/type_concept.h"
-#include "expression_template/operator.h"
+#include "expression_template/operator_overload.h"
 #include "simd/simd_function.h"
 #include "math_function.h"
 
 namespace md {
 
 template <typename T, typename Layout = std::layout_right, size_t... lengths>
-class array : public md::tensor_expr<array<T, Layout, lengths...>, T>,
+class array : public md::base_expr<array<T, Layout, lengths...>, T>,
               public md::iterator_mixin<array<T, Layout, lengths...>, T> {
  public:
   using Policy = md::aligned_policy;
@@ -205,7 +205,7 @@ class array : public md::tensor_expr<array<T, Layout, lengths...>, T>,
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 表达式模板数值计算
   template <typename E>
-  array& operator=(const md::tensor_expr<E, T>& expr) noexcept
+  array& operator=(const md::base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     expr.template eval_to<>(*this);
@@ -220,7 +220,7 @@ class array : public md::tensor_expr<array<T, Layout, lengths...>, T>,
   }
 
   template <typename E>
-  array& operator+=(const md::tensor_expr<E, T>& expr) noexcept
+  array& operator+=(const md::base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this + expr).template eval_to<>(*this);
@@ -228,7 +228,7 @@ class array : public md::tensor_expr<array<T, Layout, lengths...>, T>,
   }
 
   template <typename E>
-  array& operator-=(const md::tensor_expr<E, T>& expr) noexcept
+  array& operator-=(const md::base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this - expr).template eval_to<>(*this);
@@ -236,7 +236,7 @@ class array : public md::tensor_expr<array<T, Layout, lengths...>, T>,
   }
 
   template <typename E>
-  array& operator*=(const md::tensor_expr<E, T>& expr) noexcept
+  array& operator*=(const md::base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this * expr).template eval_to<>(*this);
@@ -244,7 +244,7 @@ class array : public md::tensor_expr<array<T, Layout, lengths...>, T>,
   }
 
   template <typename E>
-  array& operator/=(const md::tensor_expr<E, T>& expr) noexcept
+  array& operator/=(const md::base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this / expr).template eval_to<>(*this);

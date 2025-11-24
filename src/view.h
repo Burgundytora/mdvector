@@ -5,14 +5,14 @@
 #include <functional>
 
 #include "common/iterator_view.h"
-#include "expression_template/operator.h"
+#include "expression_template/operator_overload.h"
 #include "simd/simd_function.h"
 
 namespace md {
 
 // 带步长功能 不要求内存连续视图 基于std::layout_stride
 template <typename T, size_t Rank>
-class view : public md::tensor_expr<view<T, Rank>, T> {
+class view : public md::base_expr<view<T, Rank>, T> {
  public:
   using Policy = md::aligned_policy;  // view使用对齐array转存simd
   using value_type = T;
@@ -57,11 +57,11 @@ class view : public md::tensor_expr<view<T, Rank>, T> {
   ~view() = default;
 
   template <typename E>
-  view(const md::tensor_expr<E, T>& expr) = delete;
+  view(const md::base_expr<E, T>& expr) = delete;
 
   //
   template <typename E>
-  view& operator=(const md::tensor_expr<E, T>& expr) noexcept {
+  view& operator=(const md::base_expr<E, T>& expr) noexcept {
     expr.template eval_to<>(*this);
     return *this;
   }
@@ -229,25 +229,25 @@ class view : public md::tensor_expr<view<T, Rank>, T> {
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 表达式模板数值计算
   template <typename E>
-  view& operator+=(const md::tensor_expr<E, T>& expr) noexcept {
+  view& operator+=(const md::base_expr<E, T>& expr) noexcept {
     (*this + expr).template eval_to<>(*this);
     return *this;
   }
 
   template <typename E>
-  view& operator-=(const md::tensor_expr<E, T>& expr) noexcept {
+  view& operator-=(const md::base_expr<E, T>& expr) noexcept {
     (*this - expr).template eval_to<>(*this);
     return *this;
   }
 
   template <typename E>
-  view& operator*=(const md::tensor_expr<E, T>& expr) noexcept {
+  view& operator*=(const md::base_expr<E, T>& expr) noexcept {
     (*this * expr).template eval_to<>(*this);
     return *this;
   }
 
   template <typename E>
-  view& operator/=(const md::tensor_expr<E, T>& expr) noexcept {
+  view& operator/=(const md::base_expr<E, T>& expr) noexcept {
     (*this / expr).template eval_to<>(*this);
     return *this;
   }
