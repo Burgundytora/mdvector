@@ -10,7 +10,7 @@ if(MSVC)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /MANIFEST:NO")
   set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /MANIFEST:NO")
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /MANIFEST:NO")
-  add_compile_options(/utf-8) # MSVC专用UTF-8选项
+  add_compile_options(/source-charset:utf-8) # 防止中文乱码
 
 else()
   add_compile_options("-Werror")

@@ -2,6 +2,7 @@
 #define __MDVECTOR_CALCULATION_EXPR_H__
 
 #include "scalar_expr.h"
+#include "common/mdvector_def.h"
 
 namespace md {
 
@@ -24,6 +25,25 @@ struct tensor_scalar_type<T, std::enable_if_t<std::is_arithmetic_v<T>>> {
 template <typename T>
 using AutoType = typename tensor_scalar_type<T>::type;
 
+// 辅助 trait 来检查是否为 layout_stride
+template <typename Layout>
+struct is_layout_stride : std::false_type {};
+
+template <>
+struct is_layout_stride<std::layout_stride> : std::true_type {};
+
+template <typename Layout>
+constexpr bool is_layout_stride_v = is_layout_stride<Layout>::value;
+
+// 布局类型转换：如果是 layout_stride 则转换为 layout_right
+template <typename Layout>
+struct normalize_layout {
+  using type = std::conditional_t<is_layout_stride_v<Layout>, std::layout_right, Layout>;
+};
+
+template <typename Layout>
+using normalize_layout_t = typename normalize_layout<Layout>::type;
+
 // 推导主要操作数的布局类型 - 优先使用非标量类型的layout
 template <typename L, typename R>
 struct derived_layout_type {
@@ -31,15 +51,17 @@ struct derived_layout_type {
   static constexpr bool l_is_scalar = tensor_scalar_type<L>::is_scalar;
   static constexpr bool r_is_scalar = tensor_scalar_type<R>::is_scalar;
 
-  using type = std::conditional_t<!l_is_scalar, typename tensor_scalar_type<L>::layout_type,
-                                  std::conditional_t<!r_is_scalar, typename tensor_scalar_type<R>::layout_type,
-                                                     std::layout_right  // 如果都是标量，使用默认布局
-                                                     >>;
+  using raw_layout_type =
+      std::conditional_t<!l_is_scalar, typename tensor_scalar_type<L>::layout_type,
+                         std::conditional_t<!r_is_scalar, typename tensor_scalar_type<R>::layout_type,
+                                            std::layout_right>>;  // 如果都是标量，使用默认布局
+
+  // 规范化布局：如果是 layout_stride 则转换为 layout_right
+  using type = normalize_layout_t<raw_layout_type>;
 };
 
 template <typename L, typename R>
 using layout_type_t = typename derived_layout_type<L, R>::type;
-
 // 获取主要操作数的 rank
 template <typename L, typename R>
 constexpr size_t derived_rank() {
@@ -49,7 +71,7 @@ constexpr size_t derived_rank() {
 }
 
 template <typename T, typename L, typename R, typename Cal>
-class calculation_expr : public tensor_expr<calculation_expr<T, L, R, Cal>, T> {
+class binary_operation_expr : public base_expr<binary_operation_expr<T, L, R, Cal>, T> {
  public:
   using value_type = T;
   static constexpr size_t rank_ = derived_rank<L, R>();
@@ -60,7 +82,7 @@ class calculation_expr : public tensor_expr<calculation_expr<T, L, R, Cal>, T> {
   AutoType<R> rhs;
 
  public:
-  calculation_expr(const L& l, const R& r) : lhs(l), rhs(r) {}
+  binary_operation_expr(const L& l, const R& r) : lhs(l), rhs(r) {}
 
   size_t used_size() const {
     if constexpr (std::is_arithmetic_v<R>) {
@@ -79,17 +101,37 @@ class calculation_expr : public tensor_expr<calculation_expr<T, L, R, Cal>, T> {
   }
 
   template <typename U>
-  typename simd<U>::type eval_simd(size_t i) const {
-    auto l = lhs.template eval_simd<U>(i);
-    auto r = rhs.template eval_simd<U>(i);
+  typename simd<U>::type load_simd(size_t i) const {
+    auto l = lhs.template load_simd<U>(i);
+    auto r = rhs.template load_simd<U>(i);
     return simd_cal<U, Cal>(l, r);
   }
 
   template <typename U>
-  typename simd<U>::type eval_simd_mask(size_t i) const {
-    auto l = lhs.template eval_simd_mask<U>(i);
-    auto r = rhs.template eval_simd_mask<U>(i);
+  typename simd<U>::type load_simd_mask(size_t i) const {
+    auto l = lhs.template load_simd_mask<U>(i);
+    auto r = rhs.template load_simd_mask<U>(i);
     return simd_cal<U, Cal>(l, r);
+  }
+
+  // 取负
+  auto operator-() const noexcept
+    requires Numeric<T>
+  {
+    return *this * static_cast<T>(-1);
+  }
+
+  // 取正
+  auto operator+() const noexcept
+    requires Numeric<T>
+  {
+    return *this;
+  }
+
+  // 打印
+  void print() {
+    md::vector<T, rank_, layout_type> result = *this;
+    result.print();
   }
 };
 

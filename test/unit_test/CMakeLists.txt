@@ -1,0 +1,10 @@
+﻿include_directories(${PROJECT_SOURCE_DIR}/src)
+
+add_executable(unit_test_base unit_test_base.cc)
+add_executable(unit_test_scalar unit_test_scalar.cc)
+add_executable(unit_test_span unit_test_span.cc)
+add_executable(unit_test_view unit_test_view.cc)
+add_executable(unit_test_stl unit_test_stl.cc)
+add_executable(unit_test_math unit_test_math.cc)
+add_executable(unit_test_layout unit_test_layout.cc)
+add_executable(unit_test_index unit_test_index.cc)

@@ -26,16 +26,16 @@ struct TimerRecorder {
 
     if (test_name_.size() == 0) {
       for (const auto &it : all_test_points) {
-        test_name_.push_back(to_string(it.dim1_) + "*" + to_string(it.dim2_) + "*" + to_string(it.dim3_));
+        test_name_.push_back(to_string(it.dim1_) + "*" + to_string(it.dim2_));
       }
     }
 
     // 获取开始时间点
-    start_ = std::chrono::high_resolution_clock::now();
+    start_ = std::chrono::steady_clock::now();
   }
 
   ~TimerRecorder() {
-    auto end = std::chrono::high_resolution_clock::now();
+    auto end = std::chrono::steady_clock::now();
 
     // 计算持续时间
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start_);

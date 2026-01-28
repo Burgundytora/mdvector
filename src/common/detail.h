@@ -1,6 +1,7 @@
 #ifndef __MDVECTOR_DETAIL_H__
 #define __MDVECTOR_DETAIL_H__
 
+#include <string>
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -34,7 +35,7 @@ void print_mdspan(std::mdspan<T, Extents, Layout> mdspan_) {
   if constexpr (Rank == 1) {
     // 1D 输出
     std::cout << "[";
-    for (size_t i = 0; i < mdspan_.extent(0); ++i) {
+    for (int i = 0; i < mdspan_.extent(0); ++i) {
       std::cout << mdspan_[i];
       if (i < mdspan_.extent(0) - 1) {
         std::cout << ", ";
@@ -44,7 +45,7 @@ void print_mdspan(std::mdspan<T, Extents, Layout> mdspan_) {
   } else if constexpr (Rank == 2) {
     // 2D 矩阵输出
     std::cout << "[\n";
-    for (size_t i = 0; i < mdspan_.extent(0); ++i) {
+    for (int i = 0; i < mdspan_.extent(0); ++i) {
       std::cout << "  [";
       for (size_t j = 0; j < mdspan_.extent(1); ++j) {
         std::cout << std::format("{:3}", mdspan_[i, j]);
@@ -59,7 +60,7 @@ void print_mdspan(std::mdspan<T, Extents, Layout> mdspan_) {
     // 3D 张量输出
     std::cout << std::format("3D Tensor [{} x {} x {}]:\n", mdspan_.extent(0), mdspan_.extent(1), mdspan_.extent(2));
 
-    for (size_t i = 0; i < mdspan_.extent(0); ++i) {
+    for (int i = 0; i < mdspan_.extent(0); ++i) {
       std::cout << std::format("Layer {}:\n", i);
       std::cout << "  [\n";
       for (size_t j = 0; j < mdspan_.extent(1); ++j) {
@@ -85,7 +86,7 @@ void print_mdspan(std::mdspan<T, Extents, Layout> mdspan_) {
   } else {
     // 更高维度输出
     std::cout << std::format("<{}D Tensor>: [", Rank);
-    for (size_t i = 0; i < Rank; ++i) {
+    for (int i = 0; i < Rank; ++i) {
       std::cout << mdspan_.extent(i);
       if (i < Rank - 1) {
         std::cout << " x ";
@@ -99,7 +100,7 @@ void print_mdspan(std::mdspan<T, Extents, Layout> mdspan_) {
     constexpr size_t max_elements = 6;
 
     // 简单的扁平化遍历显示前几个元素
-    for (size_t i = 0; i < mdspan_.size() && count < max_elements; ++i, ++count) {
+    for (int i = 0; i < mdspan_.size() && count < max_elements; ++i, ++count) {
       std::cout << *(mdspan_.data_handle() + i);
       if (i < mdspan_.size() - 1 && count < max_elements - 1) {
         std::cout << ", ";
@@ -133,7 +134,7 @@ template <std::size_t Rank>
 constexpr std::size_t linear_index(const std::array<std::size_t, Rank>& strides,
                                    const std::array<std::size_t, Rank>& indices) {
   std::size_t idx = 0;
-  for (std::size_t i = 0; i < Rank; ++i) {
+  for (int i = 0; i < Rank; ++i) {
     idx += indices[i] * strides[i];
   }
   return idx;
@@ -141,11 +142,15 @@ constexpr std::size_t linear_index(const std::array<std::size_t, Rank>& strides,
 
 // 闭区间
 struct slice {
-  std::ptrdiff_t start;
-  std::ptrdiff_t end;
-  bool is_all;
+  std::ptrdiff_t start = 0;
+  std::ptrdiff_t end = 0;
+  std::ptrdiff_t step = 1;
+  bool is_all = false;
 
-  slice(std::ptrdiff_t s = 0, std::ptrdiff_t e = 0, bool all = false) : start(s), end(e), is_all(all) {}
+  slice() = default;
+  slice(bool all) : start(0), end(0), step(1), is_all(all) {}
+  slice(std::ptrdiff_t s, std::ptrdiff_t e) : start(s), end(e), step(1), is_all(false) {}
+  slice(std::ptrdiff_t s, std::ptrdiff_t t, std::ptrdiff_t e) : start(s), end(e), step(t), is_all(false) {}
 };
 
 // 将python风格负数索引 转换为正数
@@ -154,11 +159,11 @@ static std::ptrdiff_t normalize_index(std::ptrdiff_t idx, std::ptrdiff_t dim_siz
 }
 
 // 全选切片
-inline md::slice all() { return md::slice(0, 0, true); }
+inline md::slice all() { return md::slice(true); }
 
 template <size_t Rank>
 void check_slice_bounds(const std::array<md::slice, Rank>& slices, const std::array<std::size_t, Rank>& extents) {
-  for (size_t i = 0; i < Rank; ++i) {
+  for (int i = 0; i < Rank; ++i) {
     if (slices[i].is_all) {
       continue;
     }
@@ -166,7 +171,6 @@ void check_slice_bounds(const std::array<md::slice, Rank>& slices, const std::ar
     // 处理负数索引（-1 表示最后一个元素）
     std::ptrdiff_t start = md::normalize_index(slices[i].start, extents[i]);
     std::ptrdiff_t end = md::normalize_index(slices[i].end, extents[i]);
-
     // 检查边界
     if (start < 0 || start >= static_cast<std::ptrdiff_t>(extents[i])) {
       throw std::out_of_range("span slice start out of range");
@@ -264,7 +268,7 @@ md::slice convert_slice(int this_dim_size, SliceType&& slice_one) {
   } else if constexpr (std::is_integral_v<std::decay_t<SliceType>>) {
     // 整数索引转换为单元素切片
     std::ptrdiff_t normolize_index = md::normalize_index(slice_one, this_dim_size);
-    return md::slice(static_cast<std::ptrdiff_t>(normolize_index), static_cast<std::ptrdiff_t>(normolize_index), false);
+    return md::slice(static_cast<std::ptrdiff_t>(normolize_index), static_cast<std::ptrdiff_t>(normolize_index));
   } else {
     static_assert(sizeof(SliceType) == 0, "Unsupported slice type");
   }

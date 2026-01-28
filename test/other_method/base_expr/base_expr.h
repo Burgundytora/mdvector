@@ -99,7 +99,7 @@ struct SArray {
   SArray(size_t s) : storage_(new T[s]), storage_size_(s) { init(); }
 
   void init() {
-    for (size_t idx = 0; idx < size(); idx++) {
+    for (int idx = 0; idx < size(); idx++) {
       storage_[idx] = T();
     }
   }
@@ -123,7 +123,7 @@ struct SArray {
   T& operator[](size_t idx) { return storage_[idx]; }
 
   void copy(SArray<T> const orig) {
-    for (size_t idx = 0; idx < orig.size(); idx++) {
+    for (int idx = 0; idx < orig.size(); idx++) {
       storage_[idx] = orig.storage_[idx];
     }
   }
@@ -149,7 +149,7 @@ struct Array {
   T* data() { return expr_rep_.data(); }
 
   Array& operator=(Array const& b) {
-    for (size_t idx = 0; idx < b.size(); idx++) {
+    for (int idx = 0; idx < b.size(); idx++) {
       expr_rep_[idx] = b[idx];
     }
     return *this;
@@ -157,7 +157,7 @@ struct Array {
 
   template <class Rep2>
   Array& operator=(Array<T, Rep2> const& b) {
-    for (size_t idx = 0; idx < b.size(); idx++) {
+    for (int idx = 0; idx < b.size(); idx++) {
       expr_rep_[idx] = b[idx];
     }
     return *this;
