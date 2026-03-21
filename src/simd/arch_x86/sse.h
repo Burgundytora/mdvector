@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_X86_SSE_H__
-#define __MDVECTOR_X86_SSE_H__
+#ifndef __MDVECTOR_SSE__
+#define __MDVECTOR_SSE__
 
 #include "simd_base.h"
 
@@ -121,4 +121,4 @@ struct simd<double> {
 
 }  // namespace md
 
-#endif  // __X86_SSE_H__
+#endif  // __MDVECTOR_SSE__

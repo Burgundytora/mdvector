@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_MDARRAY_H__
-#define __MDVECTOR_MDARRAY_H__
+#ifndef __MDVECTOR_ARRAY__
+#define __MDVECTOR_ARRAY__
 
 #include "common/detail.h"
 #include "common/iterator_mixin.h"
@@ -335,4 +335,4 @@ using array_5d = mdarray_row_major<T, N1, N2, N3, N4, N5>;
 template <typename T, size_t N1, size_t N2, size_t N3, size_t N4, size_t N5, size_t N6>
 using array_6d = mdarray_row_major<T, N1, N2, N3, N4, N5, N6>;
 
-#endif  // __MDVECTOR_MDARRAY_H__
+#endif  // __MDVECTOR_ARRAY__

@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_NONE_SIMD_H__
-#define __MDVECTOR_NONE_SIMD_H__
+#ifndef __MDVECTOR_NONE__
+#define __MDVECTOR_NONE__
 
 #include "simd_base.h"
 
@@ -67,4 +67,4 @@ struct simd<double> {
 
 }  // namespace md
 
-#endif  //__MDVECTOR_NONE_SIMD_H__
+#endif  //__MDVECTOR_NONE__

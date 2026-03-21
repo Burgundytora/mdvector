@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_INTERAOTR_VIEW_H__
-#define __MDVECTOR_INTERAOTR_VIEW_H__
+#ifndef __MDVECTOR_INTERAOTR_VIEW__
+#define __MDVECTOR_INTERAOTR_VIEW__
 
 #include "detail.h"
 #include "type_concept.h"
@@ -156,4 +156,4 @@ class view_iterator {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_INTERAOTR_VIEW_H__
+#endif  // __MDVECTOR_INTERAOTR_VIEW__

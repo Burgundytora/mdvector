@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_SIMD_BASE_H__
-#define __MDVECTOR_SIMD_BASE_H__
+#ifndef __MDVECTOR_SIMD_BASE__
+#define __MDVECTOR_SIMD_BASE__
 
 namespace md {
 
@@ -8,4 +8,4 @@ struct simd;
 
 }  // namespace md
 
-#endif  // __SIMD_BASE_H__
+#endif  // __MDVECTOR_SIMD_BASE__

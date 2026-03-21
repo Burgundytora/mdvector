@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_VIEW_H__
-#define __MDVECTOR_VIEW_H__
+#ifndef __MDVECTOR_VIEW__
+#define __MDVECTOR_VIEW__
 
 #include <execution>
 #include <functional>
@@ -333,4 +333,4 @@ class view : public md::base_expr<view<T, Rank>, T> {
 
 }  // namespace md
 
-#endif  //__MDVECTOR_VIEW_H__
+#endif  //__MDVECTOR_VIEW__

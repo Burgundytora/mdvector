@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_NEGTIVE_OPERATOR_H__
-#define __MDVECTOR_NEGTIVE_OPERATOR_H__
+#ifndef __MDVECTOR_MDVECTOR_DEF__
+#define __MDVECTOR_MDVECTOR_DEF__
 
 #include <vector>
 
@@ -14,4 +14,4 @@ class vector;
 
 }  // namespace md
 
-#endif  // __MDVECTOR_MATH_FUNCTION_H__
+#endif  // __MDVECTOR_MDVECTOR_DEF__

@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_MDVECTOR_H__
-#define __MDVECTOR_MDVECTOR_H__
+#ifndef __MDVECTOR_MDVECTOR__
+#define __MDVECTOR_MDVECTOR__
 
 #include "common/detail.h"
 #include "common/iterator_mixin.h"
@@ -536,4 +536,4 @@ using vector_5d = md::vector<T, 5>;
 template <typename T>
 using vector_6d = md::vector<T, 6>;
 
-#endif  // __MDVECTOR_MDVECTOR_H__
+#endif  // __MDVECTOR_MDVECTOR__

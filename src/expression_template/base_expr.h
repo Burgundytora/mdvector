@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_BASE_EXPR_H__
-#define __MDVECTOR_BASE_EXPR_H__
+#ifndef __MDVECTOR_BASE_EXPR__
+#define __MDVECTOR_BASE_EXPR__
 
 #include "simd/simd.h"
 
@@ -28,4 +28,4 @@ class base_expr {
 
 }  // namespace md
 
-#endif  // __BASE_EXPR_H__
+#endif  // __MDVECTOR_BASE_EXPR__

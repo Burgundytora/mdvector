@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_ALLOCATOR_H__
-#define __MDVECTOR_ALLOCATOR_H__
+#ifndef __MDVECTOR_ALLOCATOR__
+#define __MDVECTOR_ALLOCATOR__
 
 #include <limits>
 #include <memory>
@@ -53,16 +53,16 @@ class simd_allocator {
     }
     void* ptr = nullptr;
 #ifdef _WIN32
-        ptr = _aligned_malloc(n * sizeof(T), alignment_for());
+    ptr = _aligned_malloc(n * sizeof(T), alignment_for());
 #else
-        // aligned_alloc(alignment_for(), n * sizeof(T));
+    // aligned_alloc(alignment_for(), n * sizeof(T));
 
-        // macos下奇数个会bad_alloc
-        // 在 macOS 和其他 Unix 系统上，使用 posix_memalign 替代 aligned_alloc
-        // posix_memalign 没有大小必须是 alignment 整数倍的限制
-        if (posix_memalign(&ptr, alignment_for(), n * sizeof(T)) != 0) {
-          ptr = nullptr;
-        }
+    // macos下奇数个会bad_alloc
+    // 在 macOS 和其他 Unix 系统上，使用 posix_memalign 替代 aligned_alloc
+    // posix_memalign 没有大小必须是 alignment 整数倍的限制
+    if (posix_memalign(&ptr, alignment_for(), n * sizeof(T)) != 0) {
+      ptr = nullptr;
+    }
 #endif
     if (!ptr) throw std::bad_alloc();
     return static_cast<T*>(ptr);
@@ -86,4 +86,4 @@ using auto_allocator = std::conditional_t<std::is_floating_point_v<T>, simd_allo
 
 }  // namespace md
 
-#endif  // __MDVECTOR_ALLOCATOR_H__
+#endif  // __MDVECTOR_ALLOCATOR__

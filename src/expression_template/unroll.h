@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_UNROLL_H__
-#define __MDVECTOR_UNROLL_H__
+#ifndef __MDVECTOR_UNROLL__
+#define __MDVECTOR_UNROLL__
 
 // 循环展开策略
 struct unroll_1 {
@@ -29,4 +29,4 @@ struct auto_unroll {
   static constexpr size_t factor = (Size >= 1024) ? 8 : (Size >= 512) ? 4 : (Size >= 256) ? 2 : 1;
 };
 
-#endif  // __MDVECTOR_UNROLL_H__
+#endif  // __MDVECTOR_UNROLL__

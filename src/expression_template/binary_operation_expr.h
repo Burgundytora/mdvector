@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_CALCULATION_EXPR_H__
-#define __MDVECTOR_CALCULATION_EXPR_H__
+#ifndef __MDVECTOR_BINARY_OPERATION_EXPR__
+#define __MDVECTOR_BINARY_OPERATION_EXPR__
 
 #include "scalar_expr.h"
 #include "common/mdvector_def.h"
@@ -137,4 +137,4 @@ class binary_operation_expr : public base_expr<binary_operation_expr<T, L, R, Ca
 
 }  // namespace md
 
-#endif  // __MDVECTOR_CALCULATION_EXPR_H__
+#endif  // __MDVECTOR_BINARY_OPERATION_EXPR__

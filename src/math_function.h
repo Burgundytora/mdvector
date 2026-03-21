@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_MATH_FUNCTION_H__
-#define __MDVECTOR_MATH_FUNCTION_H__
+#ifndef __MDVECTOR_MATH_FUNCTION__
+#define __MDVECTOR_MATH_FUNCTION__
 
 #include <cmath>
 
@@ -177,4 +177,4 @@ auto abs_min(const Container& c) {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_MATH_FUNCTION_H__
+#endif  // __MDVECTOR_MATH_FUNCTION__

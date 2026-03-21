@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_INCLUDE_MD_H__
-#define __MDVECTOR_INCLUDE_MD_H__
+#ifndef __MDVECTOR_INCLUDE__
+#define __MDVECTOR_INCLUDE__
 
 #include "vector.h"
 #include "inplace_vector.h"
@@ -50,4 +50,4 @@ using md::standard_deviation;
 // using md::view;
 // using md::inplace_vector;
 
-#endif  // __MDVECTOR_INCLUDE_MD_H__
+#endif  // __MDVECTOR_INCLUDE__

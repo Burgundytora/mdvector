@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_ARM_NEON_H__
-#define __MDVECTOR_ARM_NEON_H__
+#ifndef __MDVECTOR_ARM_NEON__
+#define __MDVECTOR_ARM_NEON__
 
 #include "simd_base.h"
 
@@ -114,6 +114,6 @@ struct simd<double> {
   static inline type set1(double val) { return vdupq_n_f64(val); }
 };
 
-} // namespace md
+}  // namespace md
 
-#endif  // __ARM_NEON_H__
+#endif  // __MDVECTOR_ARM_NEON__

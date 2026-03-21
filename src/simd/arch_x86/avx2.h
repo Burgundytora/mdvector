@@ -1,7 +1,5 @@
-#ifndef __MDVECTOR_X86_AVX2_H__
-#define __MDVECTOR_X86_AVX2_H__
-
-#include <ostream>
+#ifndef __MDVECTOR__AVX2__
+#define __MDVECTOR__AVX2__
 
 #include "simd_base.h"
 
@@ -120,4 +118,4 @@ struct simd<double> {
 
 }  // namespace md
 
-#endif  // __X86_AVX2_H__
+#endif  // __MDVECTOR__AVX2__

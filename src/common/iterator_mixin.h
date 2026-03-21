@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_ITERATOR_MIXIN_H__
-#define __MDVECTOR_ITERATOR_MIXIN_H__
+#ifndef __MDVECTOR_ITERATOR_MIXIN__
+#define __MDVECTOR_ITERATOR_MIXIN__
 
 namespace md {
 
@@ -37,4 +37,4 @@ class iterator_mixin {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_ITERATOR_MIXIN_H__
+#endif  // __MDVECTOR_ITERATOR_MIXIN__

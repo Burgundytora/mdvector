@@ -8,4 +8,5 @@ AlignAfterOpenBracket: Align    # 括号内对齐
 SortUsingDeclarations: false    # 禁止using重排
 UseTab: false                   # 自动替换tab为空格
 IndentWidth: 2                  # 对齐到2空格
-IndentPPDirectives: None        # 宏行首对齐
+IndentPPDirectives: AfterHash  # 预处理器指令缩进
+AlignConsecutiveMacros: true

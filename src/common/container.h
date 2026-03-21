@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_CONTAINER_H__
-#define __MDVECTOR_CONTAINER_H__
+#ifndef __MDVECTOR_CONTAINER__
+#define __MDVECTOR_CONTAINER__
 
 #include <array>
 #include <variant>
@@ -129,4 +129,4 @@ class variant_container {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_CONTAINER_H__
+#endif  // __MDVECTOR_CONTAINER__

@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_SCALAR_EXPR_H__
-#define __MDVECTOR_SCALAR_EXPR_H__
+#ifndef __MDVECTOR_SCALAR_EXPR__
+#define __MDVECTOR_SCALAR_EXPR__
 
 #include "base_expr.h"
 
@@ -33,4 +33,4 @@ class scalar_wrapper : public base_expr<scalar_wrapper<T>, T> {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_SCALAR_EXPR_H__
+#endif  // __MDVECTOR_SCALAR_EXPR__

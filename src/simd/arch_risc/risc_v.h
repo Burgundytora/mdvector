@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_RISC_V_H__
-#define __MDVECTOR_RISC_V_H__
+#ifndef __MDVECTOR_RISC_V__
+#define __MDVECTOR_RISC_V__
 
 #include "simd_base.h"
 
@@ -67,4 +67,4 @@ struct simd<double> {
 
 }  // namespace md
 
-#endif  // __RISC_V_H__
+#endif  // __MDVECTOR_RISC_V__

@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_TYPE_CONCEPT_H__
-#define __MDVECTOR_TYPE_CONCEPT_H__
+#ifndef __MDVECTOR_TYPE_CONCEPT__
+#define __MDVECTOR_TYPE_CONCEPT__
 
 #include <concepts>
 #include <type_traits>
@@ -24,7 +24,7 @@ template <typename T>
 concept Arithmetic = requires(T a, T b) {
   a + b;
   a - b;
-  a* b;
+  a * b;
   a / b;
 };
 
@@ -42,4 +42,4 @@ concept StatisticContainer = requires(T v) {
   { v.end() } -> std::input_iterator;
 };
 
-#endif  //__MDVECTOR_TYPE_CONCEPT_H__
+#endif  //__MDVECTOR_TYPE_CONCEPT__

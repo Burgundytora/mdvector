@@ -1,10 +1,9 @@
-#ifndef __MDVECTOR_X86_AVX512_H__
-#define __MDVECTOR_X86_AVX512_H__
+#ifndef __MDVECTOR_AVX512__
+#define __MDVECTOR_AVX512__
 
 #include "simd_base.h"
 
 // ======================== AVX512 ========================
-
 #include <immintrin.h>
 
 namespace md {
@@ -87,4 +86,4 @@ struct simd<double> {
 
 }  // namespace md
 
-#endif  // __X86_AVX512_H__
+#endif  // __MDVECTOR_AVX512__

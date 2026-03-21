@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_OPERATOR_H__
-#define __MDVECTOR_OPERATOR_H__
+#ifndef __MDVECTOR_OPERATOR_OVERLOAD_H__
+#define __MDVECTOR_OPERATOR_OVERLOAD_H__
 
 #include "binary_operation_expr.h"
 
@@ -79,4 +79,4 @@ auto operator/(T lhs, const base_expr<R, T>& rhs) {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_OPERATOR_H__
+#endif  // __MDVECTOR_OPERATOR_OVERLOAD_H__

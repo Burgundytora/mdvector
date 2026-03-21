@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_DETAIL_H__
-#define __MDVECTOR_DETAIL_H__
+#ifndef __MDVECTOR_DETAIL__
+#define __MDVECTOR_DETAIL__
 
 #include <string>
 #include <algorithm>
@@ -291,4 +291,4 @@ auto prepare_slices(std::array<std::size_t, Rank> extents, Slices... slices) {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_DETAIL_H__
+#endif  // __MDVECTOR_DETAIL__

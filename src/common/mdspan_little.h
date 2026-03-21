@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_MDSPAN_LITTLE_H__
-#define __MDVECTOR_MDSPAN_LITTLE_H__
+#ifndef __MDVECTOR_MDSPAN_LITTLE__
+#define __MDVECTOR_MDSPAN_LITTLE__
 
 #include <version>
 
@@ -334,4 +334,4 @@ class mdspan {
 
 #endif
 
-#endif  // __MDVECTOR_MDSPAN_LITTLE_H__
+#endif  // __MDVECTOR_MDSPAN_LITTLE__

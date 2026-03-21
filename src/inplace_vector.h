@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_MD_INPLACE_VECTOR_H__
-#define __MDVECTOR_MD_INPLACE_VECTOR_H__
+#ifndef __MDVECTOR_INPLACE_VECTOR__
+#define __MDVECTOR_INPLACE_VECTOR__
 
 #include "common/detail.h"
 #include "common/iterator_mixin.h"
@@ -442,4 +442,4 @@ class inplace_vector : public md::base_expr<inplace_vector<T, Rank, Capacity, La
 
 }  // namespace md
 
-#endif  // __MDVECTOR_MDARRAY_H__
+#endif  // __MDVECTOR_INPLACE_VECTOR__

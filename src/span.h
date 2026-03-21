@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_SPAN_H__
-#define __MDVECTOR_SPAN_H__
+#ifndef __MDVECTOR_SPAN__
+#define __MDVECTOR_SPAN__
 
 #include "common/detail.h"
 #include "common/iterator_mixin.h"
@@ -287,4 +287,4 @@ class span : public md::base_expr<span<T, Rank, Layout>, T>, public md::iterator
 
 }  // namespace md
 
-#endif  // __MDVECTOR_SPAN_H__
+#endif  // __MDVECTOR_SPAN__
