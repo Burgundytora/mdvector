@@ -1,8 +1,7 @@
 #ifndef __MDVECTOR_SSE__
 #define __MDVECTOR_SSE__
 
-#include "simd_base.h"
-
+#include "../simd_base.h"
 // ======================== SSE ========================
 #include <emmintrin.h>  // SSE2
 #include <xmmintrin.h>  // SSE

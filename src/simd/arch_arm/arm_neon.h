@@ -1,8 +1,7 @@
 #ifndef __MDVECTOR_ARM_NEON__
 #define __MDVECTOR_ARM_NEON__
 
-#include "simd_base.h"
-
+#include "../simd_base.h"
 // ======================== NEON ========================
 #include <arm_neon.h>
 

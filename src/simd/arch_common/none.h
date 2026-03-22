@@ -1,12 +1,11 @@
 #ifndef __MDVECTOR_NONE__
 #define __MDVECTOR_NONE__
 
-#include "simd_base.h"
+#include "../simd_base.h"
 
 // ======================== NO SIMD ========================
 
 namespace md {
-
 template <>
 struct simd<float> {
   static constexpr size_t alignment = 16;

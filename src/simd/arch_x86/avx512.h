@@ -1,8 +1,7 @@
 #ifndef __MDVECTOR_AVX512__
 #define __MDVECTOR_AVX512__
 
-#include "simd_base.h"
-
+#include "../simd_base.h"
 // ======================== AVX512 ========================
 #include <immintrin.h>
 

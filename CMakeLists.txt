@@ -11,6 +11,13 @@ include(PlatformSetting)
 include(CompilerOption)
 include(SelectSimd)
 
+# 定义辅助函数以避免重复链接库
+function(add_mingw_link target)
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND WIN32)
+        target_link_libraries(${target} PRIVATE "-lstdc++exp")
+    endif()
+endfunction()
+
 # 添加子目录
 include_directories(${PROJECT_SOURCE_DIR}/src)
 add_subdirectory(test/unit_test)

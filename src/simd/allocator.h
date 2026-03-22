@@ -7,7 +7,6 @@
 #include "simd_base.h"
 
 namespace md {
-
 template <typename T>
 class simd_allocator {
  public:
