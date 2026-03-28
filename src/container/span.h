@@ -78,19 +78,19 @@ class span : public base_expr<span<T, Rank, Layout>, T>, public iterator_mixin<s
   /// 更改属性
   void fill(T val) { std::fill(begin(), end(), val); }
 
-  void zeros()
+  void set_zeros()
     requires Numeric<T>
   {
     fill(static_cast<T>(0));
   }
 
-  void ones()
+  void set_ones()
     requires Numeric<T>
   {
     fill(static_cast<T>(1));
   }
 
-  void arange(T start = 0, T step = 1)
+  void set_arange(T start = 0, T step = 1)
     requires Numeric<T>
   {
     T current = start;
@@ -266,7 +266,7 @@ class span : public base_expr<span<T, Rank, Layout>, T>, public iterator_mixin<s
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 打印
-  void print()
+  void print() const
     requires Printable<T>
   {
     if (!mdspan_.empty()) {

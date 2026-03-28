@@ -7,7 +7,7 @@ int main() {
     md::vector<double, 2> mat(10, 10);
 
     // 填充数据
-    mat.arange();
+    mat.set_arange();
 
     std::println("mat:");
     mat.print();

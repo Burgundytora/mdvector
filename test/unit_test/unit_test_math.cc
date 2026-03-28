@@ -6,7 +6,7 @@ int main(int args, char *argv[]) {
 
   try {
     md::vector<double, 2> a({2, 3});
-    a.arange(0.1, 0.1);
+    a.set_arange(0.1, 0.1);
 
     std::cout << "mdvector: print 0.1~0.6 : ";
     a.print();

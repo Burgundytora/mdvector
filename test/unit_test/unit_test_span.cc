@@ -8,7 +8,7 @@ int main() {
     md::vector<double, 2> mat(3, 3);
 
     // 填充数据
-    mat.arange(1);
+    mat.set_arange(1);
 
     std::cout << "原始矩阵:" << std::endl;
     mat.print();
@@ -124,7 +124,7 @@ int main() {
     md::vector<double, 3> tensor(2, 3, 4);
 
     // 填充3D张量
-    tensor.arange(1);
+    tensor.set_arange(1);
 
     auto tensor_sub = tensor.span(1,             // 第一维 第二个
                                   slice{1, -1},  // 第二维 第2-3

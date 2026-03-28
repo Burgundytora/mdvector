@@ -12,7 +12,7 @@ int main(int args, char *argv[]) {
   sum = std::reduce(a.begin(), a.end());
   std::cout << "mdvector: sum of 6 * 0.1 = " << sum << " (expected 0.6)\n";
 
-  a.arange(1.0);
+  a.set_arange(1.0);
 
   sum = std::reduce(a.begin(), a.end());
   std::cout << "mdvector: sum of 1~6 = " << sum << " (expected 21)\n";
