@@ -1,5 +1,5 @@
 
-#include "include_md.h"
+#include "include_md_all.h"
 
 int main() {
   try {
@@ -7,11 +7,7 @@ int main() {
     md::vector<double, 2> mat(10, 10);
 
     // 填充数据
-    for (int i = 0; i < mat.extent(0); ++i) {
-      for (int j = 0; j < mat.extent(1); ++j) {
-        mat(i, j) = j + i * 10;
-      }
-    }
+    mat.arange();
 
     std::println("mat:");
     mat.print();

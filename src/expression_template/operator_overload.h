@@ -68,7 +68,7 @@ auto operator/(const base_expr<L, T>& lhs, const base_expr<R, T>& rhs) {
 // 向量 / 标量
 template <typename L, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
 auto operator/(const base_expr<L, T>& lhs, T rhs) {
-  return binary_operation_expr<T, L, T, Mul>(lhs.derived(), static_cast<T>(1.0) / rhs);
+  return binary_operation_expr<T, L, T, Div>(lhs.derived(), rhs);
 }
 
 // 标量 / 向量

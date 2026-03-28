@@ -6,26 +6,26 @@
 #include "common/type_concept.h"
 #include "expression_template/operator_overload.h"
 #include "simd/simd_function.h"
-#include "math_function.h"
+#include "common/math_function.h"
 
 namespace md {
 
 template <typename T, typename Layout = std::layout_right, size_t... lengths>
-class array : public md::base_expr<array<T, Layout, lengths...>, T>,
-              public md::iterator_mixin<array<T, Layout, lengths...>, T> {
+class array : public base_expr<array<T, Layout, lengths...>, T>,
+              public iterator_mixin<array<T, Layout, lengths...>, T> {
  public:
-  using Policy = md::aligned_policy;
+  using Policy = aligned_policy;
   using value_type = T;
   using layout_type = Layout;
   static constexpr size_t rank_ = sizeof...(lengths);
 
  private:
   /// 成员变量
-  static constexpr size_t raw_total_size = (lengths * ... * 1);
-  static constexpr size_t total_size = (raw_total_size % md::simd<T>::pack_size == 0)
-                                           ? raw_total_size
-                                           : ((raw_total_size / md::simd<T>::pack_size) + 1) * md::simd<T>::pack_size;
-  alignas(md::simd<T>::alignment) std::array<T, total_size> array_;
+  static constexpr size_t raw_total_size__ = (lengths * ... * 1);
+  static constexpr size_t total_size_ = (raw_total_size__ % simd<T>::pack_size == 0)
+                                            ? raw_total_size__
+                                            : ((raw_total_size__ / simd<T>::pack_size) + 1) * simd<T>::pack_size;
+  alignas(simd<T>::alignment) std::array<T, total_size_> array_;
   static constexpr std::array<std::size_t, sizeof...(lengths)> shape_ = {static_cast<std::size_t>(lengths)...};
   std::mdspan<T, std::extents<std::size_t, lengths...>, Layout> mdspan_;
 
@@ -109,7 +109,7 @@ class array : public md::base_expr<array<T, Layout, lengths...>, T>,
 
   // 一维索引转多维索引
   std::array<size_t, sizeof...(lengths)> get_md_index(size_t linear_index) const {
-    if (linear_index >= raw_total_size) {
+    if (linear_index >= raw_total_size__) {
       throw std::out_of_range("Linear index out of range");
     }
 
@@ -142,7 +142,7 @@ class array : public md::base_expr<array<T, Layout, lengths...>, T>,
 
   // 获取指定维度的索引
   size_t get_dim_index(size_t linear_index, size_t dim) const {
-    if (linear_index >= raw_total_size || dim >= sizeof...(lengths)) {
+    if (linear_index >= raw_total_size__ || dim >= sizeof...(lengths)) {
       throw std::out_of_range("Index out of range");
     }
 
@@ -155,9 +155,9 @@ class array : public md::base_expr<array<T, Layout, lengths...>, T>,
 
   const T* data() const { return array_.data(); }
 
-  size_t used_size() const { return total_size; }
+  size_t used_size() const { return total_size_; }
 
-  size_t size() const { return raw_total_size; }
+  size_t size() const { return raw_total_size__; }
 
   auto extents() const { return shape_; }
 
@@ -169,43 +169,65 @@ class array : public md::base_expr<array<T, Layout, lengths...>, T>,
   /// 更改属性
   void fill(T val) { std::fill(array_.begin(), array_.end(), val); }
 
+  void zeros()
+    requires Numeric<T>
+  {
+    fill(static_cast<T>(0));
+  }
+
+  void ones()
+    requires Numeric<T>
+  {
+    fill(static_cast<T>(1));
+  }
+
+  void arange(T start = 0, T step = 1)
+    requires Numeric<T>
+  {
+    T current = start;
+    for (size_t i = 0; i < raw_total_size__; ++i) {
+      array_[i] = current;
+      current += step;
+    }
+  }
+
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 打印
   void print()
     requires Printable<T>
   {
-    md::print_mdspan(mdspan_);
+    print_mdspan(mdspan_);
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 迭代器
-  using md::iterator_mixin<array<T, Layout, lengths...>, T>::begin;
-  using md::iterator_mixin<array<T, Layout, lengths...>, T>::end;
-  using md::iterator_mixin<array<T, Layout, lengths...>, T>::cbegin;
-  using md::iterator_mixin<array<T, Layout, lengths...>, T>::cend;
-  using md::iterator_mixin<array<T, Layout, lengths...>, T>::rbegin;
-  using md::iterator_mixin<array<T, Layout, lengths...>, T>::rend;
-  using md::iterator_mixin<array<T, Layout, lengths...>, T>::crbegin;
-  using md::iterator_mixin<array<T, Layout, lengths...>, T>::crend;
+  using iterator_mixin<array<T, Layout, lengths...>, T>::begin;
+  using iterator_mixin<array<T, Layout, lengths...>, T>::end;
+  using iterator_mixin<array<T, Layout, lengths...>, T>::cbegin;
+  using iterator_mixin<array<T, Layout, lengths...>, T>::cend;
+  using iterator_mixin<array<T, Layout, lengths...>, T>::rbegin;
+  using iterator_mixin<array<T, Layout, lengths...>, T>::rend;
+  using iterator_mixin<array<T, Layout, lengths...>, T>::crbegin;
+  using iterator_mixin<array<T, Layout, lengths...>, T>::crend;
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// simd接口
   template <typename T2>
-  typename md::simd<T2>::type load_simd(size_t i) const noexcept
+  typename simd<T2>::type load_simd(size_t i) const noexcept
     requires Numeric<T>
   {
     return Policy::load<T2>(this->data() + i);
   }
 
   template <typename T2>
-  void store_simd(const size_t& i, md::simd<T2>::const_ref_type simd_val) noexcept {
+  void store_simd(const size_t& i, simd<T2>::const_ref_type simd_val) noexcept {
     return Policy::store<T>(this->data() + i, simd_val);
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 表达式模板数值计算
   template <typename E>
-  array& operator=(const md::base_expr<E, T>& expr) noexcept
+  array& operator=(const base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     expr.template eval_to<>(*this);
@@ -215,12 +237,12 @@ class array : public md::base_expr<array<T, Layout, lengths...>, T>,
   array& operator+=(const array& other) noexcept
     requires Numeric<T>
   {
-    md::simd_add_inplace<T, Policy>(this->data(), other.data(), this->used_size());
+    simd_add_inplace<T, Policy>(this->data(), other.data(), this->used_size());
     return *this;
   }
 
   template <typename E>
-  array& operator+=(const md::base_expr<E, T>& expr) noexcept
+  array& operator+=(const base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this + expr).template eval_to<>(*this);
@@ -228,7 +250,7 @@ class array : public md::base_expr<array<T, Layout, lengths...>, T>,
   }
 
   template <typename E>
-  array& operator-=(const md::base_expr<E, T>& expr) noexcept
+  array& operator-=(const base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this - expr).template eval_to<>(*this);
@@ -236,7 +258,7 @@ class array : public md::base_expr<array<T, Layout, lengths...>, T>,
   }
 
   template <typename E>
-  array& operator*=(const md::base_expr<E, T>& expr) noexcept
+  array& operator*=(const base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this * expr).template eval_to<>(*this);
@@ -244,7 +266,7 @@ class array : public md::base_expr<array<T, Layout, lengths...>, T>,
   }
 
   template <typename E>
-  array& operator/=(const md::base_expr<E, T>& expr) noexcept
+  array& operator/=(const base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this / expr).template eval_to<>(*this);

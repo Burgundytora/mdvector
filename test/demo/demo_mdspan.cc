@@ -1,5 +1,5 @@
 
-#include "include_md.h"
+#include "include_md_all.h"
 
 void test_mdspan_dynamic() {
   try {

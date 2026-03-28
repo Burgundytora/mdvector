@@ -1,6 +1,8 @@
 #ifndef __MDVECTOR_UNROLL__
 #define __MDVECTOR_UNROLL__
 
+namespace md {
+
 // 循环展开策略
 struct unroll_1 {
   static constexpr size_t factor = 1;
@@ -28,5 +30,7 @@ template <size_t Size>
 struct auto_unroll {
   static constexpr size_t factor = (Size >= 1024) ? 8 : (Size >= 512) ? 4 : (Size >= 256) ? 2 : 1;
 };
+
+}  // namespace md
 
 #endif  // __MDVECTOR_UNROLL__

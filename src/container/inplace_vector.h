@@ -6,7 +6,7 @@
 #include "common/type_concept.h"
 #include "expression_template/operator_overload.h"
 #include "simd/simd_function.h"
-#include "math_function.h"
+#include "common/math_function.h"
 
 namespace md {
 
@@ -201,6 +201,27 @@ class inplace_vector : public md::base_expr<inplace_vector<T, Rank, Capacity, La
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 更改属性
   void fill(T val) { std::fill(begin(), end(), val); }
+  void zeros()
+    requires Numeric<T>
+  {
+    fill(static_cast<T>(0));
+  }
+
+  void ones()
+    requires Numeric<T>
+  {
+    fill(static_cast<T>(1));
+  }
+
+  void arange(T start = 0, T step = 1)
+    requires Numeric<T>
+  {
+    T current = start;
+    for (size_t i = 0; i < size_; ++i) {
+      *iterator(this, i) = current;
+      current += step;
+    }
+  }
 
   void set_shape(std::array<size_t, Rank> shape) {
     if (shape == shape_ && !mdspan_.empty()) {

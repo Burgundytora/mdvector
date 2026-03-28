@@ -7,16 +7,16 @@
 #include "expression_template/operator_overload.h"
 #include "simd/allocator.h"
 #include "simd/simd_function.h"
-#include "math_function.h"
+#include "common/math_function.h"
 #include "span.h"
 #include "view.h"
 
 namespace md {
 
 template <typename T, size_t Rank, typename Layout>
-class vector : public md::base_expr<vector<T, Rank, Layout>, T>, public md::iterator_mixin<vector<T, Rank, Layout>, T> {
+class vector : public base_expr<vector<T, Rank, Layout>, T>, public iterator_mixin<vector<T, Rank, Layout>, T> {
  public:
-  using Policy = md::aligned_policy;
+  using Policy = aligned_policy;
   using value_type = T;
   using layout_type = Layout;
   static constexpr size_t rank_ = Rank;
@@ -25,7 +25,7 @@ class vector : public md::base_expr<vector<T, Rank, Layout>, T>, public md::iter
   /// 成员变量
   std::array<size_t, Rank> shape_;
   size_t size_;
-  std::vector<T, md::auto_allocator<T>> vector_;
+  std::vector<T, auto_allocator<T>> vector_;
   std::mdspan<T, std::dextents<size_t, Rank>, Layout> mdspan_;
 
  public:
@@ -35,16 +35,16 @@ class vector : public md::base_expr<vector<T, Rank, Layout>, T>, public md::iter
 
   explicit vector(const std::array<std::size_t, Rank>& shape)
       : shape_(shape),
-        size_(md::calculate_size(shape)),
-        vector_(md::get_aligned_size<T>(size_)),
+        size_(calculate_size(shape)),
+        vector_(get_aligned_size<T>(size_)),
         mdspan_(create_mdspan(shape, std::make_index_sequence<Rank>{})) {}
 
   template <typename... Sizes>
     requires(sizeof...(Sizes) == Rank && (std::is_convertible_v<Sizes, size_t> && ...))
   explicit vector(Sizes... sizes)
       : shape_(std::array<size_t, Rank>{static_cast<size_t>(sizes)...}),
-        size_(md::calculate_size(shape_)),
-        vector_(md::get_aligned_size<T>(size_)),
+        size_(calculate_size(shape_)),
+        vector_(get_aligned_size<T>(size_)),
         mdspan_(create_mdspan(shape_, std::make_index_sequence<Rank>{})) {}
 
   ~vector() = default;
@@ -190,12 +190,34 @@ class vector : public md::base_expr<vector<T, Rank, Layout>, T>, public md::iter
   /// 更改属性
   void fill(T val) { std::fill(begin(), end(), val); }
 
+  void zeros()
+    requires Numeric<T>
+  {
+    fill(static_cast<T>(0));
+  }
+
+  void ones()
+    requires Numeric<T>
+  {
+    fill(static_cast<T>(1));
+  }
+
+  void arange(T start = 0, T step = 1)
+    requires Numeric<T>
+  {
+    T current = start;
+    for (size_t i = 0; i < size_; ++i) {
+      vector_[i] = current;
+      current += step;
+    }
+  }
+
   void set_shape(std::array<size_t, Rank> shape) {
     if (shape == shape_ && !mdspan_.empty()) {
       return;
     }
-    size_ = md::calculate_size(shape);
-    vector_.resize(md::get_aligned_size<T>(size_));
+    size_ = calculate_size(shape);
+    vector_.resize(get_aligned_size<T>(size_));
     shape_ = shape;
     mdspan_ = create_mdspan(shape, std::make_index_sequence<Rank>{});
   }
@@ -213,7 +235,7 @@ class vector : public md::base_expr<vector<T, Rank, Layout>, T>, public md::iter
     requires Printable<T>
   {
     if (!mdspan_.empty()) {
-      md::print_mdspan(mdspan_);
+      print_mdspan(mdspan_);
     } else {
       throw std::logic_error("vector need to be initialized before print!!!");
     }
@@ -225,15 +247,15 @@ class vector : public md::base_expr<vector<T, Rank, Layout>, T>, public md::iter
   auto span(Slices... slices) {
     static_assert(sizeof...(Slices) == Rank, "Number of slices must match dimensionality");
 
-    constexpr std::size_t NewRank = md::compressed_rank_v<Slices...>;
+    constexpr std::size_t NewRank = compressed_rank_v<Slices...>;
 
-    auto [slice_array, is_integral] = md::prepare_slices<Rank>(extents(), slices...);
+    auto [slice_array, is_integral] = prepare_slices<Rank>(extents(), slices...);
 
     // 检查越界
-    md::check_slice_bounds<Rank>(slice_array, extents());
+    check_slice_bounds<Rank>(slice_array, extents());
 
     // 检查内存连续
-    if (!md::check_slice_contiguous<Rank, Layout>(extents(), slice_array, is_integral)) {
+    if (!check_slice_contiguous<Rank, Layout>(extents(), slice_array, is_integral)) {
       throw std::runtime_error("span slices must result in contiguous memory");
     }
 
@@ -244,8 +266,8 @@ class vector : public md::base_expr<vector<T, Rank, Layout>, T>, public md::iter
     for (int i = 0; i < Rank; ++i) {
       if (!is_integral[i]) {  // 只保留非整数索引的维度
         const auto& s = slice_array[i];
-        std::ptrdiff_t start = md::normalize_index(s.start, extent(i));
-        std::ptrdiff_t end = md::normalize_index(s.end, extent(i));
+        std::ptrdiff_t start = normalize_index(s.start, extent(i));
+        std::ptrdiff_t end = normalize_index(s.end, extent(i));
         new_extents[new_idx++] = s.is_all ? extent(i) : (end - start + 1);
         if (s.step != 1) {
           throw std::invalid_argument("span slice's step must be 1.");
@@ -270,12 +292,12 @@ class vector : public md::base_expr<vector<T, Rank, Layout>, T>, public md::iter
   auto view(Slices... slices) {
     static_assert(sizeof...(Slices) == Rank, "Number of slices must match dimensionality");
 
-    constexpr std::size_t NewRank = md::compressed_rank_v<Slices...>;
+    constexpr std::size_t NewRank = compressed_rank_v<Slices...>;
 
-    auto [slice_array, is_integral] = md::prepare_slices<Rank>(extents(), slices...);
+    auto [slice_array, is_integral] = prepare_slices<Rank>(extents(), slices...);
 
     // 检查越界
-    md::check_slice_bounds<Rank>(slice_array, extents());
+    check_slice_bounds<Rank>(slice_array, extents());
 
     // 计算新的extents
     std::array<std::size_t, NewRank> new_extents;
@@ -284,8 +306,8 @@ class vector : public md::base_expr<vector<T, Rank, Layout>, T>, public md::iter
     for (int i = 0; i < Rank; ++i) {
       if (!is_integral[i]) {  // 只保留非整数索引的维度
         const auto& s = slice_array[i];
-        std::ptrdiff_t start = md::normalize_index(s.start, extent(i));
-        std::ptrdiff_t end = md::normalize_index(s.end, extent(i));
+        std::ptrdiff_t start = normalize_index(s.start, extent(i));
+        std::ptrdiff_t end = normalize_index(s.end, extent(i));
         new_extents[new_idx++] = s.is_all ? extent(i) : 1 + std::floor((end - start) / s.step);
       }
     }
@@ -327,33 +349,33 @@ class vector : public md::base_expr<vector<T, Rank, Layout>, T>, public md::iter
 
   // ///////////////////////////////////////////////////////////////////////////////////////
   // /// 迭代器
-  using md::iterator_mixin<vector<T, Rank, Layout>, T>::begin;
-  using md::iterator_mixin<vector<T, Rank, Layout>, T>::end;
-  using md::iterator_mixin<vector<T, Rank, Layout>, T>::cbegin;
-  using md::iterator_mixin<vector<T, Rank, Layout>, T>::cend;
-  using md::iterator_mixin<vector<T, Rank, Layout>, T>::rbegin;
-  using md::iterator_mixin<vector<T, Rank, Layout>, T>::rend;
-  using md::iterator_mixin<vector<T, Rank, Layout>, T>::crbegin;
-  using md::iterator_mixin<vector<T, Rank, Layout>, T>::crend;
+  using iterator_mixin<vector<T, Rank, Layout>, T>::begin;
+  using iterator_mixin<vector<T, Rank, Layout>, T>::end;
+  using iterator_mixin<vector<T, Rank, Layout>, T>::cbegin;
+  using iterator_mixin<vector<T, Rank, Layout>, T>::cend;
+  using iterator_mixin<vector<T, Rank, Layout>, T>::rbegin;
+  using iterator_mixin<vector<T, Rank, Layout>, T>::rend;
+  using iterator_mixin<vector<T, Rank, Layout>, T>::crbegin;
+  using iterator_mixin<vector<T, Rank, Layout>, T>::crend;
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// simd接口
   template <typename T2>
-  typename md::simd<T2>::type load_simd(const size_t& i) const noexcept
+  typename simd<T2>::type load_simd(const size_t& i) const noexcept
     requires Numeric<T>
   {
     return Policy::load<T2>(data() + i);
   }
 
   template <typename T2>
-  void store_simd(const size_t& i, md::simd<T2>::const_ref_type simd_val) noexcept {
+  void store_simd(const size_t& i, simd<T2>::const_ref_type simd_val) noexcept {
     return Policy::store<T>(this->data() + i, simd_val);
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 表达式模板数值计算
   template <typename E>
-  vector(const md::base_expr<E, T>& expr) noexcept
+  vector(const base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     this->set_shape(expr.extents());
@@ -361,7 +383,7 @@ class vector : public md::base_expr<vector<T, Rank, Layout>, T>, public md::iter
   }
 
   template <typename E>
-  vector& operator=(const md::base_expr<E, T>& expr) noexcept
+  vector& operator=(const base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     expr.template eval_to<>(*this);
@@ -369,7 +391,7 @@ class vector : public md::base_expr<vector<T, Rank, Layout>, T>, public md::iter
   }
 
   template <typename E>
-  vector& operator+=(const md::base_expr<E, T>& expr) noexcept
+  vector& operator+=(const base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this + expr).template eval_to<>(*this);
@@ -377,7 +399,7 @@ class vector : public md::base_expr<vector<T, Rank, Layout>, T>, public md::iter
   }
 
   template <typename E>
-  vector& operator-=(const md::base_expr<E, T>& expr) noexcept
+  vector& operator-=(const base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this - expr).template eval_to<>(*this);
@@ -385,7 +407,7 @@ class vector : public md::base_expr<vector<T, Rank, Layout>, T>, public md::iter
   }
 
   template <typename E>
-  vector& operator*=(const md::base_expr<E, T>& expr) noexcept
+  vector& operator*=(const base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this * expr).template eval_to<>(*this);
@@ -393,7 +415,7 @@ class vector : public md::base_expr<vector<T, Rank, Layout>, T>, public md::iter
   }
 
   template <typename E>
-  vector& operator/=(const md::base_expr<E, T>& expr) noexcept
+  vector& operator/=(const base_expr<E, T>& expr) noexcept
     requires Numeric<T>
   {
     (*this / expr).template eval_to<>(*this);
@@ -470,7 +492,7 @@ class vector : public md::base_expr<vector<T, Rank, Layout>, T>, public md::iter
   }
 
   // 计算数据指针偏移
-  std::size_t calculate_offset(const std::array<md::slice, Rank>& slices, const std::array<bool, Rank>& is_integral) {
+  std::size_t calculate_offset(const std::array<slice, Rank>& slices, const std::array<bool, Rank>& is_integral) {
     std::size_t offset = 0;
     std::size_t stride = 1;
 

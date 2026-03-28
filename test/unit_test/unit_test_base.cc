@@ -1,7 +1,17 @@
 
-#include "include_md.h"
+#include "include_md_all.h"
+#include <iostream>
 
-int main(int args, char *argv[]) {
+static int assert_check(bool cond, const char* msg) {
+  if (!cond) {
+    std::cerr << "FAIL: " << msg << "\n";
+    return 1;
+  }
+  std::cout << "PASS: " << msg << "\n";
+  return 0;
+}
+
+int main(int args, char* argv[]) {
   // 各维度长度
   size_t a = 2;
   size_t b = 3;
@@ -107,8 +117,17 @@ int main(int args, char *argv[]) {
   std::cout << "data2.at[1,1]:" << dat2[1, 1] << "\n";
   std::cout << "data3.at[1,1]:" << dat3[1, 1] << "\n";
 
-  // 正常完成
+  // int 类型 support 测试
+  md::vector<int, 2> int_data(2, 3);
+  int_data.fill(1);
+  auto int_calc = int_data + 2;
+  md::vector<int, 2> int_calc2 = int_calc * 2;
+
+  int fail_count = 0;
+  fail_count += assert_check(int_calc2(0, 0) == 6, "md::vector<int> arithmetic int_calc2(0,0)==6");
+  fail_count += assert_check(int_calc2(1, 2) == 6, "md::vector<int> arithmetic int_calc2(1,2)==6");
+
   std::cout << "base test down. \n";
 
-  return 0;
+  return fail_count;
 }

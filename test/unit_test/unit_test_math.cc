@@ -1,20 +1,12 @@
 
-#include "include_md.h"
+#include "include_md_all.h"
 
 int main(int args, char *argv[]) {
   std::cout << "\nVerification:" << std::endl;
 
   try {
     md::vector<double, 2> a({2, 3});
-    a.fill(0.1);
-
-    double val = 0.1;
-    for (int i = 0; i < 2; i++) {
-      for (int j = 0; j < 3; j++) {
-        a(i, j) = val;
-        val += 0.1;
-      }
-    }
+    a.arange(0.1, 0.1);
 
     std::cout << "mdvector: print 0.1~0.6 : ";
     a.print();

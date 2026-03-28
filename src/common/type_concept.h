@@ -30,7 +30,7 @@ concept Arithmetic = requires(T a, T b) {
 
 // 定义容器概念
 template <typename T>
-concept MathContainer = requires(T c) {
+concept MultiDimContainer = requires(T c) {
   { T::rank_ } -> std::convertible_to<size_t>;
 };
 

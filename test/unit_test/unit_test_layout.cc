@@ -1,5 +1,5 @@
 
-#include "include_md.h"
+#include "include_md_all.h"
 
 int main(int args, char *argv[]) {
   md::shape<3> shape = {2, 3, 4};

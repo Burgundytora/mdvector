@@ -118,6 +118,57 @@ struct simd<double> {
   static inline type set1(double val) { return _mm_set1_pd(val); }
 };
 
+template <>
+struct simd<int> {
+  static constexpr size_t alignment = 16;
+  static constexpr size_t pack_size = 4;
+  using type = __m128i;
+  using ref_type = __m128i&;
+  using const_type = const __m128i;
+  using const_ref_type = const __m128i&;
+
+  static inline type load(const int* p) { return _mm_load_si128(reinterpret_cast<const __m128i*>(p)); }
+  static inline void store(int* p, const_ref_type v) { _mm_store_si128(reinterpret_cast<__m128i*>(p), v); }
+
+  static inline type loadu(const int* p) { return _mm_loadu_si128(reinterpret_cast<const __m128i*>(p)); }
+  static inline void storeu(int* p, const_ref_type v) { _mm_storeu_si128(reinterpret_cast<__m128i*>(p), v); }
+
+  static inline type add(const_ref_type a, const_ref_type b) { return _mm_add_epi32(a, b); }
+  static inline type sub(const_ref_type a, const_ref_type b) { return _mm_sub_epi32(a, b); }
+  static inline type mul(const_ref_type a, const_ref_type b) { return _mm_mullo_epi32(a, b); }
+  static inline type div(const_ref_type a, const_ref_type b) {
+    alignas(16) int av[4], bv[4], rv[4];
+    _mm_store_si128(reinterpret_cast<__m128i*>(av), a);
+    _mm_store_si128(reinterpret_cast<__m128i*>(bv), b);
+    for (int i = 0; i < 4; ++i) rv[i] = av[i] / bv[i];
+    return _mm_load_si128(reinterpret_cast<const __m128i*>(rv));
+  }
+
+  static inline type mask_load(const int* p, const size_t& remaining) {
+    alignas(16) int tmp[4] = {0, 0, 0, 0};
+    for (int i = 0; i < static_cast<int>(remaining); ++i) tmp[i] = p[i];
+    return _mm_load_si128(reinterpret_cast<const __m128i*>(tmp));
+  }
+  static inline void mask_store(int* p, const size_t& remaining, const_ref_type v) {
+    alignas(16) int tmp[4];
+    _mm_store_si128(reinterpret_cast<__m128i*>(tmp), v);
+    for (int i = 0; i < static_cast<int>(remaining); ++i) p[i] = tmp[i];
+  }
+
+  static inline type mask_loadu(const int* p, const size_t& remaining) {
+    alignas(16) int tmp[4] = {0, 0, 0, 0};
+    for (int i = 0; i < static_cast<int>(remaining); ++i) tmp[i] = p[i];
+    return _mm_loadu_si128(reinterpret_cast<const __m128i*>(tmp));
+  }
+  static inline void mask_storeu(int* p, const size_t& remaining, const_ref_type v) {
+    alignas(16) int tmp[4];
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(tmp), v);
+    for (int i = 0; i < static_cast<int>(remaining); ++i) p[i] = tmp[i];
+  }
+
+  static inline type set1(int val) { return _mm_set1_epi32(val); }
+};
+
 }  // namespace md
 
 #endif  // __MDVECTOR_SSE__

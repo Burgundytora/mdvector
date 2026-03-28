@@ -159,18 +159,18 @@ static std::ptrdiff_t normalize_index(std::ptrdiff_t idx, std::ptrdiff_t dim_siz
 }
 
 // 全选切片
-inline md::slice all() { return md::slice(true); }
+inline slice all() { return slice(true); }
 
 template <size_t Rank>
-void check_slice_bounds(const std::array<md::slice, Rank>& slices, const std::array<std::size_t, Rank>& extents) {
+void check_slice_bounds(const std::array<slice, Rank>& slices, const std::array<std::size_t, Rank>& extents) {
   for (int i = 0; i < Rank; ++i) {
     if (slices[i].is_all) {
       continue;
     }
 
     // 处理负数索引（-1 表示最后一个元素）
-    std::ptrdiff_t start = md::normalize_index(slices[i].start, extents[i]);
-    std::ptrdiff_t end = md::normalize_index(slices[i].end, extents[i]);
+    std::ptrdiff_t start = normalize_index(slices[i].start, extents[i]);
+    std::ptrdiff_t end = normalize_index(slices[i].end, extents[i]);
     // 检查边界
     if (start < 0 || start >= static_cast<std::ptrdiff_t>(extents[i])) {
       throw std::out_of_range("span slice start out of range");
@@ -262,13 +262,13 @@ template <typename... Slices>
 constexpr std::size_t compressed_rank_v = compressed_rank<Slices...>::value;
 
 template <typename SliceType>
-md::slice convert_slice(int this_dim_size, SliceType&& slice_one) {
-  if constexpr (std::is_same_v<std::decay_t<SliceType>, md::slice>) {
+slice convert_slice(int this_dim_size, SliceType&& slice_one) {
+  if constexpr (std::is_same_v<std::decay_t<SliceType>, slice>) {
     return std::forward<SliceType>(slice_one);
   } else if constexpr (std::is_integral_v<std::decay_t<SliceType>>) {
     // 整数索引转换为单元素切片
-    std::ptrdiff_t normolize_index = md::normalize_index(slice_one, this_dim_size);
-    return md::slice(static_cast<std::ptrdiff_t>(normolize_index), static_cast<std::ptrdiff_t>(normolize_index));
+    std::ptrdiff_t normolize_index = normalize_index(slice_one, this_dim_size);
+    return slice(static_cast<std::ptrdiff_t>(normolize_index), static_cast<std::ptrdiff_t>(normolize_index));
   } else {
     static_assert(sizeof(SliceType) == 0, "Unsupported slice type");
   }

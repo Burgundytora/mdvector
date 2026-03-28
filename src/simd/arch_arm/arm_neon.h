@@ -113,6 +113,61 @@ struct simd<double> {
   static inline type set1(double val) { return vdupq_n_f64(val); }
 };
 
+template <>
+struct simd<int> {
+  static constexpr size_t alignment = 16;
+  static constexpr size_t pack_size = 4;
+  using type = int32x4_t;
+  using ref_type = int32x4_t&;
+  using const_type = const int32x4_t;
+  using const_ref_type = const int32x4_t&;
+
+  static inline type load(const int* p) { return vld1q_s32(p); }
+  static inline void store(int* p, const_ref_type v) { vst1q_s32(p, v); }
+
+  static inline type loadu(const int* p) { return vld1q_s32(p); }
+  static inline void storeu(int* p, const_ref_type v) { vst1q_s32(p, v); }
+
+  static inline type add(const_ref_type a, const_ref_type b) { return vaddq_s32(a, b); }
+  static inline type sub(const_ref_type a, const_ref_type b) { return vsubq_s32(a, b); }
+  static inline type mul(const_ref_type a, const_ref_type b) { return vmulq_s32(a, b); }
+  static inline type div(const_ref_type a, const_ref_type b) {
+    int32_t av[4], bv[4], rv[4];
+    vst1q_s32(av, a);
+    vst1q_s32(bv, b);
+    for (int i = 0; i < 4; ++i) rv[i] = av[i] / bv[i];
+    return vld1q_s32(rv);
+  }
+
+  static inline type mask_load(const int* p, const size_t& remaining) {
+    static const uint32_t mask_pattern[4] = {0, 0, 0, 0};
+    uint32x4_t mask = vcltq_u32(vld1q_u32(mask_pattern), vdupq_n_u32(remaining));
+    return vreinterpretq_s32_u32(vandq_u32(vreinterpretq_u32_s32(vld1q_s32(p)), mask));
+  }
+  static inline void mask_store(int* p, const size_t& remaining, const_ref_type v) {
+    static const uint32_t mask_pattern[4] = {0, 0, 0, 0};
+    uint32x4_t mask = vcltq_u32(vld1q_u32(mask_pattern), vdupq_n_u32(remaining));
+    int32x4_t old_val = vld1q_s32(p);
+    int32x4_t new_val = vbslq_s32(mask, v, old_val);
+    vst1q_s32(p, new_val);
+  }
+
+  static inline type mask_loadu(const int* p, const size_t& remaining) {
+    static const uint32_t mask_pattern[4] = {0, 0, 0, 0};
+    uint32x4_t mask = vcltq_u32(vld1q_u32(mask_pattern), vdupq_n_u32(remaining));
+    return vreinterpretq_s32_u32(vandq_u32(vreinterpretq_u32_s32(vld1q_s32(p)), mask));
+  }
+  static inline void mask_storeu(int* p, const size_t& remaining, const_ref_type v) {
+    static const uint32_t mask_pattern[4] = {0, 0, 0, 0};
+    uint32x4_t mask = vcltq_u32(vld1q_u32(mask_pattern), vdupq_n_u32(remaining));
+    int32x4_t old_val = vld1q_s32(p);
+    int32x4_t new_val = vbslq_s32(mask, v, old_val);
+    vst1q_s32(p, new_val);
+  }
+
+  static inline type set1(int val) { return vdupq_n_s32(val); }
+};
+
 }  // namespace md
 
 #endif  // __MDVECTOR_ARM_NEON__

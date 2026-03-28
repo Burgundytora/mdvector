@@ -6,14 +6,14 @@
 #include "common/type_concept.h"
 #include "expression_template/operator_overload.h"
 #include "simd/simd_function.h"
-#include "math_function.h"
+#include "common/math_function.h"
 
 namespace md {
 
 template <typename T, size_t Rank, typename Layout = std::layout_right>
-class span : public md::base_expr<span<T, Rank, Layout>, T>, public md::iterator_mixin<span<T, Rank, Layout>, T> {
+class span : public base_expr<span<T, Rank, Layout>, T>, public iterator_mixin<span<T, Rank, Layout>, T> {
  public:
-  using Policy = md::unaligned_policy;
+  using Policy = unaligned_policy;
   using value_type = T;
   using layout_type = Layout;
   static constexpr size_t rank_ = Rank;
@@ -34,8 +34,8 @@ class span : public md::base_expr<span<T, Rank, Layout>, T>, public md::iterator
       : mdspan_(create_mdspan(data, shape, std::make_index_sequence<Rank>{})),
         shape_(shape),
         size_(calculate_size(shape)),
-        align_size_(md::get_aligned_size<T>(size_)),
-        remaining_size_(size_ > md::simd<T>::pack_size ? align_size_ - size_ : size_) {}
+        align_size_(get_aligned_size<T>(size_)),
+        remaining_size_(size_ > simd<T>::pack_size ? align_size_ - size_ : size_) {}
 
   span(const span& other) = delete;
 
@@ -50,10 +50,10 @@ class span : public md::base_expr<span<T, Rank, Layout>, T>, public md::iterator
   ~span() = default;
 
   template <typename E>
-  span(const md::base_expr<E, T>& expr) = delete;
+  span(const base_expr<E, T>& expr) = delete;
 
   template <typename E>
-  span& operator=(const md::base_expr<E, T>& expr) noexcept {
+  span& operator=(const base_expr<E, T>& expr) noexcept {
     expr.template eval_to<>(*this);
     return *this;
   }
@@ -68,13 +68,37 @@ class span : public md::base_expr<span<T, Rank, Layout>, T>, public md::iterator
 
   size_t size() const noexcept { return size_; }
 
-  void fill(T val) { std::fill(begin(), end(), val); }
-
   auto extents() const { return shape_; }
 
   size_t extent(int index) const { return shape_.at(index); }
 
   bool empty() { return mdspan_.empty(); }
+
+  ///////////////////////////////////////////////////////////////////////////////////////
+  /// 更改属性
+  void fill(T val) { std::fill(begin(), end(), val); }
+
+  void zeros()
+    requires Numeric<T>
+  {
+    fill(static_cast<T>(0));
+  }
+
+  void ones()
+    requires Numeric<T>
+  {
+    fill(static_cast<T>(1));
+  }
+
+  void arange(T start = 0, T step = 1)
+    requires Numeric<T>
+  {
+    T current = start;
+    for (size_t i = 0; i < size_; ++i) {
+      *iterator(this, i) = current;
+      current += step;
+    }
+  }
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 多维索引
@@ -163,8 +187,8 @@ class span : public md::base_expr<span<T, Rank, Layout>, T>, public md::iterator
   ///////////////////////////////////////////////////////////////////////////////////////
   /// simd接口
   template <typename T2>
-  typename md::simd<T2>::type load_simd(size_t i) const noexcept {
-    if (i + md::simd<T2>::pack_size <= size_) {
+  typename simd<T2>::type load_simd(size_t i) const noexcept {
+    if (i + simd<T2>::pack_size <= size_) {
       return Policy::load<T2>(this->data() + i);
     } else {
       return Policy::mask_load<T2>(this->data() + i, remaining_size_);
@@ -172,8 +196,8 @@ class span : public md::base_expr<span<T, Rank, Layout>, T>, public md::iterator
   }
 
   template <typename T2>
-  void store_simd(const size_t& i, md::simd<T2>::const_ref_type simd_val) noexcept {
-    if (i + md::simd<T2>::pack_size <= size_) {
+  void store_simd(const size_t& i, simd<T2>::const_ref_type simd_val) noexcept {
+    if (i + simd<T2>::pack_size <= size_) {
       Policy::store<T>(this->data() + i, simd_val);
     } else {
       Policy::mask_store<T>(this->data() + i, remaining_size_, simd_val);
@@ -183,25 +207,25 @@ class span : public md::base_expr<span<T, Rank, Layout>, T>, public md::iterator
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 表达式模板数值计算
   template <typename E>
-  span& operator+=(const md::base_expr<E, T>& expr) noexcept {
+  span& operator+=(const base_expr<E, T>& expr) noexcept {
     (*this + expr).template eval_to<>(*this);
     return *this;
   }
 
   template <typename E>
-  span& operator-=(const md::base_expr<E, T>& expr) noexcept {
+  span& operator-=(const base_expr<E, T>& expr) noexcept {
     (*this - expr).template eval_to<>(*this);
     return *this;
   }
 
   template <typename E>
-  span& operator*=(const md::base_expr<E, T>& expr) noexcept {
+  span& operator*=(const base_expr<E, T>& expr) noexcept {
     (*this * expr).template eval_to<>(*this);
     return *this;
   }
 
   template <typename E>
-  span& operator/=(const md::base_expr<E, T>& expr) noexcept {
+  span& operator/=(const base_expr<E, T>& expr) noexcept {
     (*this / expr).template eval_to<>(*this);
     return *this;
   }
@@ -246,7 +270,7 @@ class span : public md::base_expr<span<T, Rank, Layout>, T>, public md::iterator
     requires Printable<T>
   {
     if (!mdspan_.empty()) {
-      md::print_mdspan(mdspan_);
+      print_mdspan(mdspan_);
     } else {
       throw std::logic_error("md::span need to be initialized before print!!!");
     }
@@ -254,14 +278,14 @@ class span : public md::base_expr<span<T, Rank, Layout>, T>, public md::iterator
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 迭代器
-  using md::iterator_mixin<span<T, Rank, Layout>, T>::begin;
-  using md::iterator_mixin<span<T, Rank, Layout>, T>::end;
-  using md::iterator_mixin<span<T, Rank, Layout>, T>::cbegin;
-  using md::iterator_mixin<span<T, Rank, Layout>, T>::cend;
-  using md::iterator_mixin<span<T, Rank, Layout>, T>::rbegin;
-  using md::iterator_mixin<span<T, Rank, Layout>, T>::rend;
-  using md::iterator_mixin<span<T, Rank, Layout>, T>::crbegin;
-  using md::iterator_mixin<span<T, Rank, Layout>, T>::crend;
+  using iterator_mixin<span<T, Rank, Layout>, T>::begin;
+  using iterator_mixin<span<T, Rank, Layout>, T>::end;
+  using iterator_mixin<span<T, Rank, Layout>, T>::cbegin;
+  using iterator_mixin<span<T, Rank, Layout>, T>::cend;
+  using iterator_mixin<span<T, Rank, Layout>, T>::rbegin;
+  using iterator_mixin<span<T, Rank, Layout>, T>::rend;
+  using iterator_mixin<span<T, Rank, Layout>, T>::crbegin;
+  using iterator_mixin<span<T, Rank, Layout>, T>::crend;
 
  private:
   ///////////////////////////////////////////////////////////////////////////////////////

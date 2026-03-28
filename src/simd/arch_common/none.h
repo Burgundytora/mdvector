@@ -63,7 +63,34 @@ struct simd<double> {
 
   static inline type set1(type val) { return val; }
 };
+template <>
+struct simd<int> {
+  static constexpr size_t alignment = 16;
+  static constexpr size_t pack_size = 1;
+  using type = int;
+  using ref_type = int&;
+  using const_type = const int;
+  using const_ref_type = const int&;
 
+  static inline type load(const int* p) { return *p; }
+  static inline void store(int* p, const_ref_type v) { *p = v; }
+
+  static inline type loadu(const int* p) { return *p; }
+  static inline void storeu(int* p, const_ref_type v) { *p = v; }
+
+  static inline type add(const_ref_type a, const_ref_type b) { return a + b; }
+  static inline type sub(const_ref_type a, const_ref_type b) { return a - b; }
+  static inline type mul(const_ref_type a, const_ref_type b) { return a * b; }
+  static inline type div(const_ref_type a, const_ref_type b) { return a / b; }
+
+  static inline type mask_load(const int* p, const size_t& remaining) { return *p; }
+  static inline void mask_store(int* p, const size_t& remaining, const_ref_type v) { *p = v; }
+
+  static inline type mask_loadu(const int* p, const size_t& remaining) { return *p; }
+  static inline void mask_storeu(int* p, const size_t& remaining, const_ref_type v) { *p = v; }
+
+  static inline type set1(int val) { return val; }
+};
 }  // namespace md
 
 #endif  //__MDVECTOR_NONE__

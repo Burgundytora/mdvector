@@ -3,14 +3,14 @@
 
 #include <cmath>
 
-#include "common/mdvector_def.h"
+#include "mdvector_def.h"
 
 // 独立数学函数模板
 namespace md {
 
 // 数学函数返回一个新的mdvector做为临时值
 #define DEFINE_BASE_MD_MATH_FUNC(name, op)                                                                 \
-  template <MathContainer Container>                                                                       \
+  template <MultiDimContainer Container>                                                                   \
   auto name(const Container& c) noexcept {                                                                 \
     md::vector<typename Container::value_type, Container::rank_, typename Container::layout_type> res = c; \
     std::transform(res.begin(), res.end(), res.begin(),                                                    \
@@ -38,28 +38,28 @@ DEFINE_BASE_MD_MATH_FUNC(trunc, trunc);
 
 #undef DEFINE_BASE_MD_MATH_FUNC
 
-template <MathContainer Container, typename T>
+template <MultiDimContainer Container, typename T>
 auto exp(const Container& c, T y) {
   md::vector<typename Container::value_type, Container::rank_, typename Container::layout_type> res = c;
   std::transform(res.begin(), res.end(), res.begin(), [y](double val) noexcept { return std::pow(y, val); });
   return res;
 }
 
-template <MathContainer Container, typename T>
+template <MultiDimContainer Container, typename T>
 auto pow(const Container& c, T y) {
   md::vector<typename Container::value_type, Container::rank_, typename Container::layout_type> res = c;
   std::transform(res.begin(), res.end(), res.begin(), [y](double val) noexcept { return std::pow(val, y); });
   return res;
 }
 
-template <MathContainer Container, typename T>
+template <MultiDimContainer Container, typename T>
 auto fmod(const Container& c, T y) {
   md::vector<typename Container::value_type, Container::rank_, typename Container::layout_type> res = c;
   std::transform(res.begin(), res.end(), res.begin(), [y](double val) noexcept { return std::fmod(val, y); });
   return res;
 }
 
-template <MathContainer Container1, MathContainer Container2>
+template <MultiDimContainer Container1, MultiDimContainer Container2>
 auto hypot(const Container1& x, const Container2& y) {
   using value_type = typename Container1::value_type;
   md::vector<value_type, Container1::rank_, typename Container1::layout_type> res = x;
@@ -77,7 +77,7 @@ auto hypot(const Container1& x, const Container2& y) {
 }
 
 // 三个容器的 hypot
-template <MathContainer Container1, MathContainer Container2, MathContainer Container3>
+template <MultiDimContainer Container1, MultiDimContainer Container2, MultiDimContainer Container3>
 auto hypot(const Container1& x, const Container2& y, const Container3& z) {
   using value_type = typename Container1::value_type;
   md::vector<value_type, Container1::rank_, typename Container1::layout_type> res = x;

@@ -1,5 +1,5 @@
 
-#include "include_md.h"
+#include "include_md_all.h"
 
 int main() {
   try {
@@ -8,11 +8,7 @@ int main() {
     md::vector<double, 2> mat(3, 3);
 
     // 填充数据
-    for (int i = 0; i < 3; ++i) {
-      for (int j = 0; j < 3; ++j) {
-        mat(i, j) = i * 3 + j + 1;  // 1-9
-      }
-    }
+    mat.arange(1);
 
     std::cout << "原始矩阵:" << std::endl;
     mat.print();
@@ -29,10 +25,7 @@ int main() {
     );
 
     std::cout << "\n子视图(行2, 所有列):" << std::endl;
-    for (int i = 0; i < sub_contig1.extent(0); ++i) {
-      std::cout << sub_contig1(i) << " ";
-    }
-    std::cout << std::endl;
+    sub_contig1.print();
     // 预期输出:
     // 4 5 6
 
@@ -42,11 +35,7 @@ int main() {
     );
 
     std::cout << "\n子视图(行2, 列1:-1):" << std::endl;
-
-    for (int i = 0; i < sub_contig11.extent(0); ++i) {
-      std::cout << sub_contig11(i) << " ";
-    }
-    std::cout << std::endl;
+    sub_contig11.print();
     // 预期输出:
     // 5 6
 
@@ -56,10 +45,7 @@ int main() {
     );
 
     std::cout << "\n子视图(行-1, 列:):" << std::endl;
-    for (int i = 0; i < sub_contig111.extent(0); ++i) {
-      std::cout << sub_contig111(i) << " ";
-    }
-    std::cout << std::endl;
+    sub_contig111.print();
     // 预期输出:
     // 7 8 9
 
@@ -69,9 +55,7 @@ int main() {
     );
 
     std::cout << "\n子视图(行1, 列0:1):" << std::endl;
-    for (int j = 0; j < sub_contig2.extent(0); ++j) {
-      std::cout << sub_contig2(j) << " ";
-    }
+    sub_contig2.print();
     // 预期输出: 4 5
 
     // 情况3: 非法情况测试
@@ -93,12 +77,7 @@ int main() {
     );
 
     std::cout << "子视图(0:1, :):" << std::endl;
-    for (int i = 0; i < sub2.extent(0); ++i) {
-      for (int j = 0; j < sub2.extent(1); ++j) {
-        std::cout << sub2(i, j) << " ";
-      }
-      std::cout << std::endl;
-    }
+    sub2.print();
     // 预期输出:
     // 1 2 3
     // 4 5 6
@@ -145,14 +124,7 @@ int main() {
     md::vector<double, 3> tensor(2, 3, 4);
 
     // 填充3D张量
-    double val = 1.0f;
-    for (int i = 0; i < 2; ++i) {
-      for (int j = 0; j < 3; ++j) {
-        for (int k = 0; k < 4; ++k) {
-          tensor(i, j, k) = val++;
-        }
-      }
-    }
+    tensor.arange(1);
 
     auto tensor_sub = tensor.span(1,             // 第一维 第二个
                                   slice{1, -1},  // 第二维 第2-3

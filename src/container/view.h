@@ -12,9 +12,9 @@ namespace md {
 
 // 带步长功能 不要求内存连续视图 基于std::layout_stride
 template <typename T, size_t Rank>
-class view : public md::base_expr<view<T, Rank>, T> {
+class view : public base_expr<view<T, Rank>, T> {
  public:
-  using Policy = md::aligned_policy;  // view使用对齐array转存simd
+  using Policy = aligned_policy;  // view使用对齐array转存simd
   using value_type = T;
   using layout_type = std::layout_stride;
   static constexpr size_t rank_ = Rank;
@@ -40,9 +40,9 @@ class view : public md::base_expr<view<T, Rank>, T> {
   view(T* data, const std::array<std::size_t, Rank>& shape, const std::array<std::size_t, Rank>& stride)
       : mdspan_(create_mdspan(data, shape, stride, std::make_index_sequence<Rank>{})),
         shape_(shape),
-        size_(md::calculate_size(shape)),
-        align_size_(md::get_aligned_size<T>(size_)),
-        remaining_size_(size_ > md::simd<T>::pack_size ? align_size_ - size_ : size_) {}
+        size_(calculate_size(shape)),
+        align_size_(get_aligned_size<T>(size_)),
+        remaining_size_(size_ > simd<T>::pack_size ? align_size_ - size_ : size_) {}
 
   view(const view& other) = delete;
 
@@ -57,11 +57,11 @@ class view : public md::base_expr<view<T, Rank>, T> {
   ~view() = default;
 
   template <typename E>
-  view(const md::base_expr<E, T>& expr) = delete;
+  view(const base_expr<E, T>& expr) = delete;
 
   //
   template <typename E>
-  view& operator=(const md::base_expr<E, T>& expr) noexcept {
+  view& operator=(const base_expr<E, T>& expr) noexcept {
     expr.template eval_to<>(*this);
     return *this;
   }
@@ -76,13 +76,37 @@ class view : public md::base_expr<view<T, Rank>, T> {
 
   size_t size() const noexcept { return size_; }
 
-  void fill(T val) { std::fill(begin(), end(), val); }
-
   auto extents() const { return shape_; }
 
   size_t extent(int index) const { return shape_.at(index); }
 
   bool empty() { return mdspan_.empty(); }
+
+  ///////////////////////////////////////////////////////////////////////////////////////
+  /// 更改属性
+  void fill(T val) { std::fill(begin(), end(), val); }
+
+  void zeros()
+    requires Numeric<T>
+  {
+    fill(static_cast<T>(0));
+  }
+
+  void ones()
+    requires Numeric<T>
+  {
+    fill(static_cast<T>(1));
+  }
+
+  void arange(T start = 0, T step = 1)
+    requires Numeric<T>
+  {
+    T current = start;
+    for (size_t i = 0; i < size_; ++i) {
+      *iterator(this, i) = current;
+      current += step;
+    }
+  }
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 多维索引
@@ -188,20 +212,20 @@ class view : public md::base_expr<view<T, Rank>, T> {
   /// 表达式模板数值计算
 
   template <typename T2>
-  typename md::simd<T2>::type load_simd(size_t i) const noexcept {
+  typename simd<T2>::type load_simd(size_t i) const noexcept {
     // 内存不连续 使用对齐的std::array转存
-    if (i + md::simd<T2>::pack_size <= size_) {
-      alignas(md::simd<T>::alignment) std::array<T, md::simd<T>::pack_size> temp_array;
+    if (i + simd<T2>::pack_size <= size_) {
+      alignas(simd<T>::alignment) std::array<T, simd<T>::pack_size> temp_array;
       size_t temp_i = i;
-      for (size_t j = 0; j < md::simd<T>::pack_size && temp_i < this->used_size(); ++j, ++temp_i) {
+      for (size_t j = 0; j < simd<T>::pack_size && temp_i < this->used_size(); ++j, ++temp_i) {
         temp_array[j] = *const_iterator(this, temp_i);  // 使用 const_iterator
       }
       return Policy::template load<T2>(temp_array.data());
     } else {
-      alignas(md::simd<T>::alignment) std::array<T, md::simd<T>::pack_size> temp_array;
+      alignas(simd<T>::alignment) std::array<T, simd<T>::pack_size> temp_array;
       size_t temp_i = i;
       size_t count = 0;
-      for (; count < md::simd<T>::pack_size && temp_i < this->used_size(); ++count, ++temp_i) {
+      for (; count < simd<T>::pack_size && temp_i < this->used_size(); ++count, ++temp_i) {
         temp_array[count] = *const_iterator(this, temp_i);  // 使用 const_iterator
       }
       return Policy::template mask_load<T2>(temp_array.data(), remaining_size_);
@@ -209,16 +233,16 @@ class view : public md::base_expr<view<T, Rank>, T> {
   }
 
   template <typename T2>
-  void store_simd(size_t i, typename md::simd<T2>::const_ref_type simd_val) noexcept {
+  void store_simd(size_t i, typename simd<T2>::const_ref_type simd_val) noexcept {
     // 先将simd转换为普通变量再用迭代器赋值
-    if (i + md::simd<T2>::pack_size <= size_) {
-      alignas(md::simd<T>::alignment) std::array<T, md::simd<T>::pack_size> temp_array;
+    if (i + simd<T2>::pack_size <= size_) {
+      alignas(simd<T>::alignment) std::array<T, simd<T>::pack_size> temp_array;
       Policy::template store<T>(temp_array.data(), simd_val);
-      for (size_t j = 0; j < md::simd<T>::pack_size && (i + j) < this->used_size(); ++j) {
+      for (size_t j = 0; j < simd<T>::pack_size && (i + j) < this->used_size(); ++j) {
         *iterator(this, i + j) = temp_array[j];
       }
     } else {
-      alignas(md::simd<T>::alignment) std::array<T, md::simd<T>::pack_size> temp_array;
+      alignas(simd<T>::alignment) std::array<T, simd<T>::pack_size> temp_array;
       Policy::template mask_store<T>(temp_array.data(), remaining_size_, simd_val);
       for (size_t j = 0; j < remaining_size_ && (i + j) < this->used_size(); ++j) {
         *iterator(this, i + j) = temp_array[j];
@@ -229,25 +253,25 @@ class view : public md::base_expr<view<T, Rank>, T> {
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 表达式模板数值计算
   template <typename E>
-  view& operator+=(const md::base_expr<E, T>& expr) noexcept {
+  view& operator+=(const base_expr<E, T>& expr) noexcept {
     (*this + expr).template eval_to<>(*this);
     return *this;
   }
 
   template <typename E>
-  view& operator-=(const md::base_expr<E, T>& expr) noexcept {
+  view& operator-=(const base_expr<E, T>& expr) noexcept {
     (*this - expr).template eval_to<>(*this);
     return *this;
   }
 
   template <typename E>
-  view& operator*=(const md::base_expr<E, T>& expr) noexcept {
+  view& operator*=(const base_expr<E, T>& expr) noexcept {
     (*this * expr).template eval_to<>(*this);
     return *this;
   }
 
   template <typename E>
-  view& operator/=(const md::base_expr<E, T>& expr) noexcept {
+  view& operator/=(const base_expr<E, T>& expr) noexcept {
     (*this / expr).template eval_to<>(*this);
     return *this;
   }
@@ -300,7 +324,7 @@ class view : public md::base_expr<view<T, Rank>, T> {
     requires Printable<T>
   {
     if (!mdspan_.empty()) {
-      md::print_mdspan(mdspan_);
+      print_mdspan(mdspan_);
     } else {
       throw std::logic_error("md::span need to be initialized before print!!!");
     }

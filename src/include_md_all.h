@@ -1,11 +1,11 @@
 #ifndef __MDVECTOR_INCLUDE__
 #define __MDVECTOR_INCLUDE__
 
-#include "vector.h"
-#include "inplace_vector.h"
-#include "array.h"
-#include "span.h"
-#include "view.h"
+#include "container/vector.h"
+#include "container/inplace_vector.h"
+#include "container/array.h"
+#include "container/span.h"
+#include "container/view.h"
 
 using md::all;
 using md::slice;
