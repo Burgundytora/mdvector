@@ -366,6 +366,7 @@ int main() {
   std::cout << "\n========================================" << std::endl;
   std::cout << "md::vector Demo Completed Successfilly!" << std::endl;
   std::cout << "========================================" << std::endl;
+  print_simd_type();
 
   return 0;
 }

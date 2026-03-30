@@ -19,7 +19,7 @@ function(add_mingw_link target)
 endfunction()
 
 # 添加子目录
-include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories(${PROJECT_SOURCE_DIR}/include)
 add_subdirectory(test/unit_test)
 add_subdirectory(test/demo)
 
