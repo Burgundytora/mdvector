@@ -27,13 +27,7 @@ add_subdirectory(test/demo)
 # 测试
 option(BUILD_SPEED_TEST "" ON)
 if(BUILD_SPEED_TEST)
-    if(WIN32)
-        set(INCLUDE_DIR "G:/third_party/include")
-    elseif(APPLE)
-        set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../third_party/include")
-    else()
-        set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/include")
-    endif()
+    set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/include")
     message(STATUS "include dir: ${INCLUDE_DIR}")
     # eigen在C++23下警告处理
     add_compile_definitions(_SILENCE_CXX23_DENORM_DEPRECATION_WARNING)
@@ -47,7 +41,6 @@ if(BUILD_SPEED_TEST)
         "${INCLUDE_DIR}/highway"
         "${INCLUDE_DIR}/xtensor/include"
         "${INCLUDE_DIR}/xtl/include"
-        "${INCLUDE_DIR}/xsimd/include"
     )
     include_directories(${PROJECT_SOURCE_DIR}/test)
     add_subdirectory(test/benchmark)

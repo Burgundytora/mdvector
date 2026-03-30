@@ -11,7 +11,6 @@
 #include "unsupported/Eigen/CXX11/Tensor"
 
 //
-#define XTENSOR_USE_XSIMD
 #include "xtensor/containers/xarray.hpp"
 #include "xtensor/containers/xtensor.hpp"
 
