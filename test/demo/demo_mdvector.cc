@@ -86,18 +86,18 @@ int main() {
   print_vector(idx_demo, "idx_demo (3x3 matrix)");
 
   // 使用 operator() 访问
-  std::cout << "Element at (0,0): " << idx_demo(0, 0) << std::endl;
-  std::cout << "Element at (1,1): " << idx_demo(1, 1) << std::endl;
-  std::cout << "Element at (2,2): " << idx_demo(2, 2) << std::endl;
+  std::cout << "Element (0,0): " << idx_demo(0, 0) << std::endl;
+  std::cout << "Element [1,1]: " << idx_demo[1, 1] << std::endl;
+  std::cout << "Element .at(2,2): " << idx_demo.at(2, 2) << std::endl;
 
   // 修改元素
-  idx_demo(1, 1) = 100;
-  std::cout << "After modifying (1,1) to 100:" << std::endl;
+  idx_demo[1, 1] = 100;
+  std::cout << "After modifying [1,1] to 100:" << std::endl;
   idx_demo.print();
 
   // 使用 at() 进行边界检查
   try {
-    std::cout << "Trying to access (3,0): ";
+    std::cout << "Trying to access .at(3,0): ";
     std::cout << idx_demo.at(3, 0) << std::endl;
   } catch (const std::out_of_range& e) {
     std::cout << "Caught exception: " << e.what() << std::endl;
@@ -178,7 +178,7 @@ int main() {
   // ========== 6. 视图操作 (span) ==========
   std::cout << "\n========== 6. Span Operations (Contiguous Views) ==========" << std::endl;
 
-  vector_2d<int> matrix({4, 4});
+  vector_2d<int> matrix(4, 4);
   matrix.set_arange(1, 1);  // 1-16
   print_vector(matrix, "Matrix (4x4)");
 
@@ -221,28 +221,23 @@ int main() {
   // 创建步长视图（每隔一个元素取一个）
   auto strided_view = strided_demo.view(md::all(), md::slice(0, 3, 2));  // 每隔一列
   std::cout << "Strided view (every other column):" << std::endl;
-  for (size_t i = 0; i < strided_view.extent(0); ++i) {
-    for (size_t j = 0; j < strided_view.extent(1); ++j) {
-      std::cout << strided_view(i, j) << " ";
-    }
-    std::cout << std::endl;
-  }
+  strided_view.print();
 
   // 修改视图中的值会影响原矩阵
-  strided_view(0, 0) = 999;
+  strided_view[0, 0] = 999;
   std::cout << "\nAfter modifying view (0,0) to 999:" << std::endl;
-  std::cout << "Original matrix at (0,0): " << strided_demo(0, 0) << std::endl;
-  std::cout << "Original matrix at (0,1): " << strided_demo(0, 1) << std::endl;
+  std::cout << "Original matrix at (0,0): " << strided_demo[0, 0] << std::endl;
+  std::cout << "Original matrix at (0,1): " << strided_demo[0, 1] << std::endl;
 
   // ========== 8. 维度操作 ==========
   std::cout << "\n========== 8. Dimension Operations ==========" << std::endl;
 
-  vector_2d<int> reshape_demo({2, 3});
+  vector_2d<int> reshape_demo(2, 3);
   reshape_demo.set_arange(1, 1);
   print_vector(reshape_demo, "Original (2x3)");
 
   // 改变形状（元素总数不变）
-  reshape_demo.set_shape({3, 2});
+  reshape_demo.set_shape(3, 2);
   print_vector(reshape_demo, "Reshaped to (3x2)");
 
   std::cout << "Rank: " << reshape_demo.rank() << std::endl;
@@ -252,7 +247,7 @@ int main() {
   // ========== 9. 迭代器使用 ==========
   std::cout << "\n========== 9. Iterator Usage ==========" << std::endl;
 
-  vector_1d<int> iter_demo({10});
+  vector_1d<int> iter_demo(10);
   iter_demo.set_arange(0, 2);
   print_vector(iter_demo, "iter_demo");
 
@@ -287,7 +282,7 @@ int main() {
   // ========== 10. 错误处理和边界检查 ==========
   std::cout << "\n========== 10. Error Handling and Bounds Checking ==========" << std::endl;
 
-  vector_2d<int> error_demo({2, 3});
+  vector_2d<int> error_demo(2, 3);
 
   // 测试越界访问
   try {
@@ -306,8 +301,8 @@ int main() {
 
   // 测试形状不匹配
   try {
-    vector_2d<int> shape_error({2, 3});
-    shape_error.set_shape({2, 4});  // 元素总数从6变为8
+    vector_2d<int> shape_error(2, 3);
+    shape_error.set_shape(2, 4);  // 元素总数从6变为8
     std::cout << "Shape changed successfilly, new size: " << shape_error.size() << std::endl;
   } catch (const std::exception& e) {
     std::cout << "Shape change error: " << e.what() << std::endl;
@@ -317,8 +312,8 @@ int main() {
   std::cout << "\n========== 11. Performance Demo ==========" << std::endl;
 
   const int large_size = 1000000;
-  vector_1d<double> large_vec1({large_size});
-  vector_1d<double> large_vec2({large_size});
+  vector_1d<double> large_vec1(large_size);
+  vector_1d<double> large_vec2(large_size);
 
   large_vec1.set_arange(0.0, 1.0);
   large_vec2.set_arange(large_size, -1.0);
@@ -344,10 +339,29 @@ int main() {
     std::reverse(result.begin(), result.end());
     return result;
   };
-
   auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
   std::cout << "Vector addition of " << num_commas(large_size) << " elements took: " << duration.count() << " ms"
             << std::endl;
+
+  // ========== 12. 复杂示例 ==========
+  std::cout << "\n========== 12. Complex Using Demo ==========" << std::endl;
+
+  // 快速根据节点三维坐标计算10个梁的长度
+  md::vector<double, 2> pos_info(3, 11);         //      node1 node2 node3 ... node11
+  pos_info.span(0, md::all()).set_arange(1, 1);  // x坐标   1    2     3   ...   11
+  pos_info.span(1, md::all()).set_arange(2, 2);  // y坐标   2    4     6   ...   22
+  pos_info.span(2, md::all()).set_arange(3, 3);  // z坐标   3    6     9   ...   33
+  std::cout << "node position:" << std::endl;
+  pos_info.print();
+  auto x1 = pos_info.span(0, slice(0, -2));
+  auto y1 = pos_info.span(1, slice(0, -2));
+  auto z1 = pos_info.span(2, slice(0, -2));
+  auto x2 = pos_info.span(0, slice(1, -1));
+  auto y2 = pos_info.span(1, slice(1, -1));
+  auto z2 = pos_info.span(2, slice(1, -1));
+  auto length = hypot(x2 - x1, y2 - y1, z2 - z1);
+  std::cout << "element length:\n";
+  length.print();
 
   std::cout << "\n========================================" << std::endl;
   std::cout << "md::vector Demo Completed Successfilly!" << std::endl;

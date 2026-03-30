@@ -95,7 +95,7 @@ class span : public base_expr<span<T, Rank, Layout>, T>, public iterator_mixin<s
   {
     T current = start;
     for (size_t i = 0; i < size_; ++i) {
-      *iterator(this, i) = current;
+      *(begin() + i) = current;
       current += step;
     }
   }
