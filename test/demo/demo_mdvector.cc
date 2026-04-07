@@ -183,7 +183,7 @@ int main() {
   print_vector(matrix, "Matrix (4x4)");
 
   // 获取行视图（连续内存）
-  auto row_span = matrix.span(2, md::all());  // 第3行
+  auto row_span = matrix.span(2, all());  // 第3行
   std::cout << "Row 2 (0-indexed) as span: ";
   for (size_t i = 0; i < row_span.size(); ++i) {
     std::cout << row_span[i] << " ";
@@ -192,7 +192,7 @@ int main() {
 
   // 获取列视图（注意：列在行优先布局中不连续）
   try {
-    auto col_span = matrix.span(md::all(), 2);  // 第3列
+    auto col_span = matrix.span(all(), 2);  // 第3列
     std::cout << "Column 2 as span: ";
     for (size_t i = 0; i < col_span.size(); ++i) {
       std::cout << col_span[i] << " ";
@@ -204,7 +204,7 @@ int main() {
 
   // 获取子矩阵（连续区域）
   try {
-    auto sub_span = matrix.span(1, md::slice(1, 3));
+    auto sub_span = matrix.span(1, slice(1, 3));
     std::cout << "Submatrix (rows 1, cols 1-3):" << std::endl;
     sub_span.print();
   } catch (const std::runtime_error& e) {
@@ -214,20 +214,20 @@ int main() {
   // ========== 7. 视图操作 (view with stride) ==========
   std::cout << "\n========== 7. View Operations (Strided Views) ==========" << std::endl;
 
-  vector_2d<int> strided_demo({4, 4});
+  vector_2d<int> strided_demo(4, 4);
   strided_demo.set_arange(1, 1);
   print_vector(strided_demo, "Original matrix");
 
   // 创建步长视图（每隔一个元素取一个）
-  auto strided_view = strided_demo.view(md::all(), md::slice(0, 3, 2));  // 每隔一列
-  std::cout << "Strided view (every other column):" << std::endl;
+  auto strided_view = strided_demo.view(all(), slice(0, 2, 3));  // 每隔一列
+  std::cout << "Strided view (rows all, cols 1 and 3):" << std::endl;
   strided_view.print();
 
   // 修改视图中的值会影响原矩阵
   strided_view[0, 0] = 999;
-  std::cout << "\nAfter modifying view (0,0) to 999:" << std::endl;
-  std::cout << "Original matrix at (0,0): " << strided_demo[0, 0] << std::endl;
-  std::cout << "Original matrix at (0,1): " << strided_demo[0, 1] << std::endl;
+  std::cout << "\nAfter modifying view [0,0] to 999:" << std::endl;
+  std::cout << "Original matrix at [0,0]: " << strided_demo[0, 0] << std::endl;
+  std::cout << "Original matrix at [0,1]: " << strided_demo[0, 1] << std::endl;
 
   // ========== 8. 维度操作 ==========
   std::cout << "\n========== 8. Dimension Operations ==========" << std::endl;
@@ -314,12 +314,13 @@ int main() {
   const int large_size = 1000000;
   vector_1d<double> large_vec1(large_size);
   vector_1d<double> large_vec2(large_size);
+  vector_1d<double> result(large_size);
 
   large_vec1.set_arange(0.0, 1.0);
   large_vec2.set_arange(large_size, -1.0);
 
   auto start = std::chrono::high_resolution_clock::now();
-  vector_1d<double> result = large_vec1 + large_vec2;
+  result = large_vec1 + large_vec2;
   auto end = std::chrono::high_resolution_clock::now();
 
   auto num_commas = [](int value) {
@@ -339,18 +340,18 @@ int main() {
     std::reverse(result.begin(), result.end());
     return result;
   };
-  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-  std::cout << "Vector addition of " << num_commas(large_size) << " elements took: " << duration.count() << " ms"
-            << std::endl;
+  auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+  std::cout << "Vector addition of " << num_commas(large_size)
+            << " elements took: " << static_cast<double>(duration.count()) / 1000.0 << " ms" << std::endl;
 
   // ========== 12. 复杂示例 ==========
   std::cout << "\n========== 12. Complex Using Demo ==========" << std::endl;
 
   // 快速根据节点三维坐标计算10个梁的长度
-  md::vector<double, 2> pos_info(3, 11);         //      node1 node2 node3 ... node11
-  pos_info.span(0, md::all()).set_arange(1, 1);  // x坐标   1    2     3   ...   11
-  pos_info.span(1, md::all()).set_arange(2, 2);  // y坐标   2    4     6   ...   22
-  pos_info.span(2, md::all()).set_arange(3, 3);  // z坐标   3    6     9   ...   33
+  md::vector<double, 2> pos_info(3, 11);     //      node1 node2 node3 ... node11
+  pos_info.span(0, all()).set_arange(1, 1);  // x坐标   1    2     3   ...   11
+  pos_info.span(1, all()).set_arange(2, 2);  // y坐标   2    4     6   ...   22
+  pos_info.span(2, all()).set_arange(3, 3);  // z坐标   3    6     9   ...   33
   std::cout << "node position:" << std::endl;
   pos_info.print();
   auto x1 = pos_info.span(0, slice(0, -2));
