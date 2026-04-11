@@ -311,17 +311,31 @@ int main() {
   // ========== 11. 性能测试 ==========
   std::cout << "\n========== 11. Performance Demo ==========" << std::endl;
 
-  const int large_size = 1000000;
+  const int large_size = 10;
   vector_1d<double> large_vec1(large_size);
   vector_1d<double> large_vec2(large_size);
-  vector_1d<double> result(large_size);
+  vector_1d<double> result_seq(large_size);
+  vector_1d<double> result_par(large_size);
 
-  large_vec1.set_arange(0.0, 1.0);
-  large_vec2.set_arange(large_size, -1.0);
+  // large_vec1.set_arange(0.0, 1.0);
+  // large_vec2.set_arange(large_size, -1.0);
+  large_vec1.fill(1.0);
+  large_vec2.fill(2.0);
+
+  auto expr = large_vec1 + large_vec2 * large_vec1 - 2.0 * large_vec2 + large_vec2 / large_vec1;
+  auto expr2 = large_vec1 + large_vec2;
 
   auto start = std::chrono::high_resolution_clock::now();
-  result = large_vec1 + large_vec2;
+  result_seq = expr2;
   auto end = std::chrono::high_resolution_clock::now();
+  result_seq.print();
+  auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+
+  auto start_par = std::chrono::high_resolution_clock::now();
+  expr2.eval_to(result_par, md::par);
+  auto end_par = std::chrono::high_resolution_clock::now();
+  result_par.print();
+  auto duration_par = std::chrono::duration_cast<std::chrono::microseconds>(end_par - start_par);
 
   auto num_commas = [](int value) {
     std::string str = std::to_string(value);
@@ -340,9 +354,10 @@ int main() {
     std::reverse(result.begin(), result.end());
     return result;
   };
-  auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+
   std::cout << "Vector addition of " << num_commas(large_size)
-            << " elements took: " << static_cast<double>(duration.count()) / 1000.0 << " ms" << std::endl;
+            << " elements took: " << static_cast<double>(duration.count()) / 1000.0 << " ms"
+            << "   parallel tool: " << static_cast<double>(duration_par.count()) / 1000.0 << " ms" << std::endl;
 
   // ========== 12. 复杂示例 ==========
   std::cout << "\n========== 12. Complex Using Demo ==========" << std::endl;
