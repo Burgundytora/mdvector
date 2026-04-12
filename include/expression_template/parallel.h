@@ -9,6 +9,7 @@
 #include <functional>
 #include <stop_token>
 #include <mutex>
+#include <condition_variable>
 
 namespace md {
 

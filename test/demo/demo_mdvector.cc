@@ -311,30 +311,27 @@ int main() {
   // ========== 11. 性能测试 ==========
   std::cout << "\n========== 11. Performance Demo ==========" << std::endl;
 
-  const int large_size = 10;
+  const size_t large_size = 10000000;
   vector_1d<double> large_vec1(large_size);
   vector_1d<double> large_vec2(large_size);
+  vector_1d<double> large_vec3(large_size);
   vector_1d<double> result_seq(large_size);
   vector_1d<double> result_par(large_size);
 
-  // large_vec1.set_arange(0.0, 1.0);
-  // large_vec2.set_arange(large_size, -1.0);
   large_vec1.fill(1.0);
   large_vec2.fill(2.0);
+  large_vec3.fill(3.0);
 
-  auto expr = large_vec1 + large_vec2 * large_vec1 - 2.0 * large_vec2 + large_vec2 / large_vec1;
-  auto expr2 = large_vec1 + large_vec2;
-
+  // 默认顺序执行
   auto start = std::chrono::high_resolution_clock::now();
-  result_seq = expr2;
+  result_seq = large_vec1 * large_vec2 / large_vec3 - 1.0 + large_vec3 / 0.5;
   auto end = std::chrono::high_resolution_clock::now();
-  result_seq.print();
   auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
+  // 手动并行执行
   auto start_par = std::chrono::high_resolution_clock::now();
-  expr2.eval_to(result_par, md::par);
+  (large_vec1 * large_vec2 / large_vec3 - 1.0 + large_vec3 / 0.5).eval_to(result_par, md::par);
   auto end_par = std::chrono::high_resolution_clock::now();
-  result_par.print();
   auto duration_par = std::chrono::duration_cast<std::chrono::microseconds>(end_par - start_par);
 
   auto num_commas = [](int value) {

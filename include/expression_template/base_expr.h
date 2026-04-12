@@ -51,8 +51,6 @@ class base_expr {
       return;
     }
 
-    std::cout << "par!" << std::endl;
-
     constexpr size_t pack_size = simd<T>::pack_size;
     const size_t num_packs = n / pack_size;
 
@@ -64,9 +62,6 @@ class base_expr {
       // 至少保证每个 chunk 有一定的工作量
       constexpr size_t min_packs_per_chunk = 64;
       chunk_packs = std::max(chunk_packs, min_packs_per_chunk);
-
-      std::cout << "num_workers: " << num_workers << std::endl;
-      std::cout << "chunk_packs: " << chunk_packs << std::endl;
     }
 
     // 并行处理所有完整的 SIMD packs
