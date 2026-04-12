@@ -322,6 +322,10 @@ int main() {
   large_vec2.fill(2.0);
   large_vec3.fill(3.0);
 
+  // WARNING: 禁止定义auto 临时表达式 会导致复杂生命周期问题
+  // auto exp = large_vec1 * large_vec2 / large_vec3 - 1.0 + large_vec3 / 0.5;
+  // result_seq = expr;
+
   // 默认顺序执行
   auto start = std::chrono::high_resolution_clock::now();
   result_seq = large_vec1 * large_vec2 / large_vec3 - 1.0 + large_vec3 / 0.5;
