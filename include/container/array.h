@@ -191,6 +191,35 @@ class array : public base_expr<array<T, Layout, lengths...>, T>,
     }
   }
 
+  void set_random_uniform(T min_val = 0, T max_val = 1)
+    requires Numeric<T>
+  {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    if constexpr (std::is_floating_point_v<T>) {
+      std::uniform_real_distribution<T> dis(min_val, max_val);
+      for (size_t i = 0; i < raw_total_size__; ++i) {
+        array_[i] = dis(gen);
+      }
+    } else {
+      std::uniform_int_distribution<T> dis(min_val, max_val);
+      for (size_t i = 0; i < raw_total_size__; ++i) {
+        array_[i] = dis(gen);
+      }
+    }
+  }
+
+  void set_random_normal(T mean = 0, T stddev = 1)
+    requires Numeric<T> && std::is_floating_point_v<T>
+  {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::normal_distribution<T> dis(mean, stddev);
+    for (size_t i = 0; i < raw_total_size__; ++i) {
+      array_[i] = dis(gen);
+    }
+  }
+
   ///////////////////////////////////////////////////////////////////////////////////////
   /// 打印
   void print() const

@@ -212,6 +212,35 @@ class vector : public base_expr<vector<T, Rank, Layout>, T>, public iterator_mix
     }
   }
 
+  void set_random_uniform(T min_val = 0, T max_val = 1)
+    requires Numeric<T>
+  {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    if constexpr (std::is_floating_point_v<T>) {
+      std::uniform_real_distribution<T> dis(min_val, max_val);
+      for (size_t i = 0; i < size_; ++i) {
+        vector_[i] = dis(gen);
+      }
+    } else {
+      std::uniform_int_distribution<T> dis(min_val, max_val);
+      for (size_t i = 0; i < size_; ++i) {
+        vector_[i] = dis(gen);
+      }
+    }
+  }
+
+  void set_random_normal(T mean = 0, T stddev = 1)
+    requires Numeric<T> && std::is_floating_point_v<T>
+  {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::normal_distribution<T> dis(mean, stddev);
+    for (size_t i = 0; i < size_; ++i) {
+      vector_[i] = dis(gen);
+    }
+  }
+
   void set_shape(std::array<size_t, Rank> shape) {
     if (shape == shape_ && !mdspan_.empty()) {
       return;

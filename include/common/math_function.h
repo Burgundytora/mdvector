@@ -2,6 +2,7 @@
 #define __MDVECTOR_MATH_FUNCTION__
 
 #include <cmath>
+#include <random>
 
 #include "mdvector_def.h"
 

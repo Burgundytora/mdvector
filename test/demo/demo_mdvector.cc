@@ -78,6 +78,13 @@ int main() {
   fill_demo.fill(42);
   print_vector(fill_demo, "fill(42) - all 42");
 
+  vector_1d<double> random_fill_demo(10);
+  random_fill_demo.set_random_uniform(0, 1);
+  print_vector(random_fill_demo, "set_random_uniform(0, 1) - uniform randow 0 ~ 1");
+
+  random_fill_demo.set_random_normal(0, 1);
+  print_vector(random_fill_demo, "set_random_normal(0, 1) - normal randow mean=0 std=1");
+
   // ========== 3. 多维索引访问 ==========
   std::cout << "\n========== 3. Multi-dimensional Indexing ==========" << std::endl;
 
@@ -171,9 +178,24 @@ int main() {
   vector_1d<double> neg = -a;
   print_vector(neg, "neg = -a");
 
-  // 复杂表达式
-  vector_1d<double> complex_expr = (a + b) * 2.0 - (a / b) + 10.0;
-  print_vector(complex_expr, "complex_expr = (a + b) * 2 - (a / b) + 10");
+  // 复杂数学表达式
+  vector_1d<double> complex_expr = (a + pow(b, 2)) * 2.0 - (cos(a) / b) + 10.0;
+  print_vector(complex_expr, "complex_expr = (a + pow(b, 2)) * 2.0 - (cos(a) / b) + 10.0");
+
+  // 统计值
+  auto _max = md::max(complex_expr);
+  auto _max_id = md::max_index(complex_expr);
+  auto _min = md::min(complex_expr);
+  auto _min_id = md::min_index(complex_expr);
+  auto _mean = md::mean(complex_expr);
+  auto _mid = md::median(complex_expr);
+  auto _std = md::standard_deviation(complex_expr);
+  auto _sum = md::sum(complex_expr);
+
+  std::println(
+      "statistic of complex_expr:\n max: {:.4f}\n max_id: {}\n min: {:.4f}\n min_id: {}\n mean: {:.4f}\n mid: {:.4f}\n "
+      "std: {:.4f}\n sum: {:.4f}",
+      _max, _max_id, _min, _min_id, _mean, _mid, _std, _sum);
 
   // ========== 6. 视图操作 (span) ==========
   std::cout << "\n========== 6. Span Operations (Contiguous Views) ==========" << std::endl;
