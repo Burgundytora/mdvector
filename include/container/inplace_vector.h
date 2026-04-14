@@ -1,6 +1,10 @@
 #ifndef __MDVECTOR_INPLACE_VECTOR__
 #define __MDVECTOR_INPLACE_VECTOR__
 
+/*
+
+暂时用不到注释掉
+
 #include "common/detail.h"
 #include "common/iterator_mixin.h"
 #include "common/type_concept.h"
@@ -492,5 +496,7 @@ class inplace_vector : public md::base_expr<inplace_vector<T, Rank, Capacity, La
 };
 
 }  // namespace md
+
+*/
 
 #endif  // __MDVECTOR_INPLACE_VECTOR__

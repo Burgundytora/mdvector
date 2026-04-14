@@ -223,38 +223,38 @@ void test_mdarray_expr() {
   val = data_res(0, 0);
 }
 
-template <class T, size_t N1, size_t N2>
-void test_mdinpvec_expr() {
-  md::inplace_vector<T, 2, N1 * N2 * 5 / 4, std::layout_right> data1_;
-  md::inplace_vector<T, 2, N1 * N2 * 5 / 4, std::layout_right> data2_;
-  md::inplace_vector<T, 2, N1 * N2 * 5 / 4, std::layout_right> data3_;
-  md::inplace_vector<T, 2, N1 * N2 * 5 / 4, std::layout_right> data4_;
-  md::inplace_vector<T, 2, N1 * N2 * 5 / 4, std::layout_right> data_res;
+// template <class T, size_t N1, size_t N2>
+// void test_mdinpvec_expr() {
+//   md::inplace_vector<T, 2, N1 * N2 * 5 / 4, std::layout_right> data1_;
+//   md::inplace_vector<T, 2, N1 * N2 * 5 / 4, std::layout_right> data2_;
+//   md::inplace_vector<T, 2, N1 * N2 * 5 / 4, std::layout_right> data3_;
+//   md::inplace_vector<T, 2, N1 * N2 * 5 / 4, std::layout_right> data4_;
+//   md::inplace_vector<T, 2, N1 * N2 * 5 / 4, std::layout_right> data_res;
 
-  data1_.set_shape(N1, N2);
-  data2_.set_shape(N1, N2);
-  data3_.set_shape(N1, N2);
-  data4_.set_shape(N1, N2);
-  data_res.set_shape(N1, N2);
+//   data1_.set_shape(N1, N2);
+//   data2_.set_shape(N1, N2);
+//   data3_.set_shape(N1, N2);
+//   data4_.set_shape(N1, N2);
+//   data_res.set_shape(N1, N2);
 
-  // 赋值
-  data1_.fill(1.0);
-  data2_.fill(2.0);
-  data3_.fill(3.0);
-  data4_.fill(4.0);
-  data_res.fill(0.0);
+//   // 赋值
+//   data1_.fill(1.0);
+//   data2_.fill(2.0);
+//   data3_.fill(3.0);
+//   data4_.fill(4.0);
+//   data_res.fill(0.0);
 
-  {
-    TimerRecorder a("mdinpvec");
+//   {
+//     TimerRecorder a("mdinpvec");
 
-    size_t k = 0;
-    while (k++ < loop) {
-      data_res = data1_ + data1_ - data2_ * data3_ / data4_;
-    }
-  }
+//     size_t k = 0;
+//     while (k++ < loop) {
+//       data_res = data1_ + data1_ - data2_ * data3_ / data4_;
+//     }
+//   }
 
-  val = data_res(0, 0);
-}
+//   val = data_res(0, 0);
+// }
 
 template <class T>
 void test_base_expr() {
@@ -479,25 +479,25 @@ int main(int args, char* argv[]) {
     // 静态分派 mdarray 测试
     if (dim1 == 1 && dim2 == 4) {
       test_mdarray_expr<double, 1, 4>();
-      test_mdinpvec_expr<double, 1, 4>();
+      // test_mdinpvec_expr<double, 1, 4>();
     } else if (dim1 == 1 && dim2 == 10) {
       test_mdarray_expr<double, 1, 10>();
-      test_mdinpvec_expr<double, 1, 10>();
+      // test_mdinpvec_expr<double, 1, 10>();
     } else if (dim1 == 1 && dim2 == 50) {
       test_mdarray_expr<double, 1, 50>();
-      test_mdinpvec_expr<double, 1, 50>();
+      // test_mdinpvec_expr<double, 1, 50>();
     } else if (dim1 == 3 && dim2 == 70) {
       test_mdarray_expr<double, 3, 70>();
-      test_mdinpvec_expr<double, 3, 70>();
+      // test_mdinpvec_expr<double, 3, 70>();
     } else if (dim1 == 5 && dim2 == 100) {
       test_mdarray_expr<double, 5, 100>();
-      test_mdinpvec_expr<double, 5, 100>();
+      // test_mdinpvec_expr<double, 5, 100>();
     } else if (dim1 == 10 && dim2 == 100) {
       test_mdarray_expr<double, 10, 100>();
-      test_mdinpvec_expr<double, 10, 100>();
+      // test_mdinpvec_expr<double, 10, 100>();
     } else if (dim1 == 100 && dim2 == 100) {
       test_mdarray_expr<double, 100, 100>();
-      test_mdinpvec_expr<double, 100, 100>();
+      // test_mdinpvec_expr<double, 100, 100>();
     }
     test_mdvector_expr<double>();
     test_simd<double>();

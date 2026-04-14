@@ -25,7 +25,7 @@ add_subdirectory(test/demo)
 
 
 # 测试
-option(BUILD_SPEED_TEST "" ON)
+option(BUILD_SPEED_TEST "" OFF)
 if(BUILD_SPEED_TEST)
     set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/include")
     message(STATUS "include dir: ${INCLUDE_DIR}")
