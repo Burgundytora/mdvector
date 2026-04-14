@@ -1,7 +1,6 @@
 #ifndef __MDVECTOR_BINARY_OPERATION_EXPR__
 #define __MDVECTOR_BINARY_OPERATION_EXPR__
 
-#include "common/mdvector_def.h"
 #include "extract_layout.h"
 
 namespace md {
@@ -64,11 +63,11 @@ class binary_operation_expr : public base_expr<binary_operation_expr<T, L, R, Ca
     return *this;
   }
 
-  // 打印
-  void print() {
-    md::vector<T, rank_, layout_type> result = *this;
-    result.print();
-  }
+  // // 打印
+  // void print() {
+  //   md::vector<T, rank_, layout_type> result = *this;
+  //   result.print();
+  // }
 };
 
 }  // namespace md

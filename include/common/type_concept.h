@@ -3,6 +3,7 @@
 
 #include <concepts>
 #include <type_traits>
+#include <iostream>
 
 // 定义概念
 template <typename T>
@@ -24,7 +25,7 @@ template <typename T>
 concept Arithmetic = requires(T a, T b) {
   a + b;
   a - b;
-  a * b;
+  a* b;
   a / b;
 };
 
