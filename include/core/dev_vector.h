@@ -1,33 +1,33 @@
-// core/dev_mdvector.h
 #ifndef __MDVECTOR_DEV_MDVECTOR__
 #define __MDVECTOR_DEV_MDVECTOR__
 
-#include "storage/storage_data.h"
-#include "fill.h"
-#include "multi_dim.h"
-#include "expression.h"
-#include "../common/iterator_mixin.h"
-#include "../expression_template/operator_overload.h"
+#include "../storage/storage.h"
+#include "../iterator/iterator.h"
+#include "../multi_dim/multi_dim.h"
+#include "../expression/expression.h"
 
 namespace md {
 
 template <typename T, size_t Rank, typename Layout = std::layout_right>
 class vector : public base_expr<vector<T, Rank, Layout>, T>,
                public vector_storage<T>,
-               public iterator_mixin<vector<T, Rank, Layout>, T>,
-               public multi_dim_impl<vector<T, Rank, Layout>, T, Rank, Layout>,
+               public multi_dim_dynamic<vector<T, Rank, Layout>, T, Rank, Layout>,
+               public iterator_contiguous<vector<T, Rank, Layout>, T>,
                public fill_ops<vector<T, Rank, Layout>, T>,
+               public simd_io_contiguous<vector<T, Rank, Layout>, T, aligned_policy>,
                public expression_impl<vector<T, Rank, Layout>, T, aligned_policy> {
   using BaseExpr = base_expr<vector<T, Rank, Layout>, T>;
   using Storage = vector_storage<T>;
+  using MultiDim = multi_dim_dynamic<vector<T, Rank, Layout>, T, Rank, Layout>;
+  using Iterator = iterator_contiguous<vector<T, Rank, Layout>, T>;
   using FillOps = fill_ops<vector<T, Rank, Layout>, T>;
-  using MultiDim = multi_dim_impl<vector<T, Rank, Layout>, T, Rank, Layout>;
+  using SimdIO = simd_io_contiguous<vector<T, Rank, Layout>, T, aligned_policy, false>;
   using Expr = expression_impl<vector<T, Rank, Layout>, T, aligned_policy>;
-  using Iterator = iterator_mixin<vector<T, Rank, Layout>, T>;
 
   friend Storage;
   friend MultiDim;
   friend Expr;
+  friend SimdIO;
 
  public:
   using simd_policy = aligned_policy;
@@ -139,29 +139,73 @@ class vector : public base_expr<vector<T, Rank, Layout>, T>,
   using Expr::operator-;
   using Expr::operator+;
 
+  // using SimdIO::load_simd_impl;
+  // using SimdIO::store_simd_impl;
+
   // ============ SIMD 接口 ============
 
-  template <typename T2>
-  auto load_simd(size_t i) const noexcept
-    requires Numeric<T>
-  {
-    return simd_policy::template load<T2>(data() + i);
+  // template <typename T2>
+  // auto load_simd(size_t i) const noexcept
+  //   requires Numeric<T>
+  // {
+  //   return simd_policy::template load<T2>(data() + i);
+  // }
+
+  // template <typename T2>
+  // void store_simd(size_t i, typename simd<T2>::const_ref_type val) noexcept {
+  //   simd_policy::template store<T>(data() + i, val);
+  // }
+
+ private:
+  void check_initialized() const {
+    if (mdspan().empty()) {
+      throw std::logic_error("md::vector not initialized");
+    }
   }
 
-  template <typename T2>
-  void store_simd(size_t i, typename simd<T2>::const_ref_type val) noexcept {
-    simd_policy::template store<T>(data() + i, val);
+  template <typename... Indices>
+  void check_indices(Indices... indices) const {
+    static_assert(sizeof...(Indices) == Rank, "Number of indices must match the rank of md::vector");
+
+    const size_t idx_array[Rank] = {static_cast<size_t>(indices)...};
+    for (int i = 0; i < Rank; ++i) {
+      if (idx_array[i] >= extent(i)) {
+        throw std::out_of_range(
+            std::format("Index {} out of range for dimension {} (size: {})", idx_array[i], i, extent(i)));
+      }
+    }
+  }
+
+  // 计算数据指针偏移
+  std::size_t calculate_offset(const std::array<slice, Rank>& slices, const std::array<bool, Rank>& is_integral) {
+    std::size_t offset = 0;
+    std::size_t stride = 1;
+
+    // 按内存布局计算偏移（这里以行优先为例）
+    if constexpr (std::is_same_v<Layout, std::layout_right>) {
+      for (int i = Rank - 1; i >= 0; --i) {
+        if (!is_integral[i]) {
+          offset += slices[i].start * stride;
+          stride *= extent(i);
+        } else {
+          offset += static_cast<std::size_t>(slices[i].start) * stride;
+        }
+      }
+    } else {
+      for (int i = 0; i <= Rank - 1; ++i) {
+        if (!is_integral[i]) {
+          offset += slices[i].start * stride;
+          stride *= extent(i);
+        } else {
+          offset += static_cast<std::size_t>(slices[i].start) * stride;
+        }
+      }
+    }
+
+    return offset;
   }
 };
 
-// 便捷别名
-template <typename T>
-using vector_1d = vector<T, 1>;
-template <typename T>
-using vector_2d = vector<T, 2>;
-template <typename T>
-using vector_3d = vector<T, 3>;
-
 }  // namespace md
 
-#endif
+#endif  // __MDVECTOR_DEV_MDVECTOR__

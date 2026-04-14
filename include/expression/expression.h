@@ -1,8 +1,8 @@
-#ifndef __MDVECTOR_CORE_EXPRESSION__
-#define __MDVECTOR_CORE_EXPRESSION__
+#ifndef __MDVECTOR_EXPRESSION__
+#define __MDVECTOR_EXPRESSION__
 
-#include "../expression_template/operator_overload.h"
-#include "../simd/simd_function.h"
+#include "operator_overload.h"
+#include "../simd/simd.h"
 
 namespace md {
 
@@ -12,26 +12,28 @@ namespace md {
 template <typename Derived, typename T, typename SimdPolicy>
 class expression_impl {
  protected:
-  Derived& derived() { return static_cast<Derived&>(*this); }
-  const Derived& derived() const { return static_cast<const Derived&>(*this); }
+  Derived& derived() noexcept { return static_cast<Derived&>(*this); }
+  const Derived& derived() const noexcept { return static_cast<const Derived&>(*this); }
 
  public:
   using value_type = T;
+  // ============ SIMD IO ============
 
-  // ============ simd IO ============
-  template <typename T2>
+  // template <typename T>
   auto load_simd(size_t i) const noexcept
     requires Numeric<T>
   {
-    return derived().template load_simd(i);
+    return derived().template load_simd_impl(i);
   }
 
-  template <typename T2>
-  void store_simd(size_t i, typename simd<T2>::const_ref_type val)
+  // template <typename T2>
+  void store_simd(size_t i, typename simd<T>::const_ref_type val)
     requires Numeric<T>
   {
-    derived().template store_simd<T2>(i, val);
+    derived().template store_simd_impl(i, val);
   }
+
+  size_t used_size() const noexcept { return derived().used_size(); }
 
   // ============ 表达式模板赋值 ============
 
@@ -122,4 +124,4 @@ class expression_impl {
 
 }  // namespace md
 
-#endif
+#endif  // __MDVECTOR_EXPRESSION__

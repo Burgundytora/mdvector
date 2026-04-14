@@ -1,20 +1,18 @@
-// core/storage_algorithm.h (简化版)
-#ifndef __MDVECTOR_STORAGE_ALGORITHM__
-#define __MDVECTOR_STORAGE_ALGORITHM__
+#ifndef __MDVECTOR_ITERATOR_FILL__
+#define __MDVECTOR_ITERATOR_FILL__
+
+#include "iterator_concept.h"
 
 #include <algorithm>
 #include <random>
 
 namespace md {
 
-// ============================================================================
-// 所有存储操作合并在一个类中
-// ============================================================================
 template <typename Derived, typename T>
 class fill_ops {
  protected:
-  Derived& derived() { return static_cast<Derived&>(*this); }
-  const Derived& derived() const { return static_cast<const Derived&>(*this); }
+  Derived& derived() noexcept { return static_cast<Derived&>(*this); }
+  const Derived& derived() const noexcept { return static_cast<const Derived&>(*this); }
 
  public:
   // ------------------------------------------------------------------------
@@ -80,4 +78,4 @@ class fill_ops {
 
 }  // namespace md
 
-#endif
+#endif  // __MDVECTOR_ITERATOR_FILL__

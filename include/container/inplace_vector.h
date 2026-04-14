@@ -7,8 +7,8 @@
 
 #include "common/detail.h"
 #include "common/iterator_mixin.h"
-#include "common/type_concept.h"
-#include "expression_template/operator_overload.h"
+#include "common/base_concept.h"
+#include "expression/operator_overload.h"
 #include "simd/simd_function.h"
 #include "common/math_function.h"
 

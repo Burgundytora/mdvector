@@ -6,7 +6,7 @@
 #include <format>
 
 #include "mdspan_little.h"
-#include "type_concept.h"
+#include "base_concept.h"
 
 namespace md {
 

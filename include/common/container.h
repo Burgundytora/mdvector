@@ -7,7 +7,7 @@
 
 #include "simd/allocator.h"
 #include "simd/simd_function.h"
-#include "type_concept.h"
+#include "base_concept.h"
 
 // 用于mdvector的栈数组优化
 // 经测试 性能相比直接vector有下降

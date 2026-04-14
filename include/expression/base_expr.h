@@ -9,6 +9,7 @@ namespace md {
 template <typename Derived, typename T, typename ExecutionPolicy = sequential_t>
 class base_expr {
  public:
+  Derived& derived() noexcept { return static_cast<Derived&>(*this); }
   const Derived& derived() const noexcept { return static_cast<const Derived&>(*this); }
 
   size_t used_size() const noexcept { return derived().used_size(); }

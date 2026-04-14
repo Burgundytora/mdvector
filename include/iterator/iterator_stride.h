@@ -1,8 +1,8 @@
-#ifndef __MDVECTOR_INTERAOTR_VIEW__
-#define __MDVECTOR_INTERAOTR_VIEW__
+#ifndef __MDVECTOR_INTERAOTR_STRIDE__
+#define __MDVECTOR_INTERAOTR_STRIDE__
 
-#include "detail.h"
-#include "type_concept.h"
+#include "../common/detail.h"
+#include "../common/base_concept.h"
 
 namespace md {
 
@@ -10,7 +10,7 @@ namespace md {
 template <typename T, size_t Rank>
 class view;
 
-// 跨步视图迭代器
+// TODO: 优化性能
 template <typename T, size_t Rank, bool IsConst>
 class iterator_stride {
  public:
@@ -28,10 +28,10 @@ class iterator_stride {
 
  public:
   // 构造函数
-  view_iterator(view_type* view, std::array<size_t, Rank> indices, size_t linear_pos)
+  iterator_stride(view_type* view, std::array<size_t, Rank> indices, size_t linear_pos)
       : view_ptr_(view), current_indices_(indices), linear_pos_(linear_pos) {}
 
-  view_iterator(view_type* view, size_t linear_pos = 0) : view_ptr_(view), linear_pos_(linear_pos) {
+  iterator_stride(view_type* view, size_t linear_pos = 0) : view_ptr_(view), linear_pos_(linear_pos) {
     if (view_ptr_ && linear_pos_ < view_ptr_->size()) {
       current_indices_ = view_ptr_->get_md_index(linear_pos_);
     } else {
@@ -41,7 +41,7 @@ class iterator_stride {
 
   // 允许从非 const 迭代器构造 const 迭代器
   template <bool OtherIsConst, typename = std::enable_if_t<IsConst && !OtherIsConst>>
-  view_iterator(const view_iterator<T, Rank, OtherIsConst>& other)
+  iterator_stride(const iterator_stride<T, Rank, OtherIsConst>& other)
       : view_ptr_(other.view_ptr_), current_indices_(other.current_indices_), linear_pos_(other.linear_pos_) {}
 
   // 解引用
@@ -52,33 +52,33 @@ class iterator_stride {
   pointer operator->() const { return &(**this); }
 
   // 前缀递增
-  view_iterator& operator++() {
+  iterator_stride& operator++() {
     increment();
     return *this;
   }
 
   // 后缀递增
-  view_iterator operator++(int) {
-    view_iterator tmp = *this;
+  iterator_stride operator++(int) {
+    iterator_stride tmp = *this;
     increment();
     return tmp;
   }
 
   // 前缀递减
-  view_iterator& operator--() {
+  iterator_stride& operator--() {
     decrement();
     return *this;
   }
 
   // 后缀递减
-  view_iterator operator--(int) {
-    view_iterator tmp = *this;
+  iterator_stride operator--(int) {
+    iterator_stride tmp = *this;
     decrement();
     return tmp;
   }
 
   // 算术运算
-  view_iterator& operator+=(difference_type n) {
+  iterator_stride& operator+=(difference_type n) {
     if (n >= 0) {
       for (difference_type i = 0; i < n; ++i) {
         increment();
@@ -91,19 +91,19 @@ class iterator_stride {
     return *this;
   }
 
-  view_iterator& operator-=(difference_type n) { return *this += (-n); }
+  iterator_stride& operator-=(difference_type n) { return *this += (-n); }
 
-  view_iterator operator+(difference_type n) const {
-    view_iterator tmp = *this;
+  iterator_stride operator+(difference_type n) const {
+    iterator_stride tmp = *this;
     return tmp += n;
   }
 
-  view_iterator operator-(difference_type n) const {
-    view_iterator tmp = *this;
+  iterator_stride operator-(difference_type n) const {
+    iterator_stride tmp = *this;
     return tmp -= n;
   }
 
-  difference_type operator-(const view_iterator& other) const {
+  difference_type operator-(const iterator_stride& other) const {
     return static_cast<difference_type>(linear_pos_) - static_cast<difference_type>(other.linear_pos_);
   }
 
@@ -111,19 +111,19 @@ class iterator_stride {
   reference operator[](difference_type n) const { return *(*this + n); }
 
   // 比较运算符
-  bool operator==(const view_iterator& other) const {
+  bool operator==(const iterator_stride& other) const {
     return view_ptr_ == other.view_ptr_ && linear_pos_ == other.linear_pos_;
   }
 
-  bool operator!=(const view_iterator& other) const { return !(*this == other); }
+  bool operator!=(const iterator_stride& other) const { return !(*this == other); }
 
-  bool operator<(const view_iterator& other) const { return linear_pos_ < other.linear_pos_; }
+  bool operator<(const iterator_stride& other) const { return linear_pos_ < other.linear_pos_; }
 
-  bool operator<=(const view_iterator& other) const { return linear_pos_ <= other.linear_pos_; }
+  bool operator<=(const iterator_stride& other) const { return linear_pos_ <= other.linear_pos_; }
 
-  bool operator>(const view_iterator& other) const { return linear_pos_ > other.linear_pos_; }
+  bool operator>(const iterator_stride& other) const { return linear_pos_ > other.linear_pos_; }
 
-  bool operator>=(const view_iterator& other) const { return linear_pos_ >= other.linear_pos_; }
+  bool operator>=(const iterator_stride& other) const { return linear_pos_ >= other.linear_pos_; }
 
   // 获取当前位置
   size_t linear_position() const { return linear_pos_; }
@@ -156,4 +156,4 @@ class iterator_stride {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_INTERAOTR_VIEW__
+#endif  // __MDVECTOR_INTERAOTR_STRIDE__

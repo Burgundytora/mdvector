@@ -1,4 +1,4 @@
-#include "core/dev_mdvector.h"
+#include "core/dev_vector.h"
 
 int main() {
   md::vector<double, 2> a({2, 2});

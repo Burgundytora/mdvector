@@ -7,7 +7,7 @@ namespace md {
 template <typename Derived, typename T>
 class iterator_mixin {
  public:
-  Derived& derived() { return static_cast<Derived&>(*this); }
+  Derived& derived() noexcept { return static_cast<Derived&>(*this); }
   const Derived& derived() const noexcept { return static_cast<const Derived&>(*this); }
 
   // 假设派生类有 data() 和 size() 方法

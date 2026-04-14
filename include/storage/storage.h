@@ -1,6 +1,6 @@
 // core/storage_data.h
-#ifndef __MDVECTOR_STORAGE_DATA__
-#define __MDVECTOR_STORAGE_DATA__
+#ifndef __MDVECTOR_STORAGE__
+#define __MDVECTOR_STORAGE__
 
 #include "../common/detail.h"
 #include "../simd/simd.h"
@@ -80,18 +80,25 @@ class span_storage {
 
  private:
   T* data_ = nullptr;
-  size_t size_ = 0;
+  size_t raw_size_ = 0;
+  size_t align_size_ = 0;
+  size_t remaining_size_ = 0;
 
  public:
   span_storage() = default;
-  span_storage(T* ptr, size_t n) : data_(ptr), size_(n) {}
+  span_storage(T* ptr, size_t n)
+      : data_(ptr),
+        raw_size_(n),
+        align_size_(get_aligned_size<T>(raw_size_)),
+        remaining_size_(raw_size_ > simd<T>::pack_size ? align_size_ - raw_size_ : raw_size_) {}
 
   T* data() noexcept { return data_; }
   const T* data() const noexcept { return data_; }
 
-  size_t size() const noexcept { return size_; }
-  size_t capacity() const noexcept { return get_aligned_size<T>(size_); }
-  size_t used_size() const noexcept { return capacity(); }
+  size_t size() const noexcept { return raw_size_; }
+  size_t capacity() const noexcept { return align_size_; }
+  size_t used_size() const noexcept { return align_size_; }
+  size_t remaining_size() const noexcept { return remaining_size_; }
 };
 
 // ============================================================================
@@ -153,4 +160,4 @@ template struct storage_checks<int>;
 
 }  // namespace md
 
-#endif
+#endif  // __MDVECTOR_STORAGE__
