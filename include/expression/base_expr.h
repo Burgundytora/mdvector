@@ -45,8 +45,6 @@ class base_expr {
   void eval_to_impl(Dest& dest, parallel_t policy) const noexcept {
     const size_t n = used_size();
 
-    // 数组太小，不值得并行化
-    constexpr size_t parallel_threshold = 10000;
     if (n < parallel_threshold) {
       eval_to_impl(dest, sequential_t{});
       return;

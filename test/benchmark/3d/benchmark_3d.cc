@@ -14,6 +14,7 @@
 
 //
 #include "include_md_all.h"
+#include "simd/simd_function.h"
 
 double val = 0.0;
 
@@ -188,6 +189,35 @@ void test_mdvector_expr() {
   val = data_res(0, 0, 0);
 }
 
+template <class T>
+void test_mdvector_expr_parallel() {
+  md::shape<3> test_shape = {dim1, dim2, dim3};
+  md::vector<T, 3> data1_(test_shape);
+  md::vector<T, 3> data2_(test_shape);
+  md::vector<T, 3> data3_(test_shape);
+  md::vector<T, 3> data4_(test_shape);
+  md::vector<T, 3> data_res(test_shape);
+
+  // 赋值
+  data1_.fill(1.0);
+  data2_.fill(2.0);
+  data3_.fill(3.0);
+  data4_.fill(4.0);
+  data4_.fill(4.0);
+  data_res.fill(0.0);
+
+  {
+    TimerRecorder a("mdvector p");
+
+    size_t k = 0;
+    while (k++ < loop) {
+      (data_res + data1_ - data2_ * data3_ / data4_).eval_to(data_res, md::par);
+    }
+  }
+
+  val = data_res(0, 0, 0);
+}
+
 template <class T, size_t N1, size_t N2, size_t N3>
 void test_mdarray_expr() {
   md::array<T, std::layout_right, N1, N2, N3> data1_;
@@ -335,25 +365,26 @@ int main(int args, char* argv[]) {
 
       // test_mdarray_expr<double, dim1, dim2, dim3>();
       // 静态分派 mdarray 测试
-      if (dim1 == 2 && dim2 == 2 && dim3 == 2) {
-        test_mdarray_expr<double, 2, 2, 2>();
-      } else if (dim1 == 3 && dim2 == 3 && dim3 == 3) {
-        test_mdarray_expr<double, 3, 3, 3>();
-      } else if (dim1 == 5 && dim2 == 5 && dim3 == 5) {
-        test_mdarray_expr<double, 5, 5, 5>();
-      } else if (dim1 == 7 && dim2 == 7 && dim3 == 7) {
-        test_mdarray_expr<double, 7, 7, 7>();
-      } else if (dim1 == 10 && dim2 == 10 && dim3 == 10) {
-        test_mdarray_expr<double, 10, 10, 10>();
-      } else if (dim1 == 20 && dim2 == 20 && dim3 == 20) {
-        test_mdarray_expr<double, 20, 20, 20>();
-      } else if (dim1 == 30 && dim2 == 30 && dim3 == 30) {
-        test_mdarray_expr<double, 30, 30, 30>();
-      }
+      // if (dim1 == 2 && dim2 == 2 && dim3 == 2) {
+      //   test_mdarray_expr<double, 2, 2, 2>();
+      // } else if (dim1 == 3 && dim2 == 3 && dim3 == 3) {
+      //   test_mdarray_expr<double, 3, 3, 3>();
+      // } else if (dim1 == 5 && dim2 == 5 && dim3 == 5) {
+      //   test_mdarray_expr<double, 5, 5, 5>();
+      // } else if (dim1 == 7 && dim2 == 7 && dim3 == 7) {
+      //   test_mdarray_expr<double, 7, 7, 7>();
+      // } else if (dim1 == 10 && dim2 == 10 && dim3 == 10) {
+      //   test_mdarray_expr<double, 10, 10, 10>();
+      // } else if (dim1 == 20 && dim2 == 20 && dim3 == 20) {
+      //   test_mdarray_expr<double, 20, 20, 20>();
+      // } else if (dim1 == 30 && dim2 == 30 && dim3 == 30) {
+      //   test_mdarray_expr<double, 30, 30, 30>();
+      // }
+      test_mdvector_expr<double>();
+      test_mdvector_expr_parallel<double>();
+      test_eigen_tensor();
       test_transform<double>();
       test_simd<double>();
-      test_mdvector_expr<double>();
-      test_eigen_tensor();
       test_norm<double>();
       test_xtensor<double>();
       test_xarray<double>();

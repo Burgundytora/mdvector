@@ -34,9 +34,10 @@ struct TestPoint {
   const size_t total_cal_;
 };
 
-// 8 27 125 343 1000 8000
-constexpr array<TestPoint, 6> all_test_points = {TestPoint(2, 2, 2), TestPoint(3, 3, 3),    TestPoint(5, 5, 5),
-                                                 TestPoint(7, 7, 7), TestPoint(10, 10, 10), TestPoint(20, 20, 20)};
+constexpr array<TestPoint, 12> all_test_points = {
+    TestPoint(2, 2, 2),    TestPoint(3, 3, 3),    TestPoint(5, 5, 5),    TestPoint(7, 7, 7),
+    TestPoint(10, 10, 10), TestPoint(20, 20, 20), TestPoint(50, 50, 50), TestPoint(60, 60, 60),
+    TestPoint(70, 70, 70), TestPoint(80, 80, 80), TestPoint(90, 90, 90), TestPoint(100, 100, 100)};
 
 size_t loop;
 size_t dim1;

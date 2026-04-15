@@ -17,6 +17,7 @@
 //
 #include "include_md_all.h"
 #include "other_method/base_expr/base_expr.h"
+#include "simd/simd_function.h"
 
 using std::vector;
 
@@ -191,6 +192,33 @@ void test_mdvector_expr() {
     size_t k = 0;
     while (k++ < loop) {
       data_res = data1_ + data1_ - data2_ * data3_ / data4_;
+    }
+    val = data_res(0, 0);
+  }
+}
+
+template <class T>
+void test_mdvector_expr_parallel() {
+  md::shape<2> test_shape = {dim1, dim2};
+  md::vector<T, 2> data1_(test_shape);
+  md::vector<T, 2> data2_(test_shape);
+  md::vector<T, 2> data3_(test_shape);
+  md::vector<T, 2> data4_(test_shape);
+  md::vector<T, 2> data_res(test_shape);
+
+  // 赋值
+  data1_.fill(1.0);
+  data2_.fill(2.0);
+  data3_.fill(3.0);
+  data4_.fill(4.0);
+  data_res.fill(0.0);
+
+  {
+    TimerRecorder a("mdvector p");
+
+    size_t k = 0;
+    while (k++ < loop) {
+      (data1_ + data1_ - data2_ * data3_ / data4_).eval_to(data_res, md::par);
     }
     val = data_res(0, 0);
   }
@@ -476,33 +504,34 @@ int main(int args, char* argv[]) {
 
     // double
 
-    // 静态分派 mdarray 测试
-    if (dim1 == 1 && dim2 == 4) {
-      test_mdarray_expr<double, 1, 4>();
-      // test_mdinpvec_expr<double, 1, 4>();
-    } else if (dim1 == 1 && dim2 == 10) {
-      test_mdarray_expr<double, 1, 10>();
-      // test_mdinpvec_expr<double, 1, 10>();
-    } else if (dim1 == 1 && dim2 == 50) {
-      test_mdarray_expr<double, 1, 50>();
-      // test_mdinpvec_expr<double, 1, 50>();
-    } else if (dim1 == 3 && dim2 == 70) {
-      test_mdarray_expr<double, 3, 70>();
-      // test_mdinpvec_expr<double, 3, 70>();
-    } else if (dim1 == 5 && dim2 == 100) {
-      test_mdarray_expr<double, 5, 100>();
-      // test_mdinpvec_expr<double, 5, 100>();
-    } else if (dim1 == 10 && dim2 == 100) {
-      test_mdarray_expr<double, 10, 100>();
-      // test_mdinpvec_expr<double, 10, 100>();
-    } else if (dim1 == 100 && dim2 == 100) {
-      test_mdarray_expr<double, 100, 100>();
-      // test_mdinpvec_expr<double, 100, 100>();
-    }
+    // // 静态分派 mdarray 测试
+    // if (dim1 == 1 && dim2 == 4) {
+    //   test_mdarray_expr<double, 1, 4>();
+    //   // test_mdinpvec_expr<double, 1, 4>();
+    // } else if (dim1 == 1 && dim2 == 10) {
+    //   test_mdarray_expr<double, 1, 10>();
+    //   // test_mdinpvec_expr<double, 1, 10>();
+    // } else if (dim1 == 1 && dim2 == 50) {
+    //   test_mdarray_expr<double, 1, 50>();
+    //   // test_mdinpvec_expr<double, 1, 50>();
+    // } else if (dim1 == 3 && dim2 == 70) {
+    //   test_mdarray_expr<double, 3, 70>();
+    //   // test_mdinpvec_expr<double, 3, 70>();
+    // } else if (dim1 == 5 && dim2 == 100) {
+    //   test_mdarray_expr<double, 5, 100>();
+    //   // test_mdinpvec_expr<double, 5, 100>();
+    // } else if (dim1 == 10 && dim2 == 100) {
+    //   test_mdarray_expr<double, 10, 100>();
+    //   // test_mdinpvec_expr<double, 10, 100>();
+    // } else if (dim1 == 100 && dim2 == 100) {
+    //   test_mdarray_expr<double, 100, 100>();
+    //   // test_mdinpvec_expr<double, 100, 100>();
+    // }
     test_mdvector_expr<double>();
+    test_mdvector_expr_parallel<double>();
+    test_eigen_tensor();
     test_simd<double>();
     test_transform<double>();
-    test_eigen_tensor();
     test_base_expr<double>();
     test_valarray<double>();
     test_norm<double>();
