@@ -4,6 +4,7 @@
 #include <concepts>
 #include <type_traits>
 #include <iostream>
+#include <numeric>
 
 // 定义概念
 template <typename T>

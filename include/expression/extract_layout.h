@@ -1,7 +1,7 @@
 #ifndef __MDVECTOR_EXTRACT_LAYOUT__
 #define __MDVECTOR_EXTRACT_LAYOUT__
 
-#include "scalar_expr.h"
+#include "scalar_wrapper.h"
 
 namespace md {
 

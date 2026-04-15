@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_DEV_ARRAY__
-#define __MDVECTOR_DEV_ARRAY__
+#ifndef __MDVECTOR_MD_ARRAY__
+#define __MDVECTOR_MD_ARRAY__
 
 #include "../storage/storage.h"
 #include "../iterator/iterator.h"
@@ -13,7 +13,7 @@ class array final : public base_expr<array<T, Layout, lengths...>, T>,
                     public stack_storage<T, lengths...>,
                     public multi_dim_static<array<T, Layout, lengths...>, T, Layout, lengths...>,
                     public iterator_contiguous<array<T, Layout, lengths...>, T>,
-                    public fill_ops<array<T, Layout, lengths...>, T>,
+                    public fill_op<array<T, Layout, lengths...>, T>,
                     public expression<array<T, Layout, lengths...>, T, aligned_policy> {
  public:
   using simd_policy = aligned_policy;
@@ -25,7 +25,7 @@ class array final : public base_expr<array<T, Layout, lengths...>, T>,
   using Storage = stack_storage<T, lengths...>;
   using MultiDim = multi_dim_static<array<T, Layout, lengths...>, T, Layout, lengths...>;
   using Iterator = iterator_contiguous<array<T, Layout, lengths...>, T>;
-  using FillOps = fill_ops<array<T, Layout, lengths...>, T>;
+  using FillOps = fill_op<array<T, Layout, lengths...>, T>;
   using Expr = expression<array<T, Layout, lengths...>, T, aligned_policy>;
 
   // ============ 构造函数 ============
@@ -88,16 +88,19 @@ class array final : public base_expr<array<T, Layout, lengths...>, T>,
   // ============ SIMD IO ============
 
   template <typename T2>
-  auto load_simd(size_t i) const noexcept requires Numeric<T> {
+  auto load_simd(size_t i) const noexcept
+    requires Numeric<T>
+  {
     return simd_policy::template load<T2>(data() + i);
   }
 
   template <typename T2>
-  requires Numeric<T> void store_simd(size_t i, typename simd<T2>::const_ref_type val) noexcept {
+    requires Numeric<T>
+  void store_simd(size_t i, typename simd<T2>::const_ref_type val) noexcept {
     simd_policy::template store<T2>(data() + i, val);
   }
 };
 
 }  // namespace md
 
-#endif  // __MDVECTOR_DEV_ARRAY__
+#endif  // __MDVECTOR_MD_ARRAY__

@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_DEV_VIEW__
-#define __MDVECTOR_DEV_VIEW__
+#ifndef __MDVECTOR_MD_VIEW__
+#define __MDVECTOR_MD_VIEW__
 
 #include "../storage/storage.h"
 #include "../iterator/iterator.h"
@@ -12,8 +12,7 @@ template <typename T, size_t Rank>
 class view final : public base_expr<view<T, Rank>, T>,
                    public view_storage<T>,
                    public multi_dim_stride<view<T, Rank>, T, Rank>,
-                   //  public iterator_stride<T, Rank>,
-                   public fill_ops<view<T, Rank>, T>,
+                   public fill_op<view<T, Rank>, T>,
                    public expression<view<T, Rank>, T, aligned_policy> {
  public:
   using simd_policy = aligned_policy;
@@ -24,8 +23,7 @@ class view final : public base_expr<view<T, Rank>, T>,
   using BaseExpr = base_expr<view<T, Rank>, T>;
   using Storage = view_storage<T>;
   using MultiDim = multi_dim_stride<view<T, Rank>, T, Rank>;
-  // using Iterator = iterator_stride<T, Rank>;
-  using FillOps = fill_ops<view<T, Rank>, T>;
+  using FillOps = fill_op<view<T, Rank>, T>;
   using Expr = expression<view<T, Rank>, T, aligned_policy>;
 
   // ============ 构造函数 ============
@@ -73,15 +71,23 @@ class view final : public base_expr<view<T, Rank>, T>,
   using MultiDim::mdspan;
   using MultiDim::check_indices;
 
-  // using Iterator::begin;
-  // using Iterator::end;
-  // using Iterator::cbegin;
-  // using Iterator::cend;
-  // using Iterator::rbegin;
-  // using Iterator::rend;
-  // using Iterator::crbegin;
-  // using Iterator::crend;
-  // 迭代器类型定义
+  using FillOps::fill;
+  using FillOps::set_zeros;
+  using FillOps::set_ones;
+  using FillOps::set_arange;
+  using FillOps::set_random_uniform;
+  using FillOps::set_random_normal;
+
+  using Expr::operator=;
+  using Expr::operator+=;
+  using Expr::operator-=;
+  using Expr::operator*=;
+  using Expr::operator/=;
+  using Expr::operator-;
+  using Expr::operator+;
+
+  // ============ 跨步迭代器 ============
+
   using iterator = iterator_stride<T, Rank, false>;
   using const_iterator = iterator_stride<T, Rank, true>;
   using reverse_iterator = std::reverse_iterator<iterator>;
@@ -99,21 +105,6 @@ class view final : public base_expr<view<T, Rank>, T>,
   const_reverse_iterator rend() const noexcept { return const_reverse_iterator(begin()); }
   const_reverse_iterator crbegin() const noexcept { return const_reverse_iterator(cend()); }
   const_reverse_iterator crend() const noexcept { return const_reverse_iterator(cbegin()); }
-
-  using FillOps::fill;
-  using FillOps::set_zeros;
-  using FillOps::set_ones;
-  using FillOps::set_arange;
-  using FillOps::set_random_uniform;
-  using FillOps::set_random_normal;
-
-  using Expr::operator=;
-  using Expr::operator+=;
-  using Expr::operator-=;
-  using Expr::operator*=;
-  using Expr::operator/=;
-  using Expr::operator-;
-  using Expr::operator+;
 
   // ============ SIMD IO ============
 
@@ -159,4 +150,4 @@ class view final : public base_expr<view<T, Rank>, T>,
 
 }  // namespace md
 
-#endif  // __MDVECTOR_DEV_VIEW__
+#endif  // __MDVECTOR_MD_VIEW__

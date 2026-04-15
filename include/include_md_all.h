@@ -1,12 +1,11 @@
 #ifndef __MDVECTOR_INCLUDE__
 #define __MDVECTOR_INCLUDE__
 
-#include "math/math_function.h"
-
 #include "core/md_vector.h"
 #include "core/md_array.h"
 #include "core/md_span.h"
 #include "core/md_view.h"
+#include "math/math_function.h"
 
 namespace md {
 

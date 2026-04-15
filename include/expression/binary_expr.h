@@ -1,12 +1,13 @@
-#ifndef __MDVECTOR_BINARY_OPERATION_EXPR__
-#define __MDVECTOR_BINARY_OPERATION_EXPR__
+#ifndef __MDVECTOR_BINARY_EXPR__
+#define __MDVECTOR_BINARY_EXPR__
 
 #include "extract_layout.h"
+#include "../simd/simd_op_binary.h"
 
 namespace md {
 
 template <typename T, typename L, typename R, typename Cal>
-class binary_operation_expr : public base_expr<binary_operation_expr<T, L, R, Cal>, T> {
+class binary_expr : public base_expr<binary_expr<T, L, R, Cal>, T> {
  public:
   using value_type = T;
   static constexpr size_t rank_ = derived_rank<L, R>();
@@ -17,7 +18,7 @@ class binary_operation_expr : public base_expr<binary_operation_expr<T, L, R, Ca
   AutoType<R> rhs;
 
  public:
-  binary_operation_expr(const L& l, const R& r) : lhs(l), rhs(r) {}
+  binary_expr(const L& l, const R& r) : lhs(l), rhs(r) {}
 
   size_t used_size() const {
     if constexpr (std::is_arithmetic_v<R>) {
@@ -39,14 +40,14 @@ class binary_operation_expr : public base_expr<binary_operation_expr<T, L, R, Ca
   typename simd<U>::type load_simd(size_t i) const {
     auto l = lhs.template load_simd<U>(i);
     auto r = rhs.template load_simd<U>(i);
-    return simd_cal<U, Cal>(l, r);
+    return simd_op_binary<U, Cal>(l, r);
   }
 
   template <typename U>
   typename simd<U>::type load_simd_mask(size_t i) const {
     auto l = lhs.template load_simd_mask<U>(i);
     auto r = rhs.template load_simd_mask<U>(i);
-    return simd_cal<U, Cal>(l, r);
+    return simd_op_binary<U, Cal>(l, r);
   }
 
   // 取负
@@ -63,7 +64,7 @@ class binary_operation_expr : public base_expr<binary_operation_expr<T, L, R, Ca
     return *this;
   }
 
-  // // 打印
+  // // 打印 注释掉防止循环依赖
   // void print() {
   //   md::vector<T, rank_, layout_type> result = *this;
   //   result.print();
@@ -72,4 +73,4 @@ class binary_operation_expr : public base_expr<binary_operation_expr<T, L, R, Ca
 
 }  // namespace md
 
-#endif  // __MDVECTOR_BINARY_OPERATION_EXPR__
+#endif  // __MDVECTOR_BINARY_EXPR__

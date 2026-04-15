@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_CORE_MULTI_DIM__
-#define __MDVECTOR_CORE_MULTI_DIM__
+#ifndef __MDVECTOR_MULTI_DIM__
+#define __MDVECTOR_MULTI_DIM__
 
 #include "../concepts/base_concept.h"
 #include "mdspan_impl.h"
@@ -350,4 +350,4 @@ class multi_dim_stride {
 
 }  // namespace md
 
-#endif
+#endif  // __MDVECTOR_MULTI_DIM__

@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_DEV_SPAN__
-#define __MDVECTOR_DEV_SPAN__
+#ifndef __MDVECTOR_MD_SPAN__
+#define __MDVECTOR_MD_SPAN__
 
 #include "../storage/storage.h"
 #include "../iterator/iterator.h"
@@ -13,7 +13,7 @@ class span final : public base_expr<span<T, Rank, Layout>, T>,
                    public view_storage<T>,
                    public multi_dim_dynamic<span<T, Rank, Layout>, T, Rank, Layout>,
                    public iterator_contiguous<span<T, Rank, Layout>, T>,
-                   public fill_ops<span<T, Rank, Layout>, T>,
+                   public fill_op<span<T, Rank, Layout>, T>,
                    public expression<span<T, Rank, Layout>, T, unaligned_policy> {
  public:
   using simd_policy = unaligned_policy;
@@ -25,7 +25,7 @@ class span final : public base_expr<span<T, Rank, Layout>, T>,
   using Storage = view_storage<T>;
   using MultiDim = multi_dim_dynamic<span<T, Rank, Layout>, T, Rank, Layout>;
   using Iterator = iterator_contiguous<span<T, Rank, Layout>, T>;
-  using FillOps = fill_ops<span<T, Rank, Layout>, T>;
+  using FillOps = fill_op<span<T, Rank, Layout>, T>;
   using Expr = expression<span<T, Rank, Layout>, T, unaligned_policy>;
 
   // ============ 构造函数 ============
@@ -120,4 +120,4 @@ class span final : public base_expr<span<T, Rank, Layout>, T>,
 
 }  // namespace md
 
-#endif  // __MDVECTOR_DEV_SPAN__
+#endif  // __MDVECTOR_MD_SPAN__

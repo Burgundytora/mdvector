@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_DEV_MDVECTOR__
-#define __MDVECTOR_DEV_MDVECTOR__
+#ifndef __MDVECTOR_MD_VECTOR__
+#define __MDVECTOR_MD_VECTOR__
 
 #include "md_span.h"
 #include "md_view.h"
@@ -17,7 +17,7 @@ class vector final : public base_expr<vector<T, Rank, Layout>, T>,
                      public heap_storage<T>,
                      public multi_dim_dynamic<vector<T, Rank, Layout>, T, Rank, Layout>,
                      public iterator_contiguous<vector<T, Rank, Layout>, T>,
-                     public fill_ops<vector<T, Rank, Layout>, T>,
+                     public fill_op<vector<T, Rank, Layout>, T>,
                      public expression<vector<T, Rank, Layout>, T, aligned_policy> {
  public:
   using simd_policy = aligned_policy;
@@ -29,7 +29,7 @@ class vector final : public base_expr<vector<T, Rank, Layout>, T>,
   using Storage = heap_storage<T>;
   using MultiDim = multi_dim_dynamic<vector<T, Rank, Layout>, T, Rank, Layout>;
   using Iterator = iterator_contiguous<vector<T, Rank, Layout>, T>;
-  using FillOps = fill_ops<vector<T, Rank, Layout>, T>;
+  using FillOps = fill_op<vector<T, Rank, Layout>, T>;
   using Expr = expression<vector<T, Rank, Layout>, T, aligned_policy>;
 
   // ============ 构造函数 ============
@@ -42,12 +42,14 @@ class vector final : public base_expr<vector<T, Rank, Layout>, T>,
   }
 
   template <typename... Sizes>
-  requires(sizeof...(Sizes) == Rank && (std::convertible_to<Sizes, size_t> && ...)) explicit vector(Sizes... sizes)
-      : vector(std::array<size_t, Rank>{static_cast<size_t>(sizes)...}) {}
+    requires(sizeof...(Sizes) == Rank && (std::convertible_to<Sizes, size_t> && ...))
+  explicit vector(Sizes... sizes) : vector(std::array<size_t, Rank>{static_cast<size_t>(sizes)...}) {}
 
   // 从表达式构造
   template <typename E>
-  vector(const base_expr<E, T>& expr) requires Numeric<T> {
+  vector(const base_expr<E, T>& expr)
+    requires Numeric<T>
+  {
     MultiDim::shape_ = expr.extents();
     Storage::resize(calculate_size(MultiDim::shape_));
     MultiDim::init_mdspan(std::make_index_sequence<Rank>{});
@@ -87,7 +89,8 @@ class vector final : public base_expr<vector<T, Rank, Layout>, T>,
   }
 
   template <typename... Sizes>
-  requires(sizeof...(Sizes) == Rank && (std::convertible_to<Sizes, size_t> && ...)) void set_shape(Sizes... sizes) {
+    requires(sizeof...(Sizes) == Rank && (std::convertible_to<Sizes, size_t> && ...))
+  void set_shape(Sizes... sizes) {
     set_shape(std::array<size_t, Rank>{static_cast<size_t>(sizes)...});
   }
 
@@ -138,12 +141,15 @@ class vector final : public base_expr<vector<T, Rank, Layout>, T>,
   // ============ SIMD IO ============
 
   template <typename T2>
-  auto load_simd(size_t i) const noexcept requires Numeric<T> {
+  auto load_simd(size_t i) const noexcept
+    requires Numeric<T>
+  {
     return simd_policy::template load<T2>(data() + i);
   }
 
   template <typename T2>
-  requires Numeric<T> void store_simd(size_t i, typename simd<T2>::const_ref_type val) noexcept {
+    requires Numeric<T>
+  void store_simd(size_t i, typename simd<T2>::const_ref_type val) noexcept {
     simd_policy::template store<T2>(data() + i, val);
   }
 
@@ -292,4 +298,4 @@ class vector final : public base_expr<vector<T, Rank, Layout>, T>,
 
 }  // namespace md
 
-#endif  // __MDVECTOR_DEV_MDVECTOR__
+#endif  // __MDVECTOR_MD_VECTOR__
