@@ -57,7 +57,7 @@ int test_simd_double_ops() {
   md::simd<double>::storeu(dst3, nu);
   errors += check(dst3[0] == 7.0 && dst3[3] == 10.0, "simd<double>::loadu/storeu");
 
-  std::println("{} {}", dst3[0], dst3[7]);
+  std::println("{} {}", dst3[0], dst3[3]);
 
   return errors;
 }
