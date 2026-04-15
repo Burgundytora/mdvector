@@ -1,8 +1,7 @@
 #ifndef __MDVECTOR_INTERAOTR_STRIDE__
 #define __MDVECTOR_INTERAOTR_STRIDE__
 
-#include "../common/detail.h"
-#include "../common/base_concept.h"
+#include "../concepts/base_concept.h"
 
 namespace md {
 

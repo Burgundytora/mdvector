@@ -3,20 +3,22 @@
 
 #include <cmath>
 #include <random>
+#include <numeric>
 
-#include "mdvector_def.h"
+#include "../concepts/base_concept.h"
+#include "../core/md_vector.h"
 
 // 独立数学函数模板
 namespace md {
 
 // 数学函数返回一个新的mdvector做为临时值
-#define DEFINE_BASE_MD_MATH_FUNC(name, op)                                                                 \
-  template <MultiDimContainer Container>                                                                   \
-  auto name(const Container& c) noexcept {                                                                 \
-    md::vector<typename Container::value_type, Container::rank_, typename Container::layout_type> res = c; \
-    std::transform(res.begin(), res.end(), res.begin(),                                                    \
-                   [](Container::value_type val) noexcept { return std::op(val); });                       \
-    return res;                                                                                            \
+#define DEFINE_BASE_MD_MATH_FUNC(name, op)                                                   \
+  template <MultiDimContainer Container>                                                     \
+  auto name(const Container& c) noexcept {                                                   \
+    md::vector<typename Container::value_type, Container::rank_, std::layout_right> res = c; \
+    std::transform(res.begin(), res.end(), res.begin(),                                      \
+                   [](Container::value_type val) noexcept { return std::op(val); });         \
+    return res;                                                                              \
   }
 
 DEFINE_BASE_MD_MATH_FUNC(cos, cos);

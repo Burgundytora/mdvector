@@ -1,12 +1,14 @@
 #ifndef __MDVECTOR_CORE_MULTI_DIM__
 #define __MDVECTOR_CORE_MULTI_DIM__
 
-#include "../common/base_concept.h"
+#include "../concepts/base_concept.h"
 #include "mdspan_impl.h"
+#include "mdspan_print.h"
 
 #include <format>
 
 namespace md {
+
 // ============================================================================
 // 1. multi_dim_dynamic - 用于 vector 和 span（动态维度，连续内存）
 // ============================================================================
@@ -22,14 +24,15 @@ class multi_dim_dynamic {
  public:
   multi_dim_dynamic() = default;
 
-  void init_mdspan() {
-    mdspan_ = [this]<size_t... Is>(std::index_sequence<Is...>) {
-      return std::mdspan<T, std::dextents<size_t, Rank>, Layout>(derived().data(), shape_[Is]...);
-    }(std::make_index_sequence<Rank>{});
+  template <size_t... Indices>
+  void init_mdspan(std::index_sequence<Indices...>) {
+    mdspan_ = std::mdspan<T, std::dextents<size_t, Rank>, Layout>(derived().data(), shape_[Indices]...);
   }
 
   auto extents() const noexcept { return shape_; }
   size_t extent(size_t dim) const noexcept { return shape_[dim]; }
+
+  auto constexpr rank() const noexcept { return Rank; }
 
   void set_shape(const std::array<size_t, Rank>& shape) {
     shape_ = shape;
@@ -118,6 +121,10 @@ class multi_dim_dynamic {
  protected:
   template <typename... Indices>
   void check_indices(Indices... indices) const {
+    if (mdspan_.empty()) {
+      throw std::logic_error("multi dim dynamic not initialized");
+    }
+
     const size_t idx_array[Rank] = {static_cast<size_t>(indices)...};
     for (size_t i = 0; i < Rank; ++i) {
       if (idx_array[i] >= shape_[i]) {
@@ -137,7 +144,7 @@ class multi_dim_static {
   static constexpr std::array<size_t, Rank> shape_ = {Lengths...};
 
  protected:
-  std::mdspan<T, std::extents<size_t, Lengths...>, Layout> mdspan_;
+  std::mdspan<T, std::extents<size_t, Lengths...>, Layout> mdspan_{derived().data()};
 
   Derived& derived() noexcept { return static_cast<Derived&>(*this); }
   const Derived& derived() const noexcept { return static_cast<const Derived&>(*this); }
@@ -145,10 +152,10 @@ class multi_dim_static {
  public:
   multi_dim_static() = default;
 
-  void init_mdspan() { mdspan_ = std::mdspan<T, std::extents<size_t, Lengths...>, Layout>(derived().data()); }
-
   static constexpr auto extents() noexcept { return shape_; }
   static constexpr size_t extent(size_t dim) noexcept { return shape_[dim]; }
+
+  auto constexpr rank() const noexcept { return Rank; }
 
   template <typename... Indices>
   T& operator()(Indices... indices) {
@@ -195,11 +202,11 @@ class multi_dim_static {
     if constexpr (std::is_same_v<Layout, std::layout_right>) {
       [&]<size_t... Is>(std::index_sequence<Is...>) {
         ((indices[Rank - 1 - Is] = remaining % Lengths, remaining /= Lengths), ...);
-      }(std::index_sequence_for<Lengths...>{});
+      }(std::index_sequence<Lengths...>{});
     } else {
       [&]<size_t... Is>(std::index_sequence<Is...>) {
         ((indices[Is] = remaining % Lengths, remaining /= Lengths), ...);
-      }(std::index_sequence_for<Lengths...>{});
+      }(std::index_sequence<Lengths...>{});
     }
     return indices;
   }
@@ -245,17 +252,27 @@ class multi_dim_stride {
  public:
   multi_dim_stride() = default;
 
-  void init_mdspan(T* data, const std::array<size_t, Rank>& shape, const std::array<size_t, Rank>& stride) {
+  void init_mdspan(const std::array<size_t, Rank>& shape, const std::array<size_t, Rank>& stride) {
     shape_ = shape;
     stride_ = stride;
-    mdspan_ = std::mdspan<T, std::dextents<size_t, Rank>, std::layout_stride>(
-        data, std::layout_stride::mapping(std::dextents<size_t, Rank>(shape), stride));
+    // mdspan_ = std::mdspan<T, std::dextents<size_t, Rank>, std::layout_stride>(
+    //     derived().data(), std::layout_stride::mapping(std::dextents<size_t, Rank>(shape), stride));
+    // 使用 index_sequence 展开 shape
+    [&]<size_t... Is>(std::index_sequence<Is...>) {
+      mdspan_ = std::mdspan<T, std::dextents<size_t, Rank>, std::layout_stride>(
+          derived().data(),
+          std::layout_stride::mapping(std::dextents<size_t, Rank>(shape[Is]...),  // ✅ 展开为 shape[0], shape[1], ...
+                                      stride));
+    }(std::make_index_sequence<Rank>{});
   }
 
   auto extents() const noexcept { return shape_; }
   size_t extent(size_t dim) const noexcept { return shape_[dim]; }
+
   auto strides() const noexcept { return stride_; }
   size_t stride(size_t dim) const noexcept { return stride_[dim]; }
+
+  auto constexpr rank() const noexcept { return Rank; }
 
   template <typename... Indices>
   T& operator()(Indices... indices) {

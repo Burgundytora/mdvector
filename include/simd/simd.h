@@ -119,42 +119,6 @@ size_t get_aligned_size(size_t size) {
   }
 }
 
-template <typename Derived, typename T, typename Policy, bool NoMask = true>
-struct simd_io_contiguous {
-  Derived& derived() noexcept { return static_cast<Derived&>(*this); }
-  const Derived& derived() const noexcept { return static_cast<const Derived&>(*this); }
-
-  auto load_simd_impl(size_t i) const noexcept
-    requires Numeric<T>
-  {
-    if constexpr (NoMask) {
-      // vector array
-      return Policy::load(derived().template data() + i);
-    } else {
-      // span
-      if (i + simd<T>::pack_size <= derived().template size()) {
-        return Policy::load(derived().template data() + i);
-      } else {
-        return Policy::mask_load(derived().template data() + i, derived().template remaining_size());
-      }
-    }
-  }
-
-  void store_simd_impl(size_t i, typename simd<T>::const_ref_type val) noexcept {
-    if constexpr (NoMask) {
-      // vector array
-      Policy::store(derived().template data() + i, val);
-    } else {
-      // span
-      if (i + simd<T>::pack_size <= derived().template size()) {
-        Policy::store(derived().template data() + i, val);
-      } else {
-        Policy::mask_store(derived().template data() + i, derived().template remaining_size(), val);
-      }
-    }
-  }
-};
-
 }  // namespace md
 
 #endif  // __MDVECTOR_SIMD__

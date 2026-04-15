@@ -18,7 +18,7 @@ int main(int args, char* argv[]) {
   size_t c = 1;
 
   // 创建mdvector的shape
-  md::shape ss = {a, b};
+  md::shape<2> ss = {a, b};
 
   // 创建mdvector
   md::vector<double, 2> dat1(ss);           // 使用定义好的shape构造

@@ -1,11 +1,28 @@
 #ifndef __MDVECTOR_INCLUDE__
 #define __MDVECTOR_INCLUDE__
 
-#include "container/vector.h"
-#include "container/inplace_vector.h"
-#include "container/array.h"
-#include "container/span.h"
-#include "container/view.h"
+#include "math/math_function.h"
+
+#include "core/md_vector.h"
+#include "core/md_array.h"
+#include "core/md_span.h"
+#include "core/md_view.h"
+
+namespace md {
+
+template <size_t Rank>
+using shape = std::array<size_t, Rank>;
+
+}  // namespace md
+
+template <typename T>
+using vector_1d = md::vector<T, 1>;
+
+template <typename T>
+using vector_2d = md::vector<T, 2>;
+
+template <typename T>
+using vector_3d = md::vector<T, 3>;
 
 using md::all;
 using md::slice;

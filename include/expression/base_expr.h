@@ -1,8 +1,8 @@
 #ifndef __MDVECTOR_BASE_EXPR__
 #define __MDVECTOR_BASE_EXPR__
 
-#include "simd/simd.h"
-#include "parallel.h"
+#include "../simd/simd.h"
+#include "../parallel/parallel.h"
 
 namespace md {
 

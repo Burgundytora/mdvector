@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_PARALLEL__
-#define __MDVECTOR_PARALLEL__
+#ifndef __MDVECTOR_THREAD_POOL__
+#define __MDVECTOR_THREAD_POOL__
 
 #include <atomic>
 #include <latch>
@@ -128,7 +128,7 @@ class thread_pool {
     }
   };
 
-  std::vector<std::unique_ptr<worker>> workers_;  // 关键修改
+  std::vector<std::unique_ptr<worker>> workers_;
 
   explicit thread_pool(size_t num_threads) {
     workers_.reserve(num_threads);
@@ -138,18 +138,6 @@ class thread_pool {
   }
 };
 
-// ============================================
-// 执行策略标签
-// ============================================
-struct sequential_t {};
-struct parallel_t {
-  size_t chunk_size = 0;  // 0 表示自动选择
-};
-struct parallel_unseq_t : parallel_t {};
-
-inline constexpr sequential_t seq{};
-inline constexpr parallel_t par{};
-
 }  // namespace md
 
-#endif  //__MDVECTOR_PARALLEL__
+#endif  // __MDVECTOR_THREAD_POOL__

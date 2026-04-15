@@ -32,15 +32,11 @@ int main() {
       std::println("i:{}, v:{}", index++, it);
     }
 
-    auto view_neg = -view_1;
-    std::println("-view:");
-    view_neg.print();
-
     md::vector<double, 2> mat2(5, 5);
     mat2.fill(2);
 
     view_1 *= 1.0;
-    md::vector<double, 2> mat_res = view_1 * 2.0 + mat2 + cos(view_neg);
+    md::vector<double, 2> mat_res = view_1 * 2.0 + mat2 + cos(view_1);
     std::println("view*2 + mat2 + cos(-view):");
     mat_res.print();
 
@@ -51,6 +47,8 @@ int main() {
   } catch (const std::exception& e) {
     std::cout << "error: " << e.what() << std::endl;
   }
+
+  std::cout << "view test down. \n";
 
   return 0;
 }

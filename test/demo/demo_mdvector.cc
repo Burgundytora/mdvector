@@ -348,17 +348,25 @@ int main() {
   // auto exp = large_vec1 * large_vec2 / large_vec3 - 1.0 + large_vec3 / 0.5;
   // result_seq = expr;
 
-  // 默认顺序执行
+  // 默认单线程顺序执行
   auto start = std::chrono::high_resolution_clock::now();
   result_seq = large_vec1 * large_vec2 / large_vec3 - 1.0 + large_vec3 / 0.5;
   auto end = std::chrono::high_resolution_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
   // 手动并行执行
+  int thread_num = 8;
   auto start_par = std::chrono::high_resolution_clock::now();
-  (large_vec1 * large_vec2 / large_vec3 - 1.0 + large_vec3 / 0.5).eval_to(result_par, md::par);
+  (large_vec1 * large_vec2 / large_vec3 - 1.0 + large_vec3 / 0.5)
+      .eval_to(result_par, md::parallel_t{.chunk_size = large_size / thread_num});
   auto end_par = std::chrono::high_resolution_clock::now();
   auto duration_par = std::chrono::duration_cast<std::chrono::microseconds>(end_par - start_par);
+
+  // 自动最大并行执行
+  auto start_par_auto = std::chrono::high_resolution_clock::now();
+  (large_vec1 * large_vec2 / large_vec3 - 1.0 + large_vec3 / 0.5).eval_to(result_par, md::par);
+  auto end_par_auto = std::chrono::high_resolution_clock::now();
+  auto duration_par_auto = std::chrono::duration_cast<std::chrono::microseconds>(end_par_auto - start_par_auto);
 
   auto num_commas = [](int value) {
     std::string str = std::to_string(value);
@@ -378,9 +386,11 @@ int main() {
     return result;
   };
 
-  std::cout << "Vector addition of " << num_commas(large_size)
-            << " elements took: " << static_cast<double>(duration.count()) / 1000.0 << " ms"
-            << "   parallel tool: " << static_cast<double>(duration_par.count()) / 1000.0 << " ms" << std::endl;
+  std::println("expression calculation of (a * b / c - 1.0 + c / 0.5) with {} elements:", num_commas(large_size));
+  std::println("  1.sequential      \t: {}ms", static_cast<double>(duration.count()) / 1000.0);
+  std::println("  2.set thread ({}) \t: {}ms", thread_num, static_cast<double>(duration_par.count()) / 1000.0);
+  std::println("  3.max thread ({}) \t: {}ms", std::thread::hardware_concurrency(),
+               static_cast<double>(duration_par_auto.count()) / 1000.0);
 
   // ========== 12. 复杂示例 ==========
   std::cout << "\n========== 12. Complex Using Demo ==========" << std::endl;

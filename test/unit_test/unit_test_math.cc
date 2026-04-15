@@ -83,7 +83,7 @@ int main(int args, char *argv[]) {
 
     // operator-
     std::cout << "\n=== -x2.print ===" << std::endl;
-    auto op_sub = -x2;
+    md::vector<double, 1> op_sub = -x2;
     op_sub.print();
 
   } catch (const std::runtime_error &e) {
