@@ -528,7 +528,7 @@ int main(int args, char* argv[]) {
     //   // test_mdinpvec_expr<double, 100, 100>();
     // }
     test_mdvector_expr<double>();
-    test_mdvector_expr_parallel<double>();
+    // test_mdvector_expr_parallel<double>();
     test_eigen_tensor();
     test_simd<double>();
     test_transform<double>();

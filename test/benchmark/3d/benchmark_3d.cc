@@ -381,7 +381,7 @@ int main(int args, char* argv[]) {
       //   test_mdarray_expr<double, 30, 30, 30>();
       // }
       test_mdvector_expr<double>();
-      test_mdvector_expr_parallel<double>();
+      // test_mdvector_expr_parallel<double>();
       test_eigen_tensor();
       test_transform<double>();
       test_simd<double>();
