@@ -36,10 +36,8 @@ class vector final : public base_expr<vector<T, Rank, Layout>, T>,
 
   vector() = default;
 
-  explicit vector(const std::array<size_t, Rank>& shape) : Storage(calculate_size(shape)) {
-    MultiDim::shape_ = shape;
-    MultiDim::init_mdspan(std::make_index_sequence<Rank>{});
-  }
+  explicit vector(const std::array<size_t, Rank>& shape)
+      : Storage(calculate_size(shape)), MultiDim(shape, std::make_index_sequence<Rank>{}) {}
 
   template <typename... Sizes>
     requires(sizeof...(Sizes) == Rank && (std::convertible_to<Sizes, size_t> && ...))

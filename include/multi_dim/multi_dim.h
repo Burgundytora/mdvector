@@ -25,6 +25,11 @@ class multi_dim_dynamic {
   multi_dim_dynamic() = default;
 
   template <size_t... Indices>
+  multi_dim_dynamic(const std::array<size_t, Rank>& shape, std::index_sequence<Indices...>) : shape_(shape) {
+    mdspan_ = std::mdspan<T, std::dextents<size_t, Rank>, Layout>(derived().data(), shape_[Indices]...);
+  }
+
+  template <size_t... Indices>
   void init_mdspan(std::index_sequence<Indices...>) {
     mdspan_ = std::mdspan<T, std::dextents<size_t, Rank>, Layout>(derived().data(), shape_[Indices]...);
   }
@@ -252,12 +257,20 @@ class multi_dim_stride {
  public:
   multi_dim_stride() = default;
 
+  multi_dim_stride(const std::array<size_t, Rank>& shape, const std::array<size_t, Rank>& stride) {
+    shape_ = shape;
+    stride_ = stride;
+    [&]<size_t... Is>(std::index_sequence<Is...>) {
+      mdspan_ = std::mdspan<T, std::dextents<size_t, Rank>, std::layout_stride>(
+          derived().data(),
+          std::layout_stride::mapping(std::dextents<size_t, Rank>(shape[Is]...),  // ✅ 展开为 shape[0], shape[1], ...
+                                      stride));
+    }(std::make_index_sequence<Rank>{});
+  }
+
   void init_mdspan(const std::array<size_t, Rank>& shape, const std::array<size_t, Rank>& stride) {
     shape_ = shape;
     stride_ = stride;
-    // mdspan_ = std::mdspan<T, std::dextents<size_t, Rank>, std::layout_stride>(
-    //     derived().data(), std::layout_stride::mapping(std::dextents<size_t, Rank>(shape), stride));
-    // 使用 index_sequence 展开 shape
     [&]<size_t... Is>(std::index_sequence<Is...>) {
       mdspan_ = std::mdspan<T, std::dextents<size_t, Rank>, std::layout_stride>(
           derived().data(),

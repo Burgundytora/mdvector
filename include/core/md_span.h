@@ -32,10 +32,8 @@ class span final : public base_expr<span<T, Rank, Layout>, T>,
 
   span() = default;
 
-  explicit span(T* data, const std::array<size_t, Rank>& shape) : Storage(data, calculate_size(shape)) {
-    MultiDim::shape_ = shape;
-    MultiDim::init_mdspan(std::make_index_sequence<Rank>{});
-  }
+  explicit span(T* data, const std::array<size_t, Rank>& shape)
+      : Storage(data, calculate_size(shape)), MultiDim(shape, std::make_index_sequence<Rank>{}) {}
 
   // 删除移动/拷贝 赋值/构造 不管理所有权
   span(const span& other) = delete;
