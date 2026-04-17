@@ -18,15 +18,23 @@ function(add_mingw_link target)
     endif()
 endfunction()
 
-# 添加子目录
 include_directories(${PROJECT_SOURCE_DIR}/include)
-add_subdirectory(test/unit_test)
-add_subdirectory(test/demo)
+
+# 编译开关
+option(BUILD_MD_DEMO "" ON)
+option(BUILD_MD_UTEST "" ON)
+option(BUILD_MD_BENCHMARK "" OFF)
 
 
-# 测试
-option(BUILD_SPEED_TEST "" OFF)
-if(BUILD_SPEED_TEST)
+if(BUILD_MD_DEMO)
+    add_subdirectory(test/demo)
+endif()
+
+if(BUILD_MD_UTEST)
+    add_subdirectory(test/unit_test)
+endif()
+
+if(BUILD_MD_BENCHMARK)
     set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/include")
     message(STATUS "include dir: ${INCLUDE_DIR}")
     # eigen在C++23下警告处理
