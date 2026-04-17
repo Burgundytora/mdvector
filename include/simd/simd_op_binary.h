@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_OP_BINATY__
-#define __MDVECTOR_OP_BINATY__
+#ifndef __MDARRAY_OP_BINATY__
+#define __MDARRAY_OP_BINATY__
 
 #include "simd_arch_select.h"
 
@@ -35,4 +35,4 @@ static inline typename simd<T>::type simd_op_binary(typename simd<T>::const_ref_
 
 }  // namespace md
 
-#endif  // __MDVECTOR_OP_BINATY__
+#endif  // __MDARRAY_OP_BINATY__

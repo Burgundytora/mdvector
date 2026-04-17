@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_ITERATOR_CONTIGUOUS__
-#define __MDVECTOR_ITERATOR_CONTIGUOUS__
+#ifndef __MDARRAY_ITERATOR_CONTIGUOUS__
+#define __MDARRAY_ITERATOR_CONTIGUOUS__
 
 namespace md {
 
@@ -36,4 +36,4 @@ class iterator_contiguous {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_ITERATOR_CONTIGUOUS__
+#endif  // __MDARRAY_ITERATOR_CONTIGUOUS__

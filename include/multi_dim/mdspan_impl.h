@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_MDSPAN_IMPL__
-#define __MDVECTOR_MDSPAN_IMPL__
+#ifndef __MDARRAY_MDSPAN_IMPL__
+#define __MDARRAY_MDSPAN_IMPL__
 
 #include <version>
 
@@ -336,4 +336,4 @@ class mdspan {
 
 #endif
 
-#endif  // __MDVECTOR_MDSPAN_IMPL__
+#endif  // __MDARRAY_MDSPAN_IMPL__

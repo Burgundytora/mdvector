@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_AVX512__
-#define __MDVECTOR_AVX512__
+#ifndef __MDARRAY_AVX512__
+#define __MDARRAY_AVX512__
 
 #include "../simd_base.h"
 // ======================== AVX512 ========================
@@ -135,4 +135,4 @@ struct simd<int> {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_AVX512__
+#endif  // __MDARRAY_AVX512__

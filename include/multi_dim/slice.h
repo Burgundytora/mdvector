@@ -1,6 +1,6 @@
 
-#ifndef __MDVECTOR_SLICE__
-#define __MDVECTOR_SLICE__
+#ifndef __MDARRAY_SLICE__
+#define __MDARRAY_SLICE__
 
 #include <cstddef>
 #include <array>
@@ -160,4 +160,4 @@ auto prepare_slices(std::array<std::size_t, Rank> extents, Slices... slices) {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_SLICE__
+#endif  // __MDARRAY_SLICE__

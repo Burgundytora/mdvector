@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_RISC_V__
-#define __MDVECTOR_RISC_V__
+#ifndef __MDARRAY_RISC_V__
+#define __MDARRAY_RISC_V__
 
 #include "../simd_base.h"
 // ======================== RISC-V Vector ========================
@@ -117,4 +117,4 @@ struct simd<int> {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_RISC_V__
+#endif  // __MDARRAY_RISC_V__

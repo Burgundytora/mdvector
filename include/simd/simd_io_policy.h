@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_SIMD_IO_POLICY__
-#define __MDVECTOR_SIMD_IO_POLICY__
+#ifndef __MDARRAY_SIMD_IO_POLICY__
+#define __MDARRAY_SIMD_IO_POLICY__
 
 #include "simd_arch_select.h"
 
@@ -53,4 +53,4 @@ struct unaligned_policy {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_SIMD_IO_POLICY__
+#endif  // __MDARRAY_SIMD_IO_POLICY__

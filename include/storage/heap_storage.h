@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_HEAP_STORAGE__
-#define __MDVECTOR_HEAP_STORAGE__
+#ifndef __MDARRAY_HEAP_STORAGE__
+#define __MDARRAY_HEAP_STORAGE__
 
 #include "../concepts/storage_concept.h"
 #include "../simd/allocator.h"
@@ -40,4 +40,4 @@ class heap_storage {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_HEAP_STORAGE__
+#endif  // __MDARRAY_HEAP_STORAGE__

@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_EXPRESSION__
-#define __MDVECTOR_EXPRESSION__
+#ifndef __MDARRAY_EXPRESSION__
+#define __MDARRAY_EXPRESSION__
 
 // #include "unary_expr.h"
 #include "operator.h"
@@ -108,4 +108,4 @@ class expression {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_EXPRESSION__
+#endif  // __MDARRAY_EXPRESSION__

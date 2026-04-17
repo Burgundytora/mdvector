@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_PARALLEL__
-#define __MDVECTOR_PARALLEL__
+#ifndef __MDARRAY_PARALLEL__
+#define __MDARRAY_PARALLEL__
 
 #include "thread_pool.h"
 #include "cuda.h"
@@ -24,4 +24,4 @@ inline constexpr cuda_t cu{};
 
 }  // namespace md
 
-#endif  //__MDVECTOR_PARALLEL__
+#endif  //__MDARRAY_PARALLEL__

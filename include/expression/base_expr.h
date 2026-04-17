@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_BASE_EXPR__
-#define __MDVECTOR_BASE_EXPR__
+#ifndef __MDARRAY_BASE_EXPR__
+#define __MDARRAY_BASE_EXPR__
 
 #include "../simd/simd.h"
 #include "../parallel/parallel.h"
@@ -79,4 +79,4 @@ class base_expr {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_BASE_EXPR__
+#endif  // __MDARRAY_BASE_EXPR__

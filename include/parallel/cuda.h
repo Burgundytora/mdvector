@@ -1,4 +1,4 @@
-#ifndef __MDVECTOR_CUDA__
-#define __MDVECTOR_CUDA__
+#ifndef __MDARRAY_CUDA__
+#define __MDARRAY_CUDA__
 
-#endif  // __MDVECTOR_CUDA__
+#endif  // __MDARRAY_CUDA__

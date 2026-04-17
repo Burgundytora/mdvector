@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_SIMD_SELECT__
-#define __MDVECTOR_SIMD_SELECT__
+#ifndef __MDARRAY_SIMD_SELECT__
+#define __MDARRAY_SIMD_SELECT__
 
 #include <iostream>
 
@@ -45,4 +45,4 @@ void print_simd_type() {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_SIMD_SELECT__
+#endif  // __MDARRAY_SIMD_SELECT__

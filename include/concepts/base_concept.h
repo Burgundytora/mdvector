@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_TYPE_CONCEPT__
-#define __MDVECTOR_TYPE_CONCEPT__
+#ifndef __MDARRAY_TYPE_CONCEPT__
+#define __MDARRAY_TYPE_CONCEPT__
 
 #include <concepts>
 #include <type_traits>
@@ -67,4 +67,4 @@ struct std::formatter<std::array<T, N>> : std::formatter<std::string> {
   }
 };
 
-#endif  //__MDVECTOR_TYPE_CONCEPT__
+#endif  //__MDARRAY_TYPE_CONCEPT__

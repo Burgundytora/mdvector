@@ -1,5 +1,5 @@
-#ifndef ___MDVECTOR_BASE_EXPR_H__
-#define ___MDVECTOR_BASE_EXPR_H__
+#ifndef ___MDARRAY_BASE_EXPR_H__
+#define ___MDARRAY_BASE_EXPR_H__
 
 #include <cassert>
 #include <cstddef>

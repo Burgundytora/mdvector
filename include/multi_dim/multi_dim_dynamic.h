@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_MULTI_DIM_DYNAMIC__
-#define __MDVECTOR_MULTI_DIM_DYNAMIC__
+#ifndef __MDARRAY_MULTI_DIM_DYNAMIC__
+#define __MDARRAY_MULTI_DIM_DYNAMIC__
 
 #include "mdspan_print.h"
 
@@ -137,4 +137,4 @@ class multi_dim_dynamic {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_MULTI_DIM_DYNAMIC__
+#endif  // __MDARRAY_MULTI_DIM_DYNAMIC__

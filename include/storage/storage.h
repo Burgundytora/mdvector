@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_STORAGE__
-#define __MDVECTOR_STORAGE__
+#ifndef __MDARRAY_STORAGE__
+#define __MDARRAY_STORAGE__
 
 #include "stack_storage.h"
 #include "heap_storage.h"
@@ -34,4 +34,4 @@ template struct storage_checks<int>;
 
 }  // namespace md
 
-#endif  // __MDVECTOR_STORAGE__
+#endif  // __MDARRAY_STORAGE__

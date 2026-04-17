@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_ALLOCATOR__
-#define __MDVECTOR_ALLOCATOR__
+#ifndef __MDARRAY_ALLOCATOR__
+#define __MDARRAY_ALLOCATOR__
 
 #include <limits>
 #include <memory>
@@ -85,4 +85,4 @@ using auto_allocator = std::conditional_t<std::is_floating_point_v<T>, simd_allo
 
 }  // namespace md
 
-#endif  // __MDVECTOR_ALLOCATOR__
+#endif  // __MDARRAY_ALLOCATOR__

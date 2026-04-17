@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_MDSPAN_PRINT__
-#define __MDVECTOR_MDSPAN_PRINT__
+#ifndef __MDARRAY_MDSPAN_PRINT__
+#define __MDARRAY_MDSPAN_PRINT__
 
 #include "mdspan_impl.h"
 
@@ -93,4 +93,4 @@ void print_mdspan(std::mdspan<T, Extents, Layout> mdspan_) {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_MDSPAN_PRINT__
+#endif  // __MDARRAY_MDSPAN_PRINT__

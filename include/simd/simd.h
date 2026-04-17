@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_SIMD__
-#define __MDVECTOR_SIMD__
+#ifndef __MDARRAY_SIMD__
+#define __MDARRAY_SIMD__
 
 #include "../concepts/simd_concept.h"
 #include "simd_arch_select.h"
@@ -39,4 +39,4 @@ size_t get_aligned_size(size_t size) {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_SIMD__
+#endif  // __MDARRAY_SIMD__

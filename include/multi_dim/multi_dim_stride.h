@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_MULTI_DIM_STRIDE__
-#define __MDVECTOR_MULTI_DIM_STRIDE__
+#ifndef __MDARRAY_MULTI_DIM_STRIDE__
+#define __MDARRAY_MULTI_DIM_STRIDE__
 
 #include "mdspan_print.h"
 
@@ -127,4 +127,4 @@ class multi_dim_stride {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_MULTI_DIM_STRIDE__
+#endif  // __MDARRAY_MULTI_DIM_STRIDE__

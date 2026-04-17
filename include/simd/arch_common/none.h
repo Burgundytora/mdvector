@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_NONE__
-#define __MDVECTOR_NONE__
+#ifndef __MDARRAY_NONE__
+#define __MDARRAY_NONE__
 
 #include "../simd_base.h"
 
@@ -93,4 +93,4 @@ struct simd<int> {
 };
 }  // namespace md
 
-#endif  //__MDVECTOR_NONE__
+#endif  //__MDARRAY_NONE__

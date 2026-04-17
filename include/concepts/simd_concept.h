@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_SIMD_CONCEPT__
-#define __MDVECTOR_SIMD_CONCEPT__
+#ifndef __MDARRAY_SIMD_CONCEPT__
+#define __MDARRAY_SIMD_CONCEPT__
 
 #include "base_concept.h"
 
@@ -110,4 +110,4 @@ concept HasSimdFma =
 
 }  // namespace md
 
-#endif  // __MDVECTOR_SIMD_CONCEPT__
+#endif  // __MDARRAY_SIMD_CONCEPT__

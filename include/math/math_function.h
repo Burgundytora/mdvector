@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_MATH_FUNCTION__
-#define __MDVECTOR_MATH_FUNCTION__
+#ifndef __MDARRAY_MATH_FUNCTION__
+#define __MDARRAY_MATH_FUNCTION__
 
 #include <cmath>
 #include <random>
@@ -180,4 +180,4 @@ auto abs_min(const Container& c) {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_MATH_FUNCTION__
+#endif  // __MDARRAY_MATH_FUNCTION__

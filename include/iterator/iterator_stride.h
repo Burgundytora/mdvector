@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_INTERAOTR_STRIDE__
-#define __MDVECTOR_INTERAOTR_STRIDE__
+#ifndef __MDARRAY_INTERAOTR_STRIDE__
+#define __MDARRAY_INTERAOTR_STRIDE__
 
 #include "../concepts/base_concept.h"
 
@@ -155,4 +155,4 @@ class iterator_stride {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_INTERAOTR_STRIDE__
+#endif  // __MDARRAY_INTERAOTR_STRIDE__

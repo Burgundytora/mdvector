@@ -1,6 +1,6 @@
 // expression/unary_expr.h
-#ifndef __MDVECTOR_UNARY_EXPR__
-#define __MDVECTOR_UNARY_EXPR__
+#ifndef __MDARRAY_UNARY_EXPR__
+#define __MDARRAY_UNARY_EXPR__
 
 #include "base_expr.h"
 #include "../simd/simd_op_unary.h"

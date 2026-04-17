@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_SSE__
-#define __MDVECTOR_SSE__
+#ifndef __MDARRAY_SSE__
+#define __MDARRAY_SSE__
 
 #include "../simd_base.h"
 // ======================== SSE ========================
@@ -169,4 +169,4 @@ struct simd<int> {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_SSE__
+#endif  // __MDARRAY_SSE__

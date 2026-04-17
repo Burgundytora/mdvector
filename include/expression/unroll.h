@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_UNROLL__
-#define __MDVECTOR_UNROLL__
+#ifndef __MDARRAY_UNROLL__
+#define __MDARRAY_UNROLL__
 
 namespace md {
 
@@ -33,4 +33,4 @@ struct auto_unroll {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_UNROLL__
+#endif  // __MDARRAY_UNROLL__

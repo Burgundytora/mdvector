@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_MULTI_DIM__
-#define __MDVECTOR_MULTI_DIM__
+#ifndef __MDARRAY_MULTI_DIM__
+#define __MDARRAY_MULTI_DIM__
 
 #include "../concepts/multi_dim_concept.h"
 #include "multi_dim_dynamic.h"
@@ -8,4 +8,4 @@
 
 // 由于Multi_Dim模板参数有Derived 因此只能在子类后进行编译期检查
 
-#endif  // __MDVECTOR_MULTI_DIM__
+#endif  // __MDARRAY_MULTI_DIM__

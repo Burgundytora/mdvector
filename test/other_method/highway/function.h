@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_HWY_FUNCTION_H__
-#define __MDVECTOR_HWY_FUNCTION_H__
+#ifndef __MDARRAY_HWY_FUNCTION_H__
+#define __MDARRAY_HWY_FUNCTION_H__
 
 #include "hwy/highway.h"
 

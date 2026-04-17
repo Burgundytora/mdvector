@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_THREAD_POOL__
-#define __MDVECTOR_THREAD_POOL__
+#ifndef __MDARRAY_THREAD_POOL__
+#define __MDARRAY_THREAD_POOL__
 
 #include <atomic>
 #include <latch>
@@ -140,4 +140,4 @@ class thread_pool {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_THREAD_POOL__
+#endif  // __MDARRAY_THREAD_POOL__

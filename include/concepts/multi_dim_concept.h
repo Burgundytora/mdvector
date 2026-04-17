@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_MULTI_DIM_CONCEPT__
-#define __MDVECTOR_MULTI_DIM_CONCEPT__
+#ifndef __MDARRAY_MULTI_DIM_CONCEPT__
+#define __MDARRAY_MULTI_DIM_CONCEPT__
 
 #include "base_concept.h"
 #include <concepts>
@@ -91,4 +91,4 @@ concept MultiDimStatic = requires {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_MULTI_DIM_CONCEPT__
+#endif  // __MDARRAY_MULTI_DIM_CONCEPT__

@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_INCLUDE__
-#define __MDVECTOR_INCLUDE__
+#ifndef __MDARRAY_INCLUDE__
+#define __MDARRAY_INCLUDE__
 
 #include "core/md_vector.h"
 #include "core/md_array.h"
@@ -66,4 +66,4 @@ using md::standard_deviation;
 // using md::view;
 // using md::inplace_vector;
 
-#endif  // __MDVECTOR_INCLUDE__
+#endif  // __MDARRAY_INCLUDE__

@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_ARM_NEON__
-#define __MDVECTOR_ARM_NEON__
+#ifndef __MDARRAY_ARM_NEON__
+#define __MDARRAY_ARM_NEON__
 
 #include "../simd_base.h"
 // ======================== NEON ========================
@@ -174,4 +174,4 @@ struct simd<int> {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_ARM_NEON__
+#endif  // __MDARRAY_ARM_NEON__

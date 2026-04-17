@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_STORAGE_CONCEPT__
-#define __MDVECTOR_STORAGE_CONCEPT__
+#ifndef __MDARRAY_STORAGE_CONCEPT__
+#define __MDARRAY_STORAGE_CONCEPT__
 
 #include "base_concept.h"
 
@@ -65,4 +65,4 @@ concept ViewStorage = BasicStorage<S> && requires {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_STORAGE_CONCEPT__
+#endif  // __MDARRAY_STORAGE_CONCEPT__

@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_STACK_STORAGE__
-#define __MDVECTOR_STACK_STORAGE__
+#ifndef __MDARRAY_STACK_STORAGE__
+#define __MDARRAY_STACK_STORAGE__
 
 #include "../concepts/storage_concept.h"
 #include "../simd/simd.h"
@@ -37,4 +37,4 @@ class stack_storage {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_STACK_STORAGE__
+#endif  // __MDARRAY_STACK_STORAGE__

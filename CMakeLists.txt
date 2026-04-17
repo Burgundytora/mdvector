@@ -1,5 +1,5 @@
 ﻿cmake_minimum_required(VERSION 3.15)
-project(mdvector VERSION 1.0.0 LANGUAGES CXX)
+project(mdarray VERSION 1.0.0 LANGUAGES CXX)
 
 # 基础配置
 set(CMAKE_CXX_STANDARD 23)
@@ -21,9 +21,9 @@ endfunction()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # 创建 INTERFACE 库（纯头文件）
-add_library(mdvector INTERFACE)
-add_library(mdvector::mdvector ALIAS mdvector)
-target_include_directories(mdvector 
+add_library(mdarray INTERFACE)
+add_library(mdarray::mdarray ALIAS mdarray)
+target_include_directories(mdarray 
     INTERFACE 
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>

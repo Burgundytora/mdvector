@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_OPERATOR__
-#define __MDVECTOR_OPERATOR__
+#ifndef __MDARRAY_OPERATOR__
+#define __MDARRAY_OPERATOR__
 
 #include "binary_expr.h"
 
@@ -79,4 +79,4 @@ auto operator/(T lhs, const base_expr<R, T>& rhs) {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_OPERATOR__
+#endif  // __MDARRAY_OPERATOR__

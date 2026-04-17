@@ -1,5 +1,5 @@
-#ifndef __MDVECTOR_ITERATOR_FILL__
-#define __MDVECTOR_ITERATOR_FILL__
+#ifndef __MDARRAY_ITERATOR_FILL__
+#define __MDARRAY_ITERATOR_FILL__
 
 #include "../concepts/iterator_concept.h"
 
@@ -78,4 +78,4 @@ class fill_op {
 
 }  // namespace md
 
-#endif  // __MDVECTOR_ITERATOR_FILL__
+#endif  // __MDARRAY_ITERATOR_FILL__
