@@ -1,8 +1,8 @@
-# mdvector - 多维高性能SIMD向量库
+# mdarray - 多维高性能SIMD向量库
 
-**mdvector** 是一个**C++17/23**标准下、**轻量级头文件**形式、基于现代C++的多维数组计算库，通过 **SIMD指令集优化** 和 **表达式模板技术**，在元素级运算（Element-wise）场景下达到**接近手写汇编极限性能**，同时支持**python风格切片操作**与切片之间高性能计算。
+**mdarray** 是一个**C++23**标准下、**轻量级头文件**形式、基于现代C++的多维数组计算库，通过 **SIMD指令集优化** 和 **表达式模板技术**，在元素级运算（Element-wise）场景下达到**接近手写汇编极限性能**，同时支持**python风格切片操作**与切片之间高性能计算。
 
-**mdvector** is a **C++17/23** based **lightweight header-only** multidimensional array computing library based on modern C++. Through **SIMD instruction set optimization** and **expression template techniques**, it achieves **near hand-written assembly performance** in element-wise operations while supporting **Python-style slicing operations** and high-performance computation on slices.
+**mdarray** is a **C++23** based **lightweight header-only** multidimensional array computing library based on modern C++. Through **SIMD instruction set optimization** and **expression template techniques**, it achieves **near hand-written assembly performance** in element-wise operations while supporting **Python-style slicing operations** and high-performance computation on slices.
 
 **1.md::vector<type, Rank>**: 堆上多维动态数组，编译期指定维度个数，运行时指定各维度
 
@@ -19,6 +19,7 @@
 - **SIMD 全指令集支持**：SSE/AVX2/AVX512（x86）、NEON（ARM）、RISC-V自动适配，内存对齐与尾部掩码处理，相比手写指令集无性能损失
 - **表达式模板**：复杂运算（如 `res = a + b - c * d / e`）零临时变量开销
 - **惰性求值**：支持定义零成本复杂表达式，在赋值才才触发具体运算
+- **表达式并行计算**：表达式计算及赋值支持手动指定线程，及自动最大线程的并行计算
 
 ### 2. 多维与视图的灵活操作【已支持】
 
@@ -39,7 +40,7 @@
 - **指令集自动适配**：x86/ARM/RISC-V 架构无缝切换
 - **编译器友好**：GCC/Clang/MSVC 全支持
 - **轻量级**：头文件形式
-- **兼容性**：最低只需要C++17标准即可
+- **兼容性**：最低只需要C++17标准即可(cpp17分支)，目前主干已切换至C++23
 
 ### 5. 数学函数【已支持】
 
@@ -49,17 +50,13 @@
 
 ### 6. 未来特性
 
-- **更多类型支持**：目前mdvector支持float double与int，未来考虑兼容long int以及自定义类型（但是会要求类型POD，同时会去掉表达式模板运算功能，保留多维索引与子视图功能）
+- **更多类型支持**：目前mdarray支持float double与int，未来考虑兼容long int以及自定义类型（但是会要求类型POD，同时会去掉表达式模板运算功能，保留多维索引与子视图功能）
 - **基本科学计算功能扩展**：三维坐标计算、四元数计算等基础功能
 - **单头文件使用**：single_include形式，只需引入单个头文件，指令集检测选择内嵌到单头文件代码中，同时提供手动指定指令集功能
 - **接口**：与eigen等库的无开销映射
 - **表达式自由优化**：通过算术符系统，对表达式进行重排优化
-
-### 6. 目前不考虑的特性
-
-- **复杂矩阵运算**：GEMM等不在考虑范围，建议使用eigen
-- **稀疏矩阵**：同样建议使用eigen、blas、mkl等
-- **复杂科学计算**：复数运算、频域计算暂不在考虑范围内
+- **数学函数表达式模板化**：支持常用一元与二元数学函数的表达式模板计算，进一步实现极致性能
+- **线性代数**：目前正在基于本仓库进行linalg线性代数库开发(<https://github.com/WangHu1996/linalg.git>)
 
 ## 🚀 示例
 
@@ -86,11 +83,11 @@
   }
   ```
 
-- mdvector方法：使用二维mdvector直接存储，储存十个节点的坐标信息，再创建内存连续视图，每次时间步中只需执行表达式计算，无需中间变量与for循环，且mdvector/span的四则运算为完全simd向量化，性能远高于基础for循环方法:
+- mdarray方法：使用二维数组直接存储，储存十个节点的坐标信息，再创建内存连续视图，每次时间步中只需执行表达式计算，无需中间变量与for循环，且内置vector/span的四则运算为完全simd向量化，性能远高于基础for循环方法:
 
   ```
-  mdvector<double, 2> pos_info({3, nodes_num});
-  mdvector<double, 1> length({nodes_num-1});
+  md::vector<double, 2> pos_info({3, nodes_num});
+  md::vector<double, 1> length({nodes_num-1});
   /// ... 赋值pos_info省略
   md::span<double, 1> x1 = pos_info.span(0, slice(0, -2));
   md::span<double, 1> x2 = pos_info.span(0, slice(1, -1));
@@ -127,6 +124,5 @@
 
 ### 使用
 
-- git clone <https://github.com/Burgundytora/mdvector.git>
-- cmake中添加次仓库目录 然后include mdvector.h头文件即可 cmake指令集与编译选项参考附带cmake文件夹 或者引入simd的cmake
+- git clone <https://github.com/Burgundytora/mdarray.git>
 - 未来会适配single_include形式
