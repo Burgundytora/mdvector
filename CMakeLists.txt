@@ -18,7 +18,16 @@ function(add_mingw_link target)
     endif()
 endfunction()
 
-include_directories(${PROJECT_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+# 创建 INTERFACE 库（纯头文件）
+add_library(mdvector INTERFACE)
+add_library(mdvector::mdvector ALIAS mdvector)
+target_include_directories(mdvector 
+    INTERFACE 
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
 
 # 编译开关
 option(BUILD_MD_DEMO "" ON)
