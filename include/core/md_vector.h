@@ -294,6 +294,25 @@ class vector final : public base_expr<vector<T, Rank, Layout>, T>,
   }
 };
 
+// 编译期检查multi_dim_dynamic
+namespace detail {
+
+template <typename T, size_t Rank = 2, typename Layout = std::layout_right>
+struct multi_dim_dynamci_checks {
+  using test_mdd = multi_dim_dynamic<vector<T, Rank, Layout>, T, Rank, Layout>;
+  static_assert(BasicMultiDim<test_mdd, T, Rank>);
+  static_assert(MultiDimIndexable<test_mdd, T, Rank, size_t, size_t>);
+  static_assert(MultiDimBoundsCheck<test_mdd, T, Rank, size_t, size_t>);
+  static_assert(MultiDimIndexConvert<test_mdd, Rank, size_t, size_t>);
+  static_assert(MultiDimShapeMutable<test_mdd, Rank>);
+};
+
+template struct multi_dim_dynamci_checks<float>;
+template struct multi_dim_dynamci_checks<double>;
+template struct multi_dim_dynamci_checks<int>;
+
+}  // namespace detail
+
 }  // namespace md
 
 #endif  // __MDVECTOR_MD_VECTOR__

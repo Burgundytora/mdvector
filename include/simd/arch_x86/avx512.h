@@ -16,19 +16,17 @@ struct simd<float> {
   using const_type = const __m512;
   using const_ref_type = const __m512&;
 
+  // ==================== 广播 ====================
+  static inline type set1(float val) { return _mm512_set1_ps(val); }
+
+  // ==================== 读写 ====================
   static inline type load(const float* p) { return _mm512_load_ps(p); }
   static inline void store(float* p, const_ref_type v) { _mm512_store_ps(p, v); }
-
   static inline type loadu(const float* p) { return _mm512_loadu_ps(p); }
   static inline void storeu(float* p, const_ref_type v) { _mm512_storeu_ps(p, v); }
 
-  static inline type add(const_ref_type a, const_ref_type b) { return _mm512_add_ps(a, b); }
-  static inline type sub(const_ref_type a, const_ref_type b) { return _mm512_sub_ps(a, b); }
-  static inline type mul(const_ref_type a, const_ref_type b) { return _mm512_mul_ps(a, b); }
-  static inline type div(const_ref_type a, const_ref_type b) { return _mm512_div_ps(a, b); }
-
+  // ==================== 掩码读写 ====================
   static inline __mmask16 mask(const size_t& remaining) { return (1u << remaining) - 1; }
-
   static inline type mask_load(const float* p, const size_t& remaining) {
     return _mm512_maskz_load_ps(mask(remaining), p);
   }
@@ -42,7 +40,11 @@ struct simd<float> {
     _mm512_mask_storeu_ps(p, mask(remaining), v);
   }
 
-  static inline type set1(float val) { return _mm512_set1_ps(val); }
+  // ==================== 四则运算 ====================
+  static inline type add(const_ref_type a, const_ref_type b) { return _mm512_add_ps(a, b); }
+  static inline type sub(const_ref_type a, const_ref_type b) { return _mm512_sub_ps(a, b); }
+  static inline type mul(const_ref_type a, const_ref_type b) { return _mm512_mul_ps(a, b); }
+  static inline type div(const_ref_type a, const_ref_type b) { return _mm512_div_ps(a, b); }
 };
 
 template <>
@@ -54,19 +56,17 @@ struct simd<double> {
   using const_type = const __m512d;
   using const_ref_type = const __m512d&;
 
+  // ==================== 广播 ====================
+  static inline type set1(double val) { return _mm512_set1_pd(val); }
+
+  // ==================== 读写 ====================
   static inline type load(const double* p) { return _mm512_load_pd(p); }
   static inline void store(double* p, type v) { _mm512_store_pd(p, v); }
-
   static inline type loadu(const double* p) { return _mm512_loadu_pd(p); }
   static inline void storeu(double* p, type v) { _mm512_storeu_pd(p, v); }
 
-  static inline type add(const_ref_type a, const_ref_type b) { return _mm512_add_pd(a, b); }
-  static inline type sub(const_ref_type a, const_ref_type b) { return _mm512_sub_pd(a, b); }
-  static inline type mul(const_ref_type a, const_ref_type b) { return _mm512_mul_pd(a, b); }
-  static inline type div(const_ref_type a, const_ref_type b) { return _mm512_div_pd(a, b); }
-
+  // ==================== 掩码读写 ====================
   static inline __mmask8 mask(const size_t& remaining) { return (1u << remaining) - 1; }
-
   static inline type mask_load(const double* p, const size_t& remaining) {
     return _mm512_maskz_load_pd(mask(remaining), p);
   }
@@ -80,7 +80,11 @@ struct simd<double> {
     _mm512_mask_storeu_pd(p, mask(remaining), v);
   }
 
-  static inline type set1(double val) { return _mm512_set1_pd(val); }
+  // ==================== 四则运算 ====================
+  static inline type add(const_ref_type a, const_ref_type b) { return _mm512_add_pd(a, b); }
+  static inline type sub(const_ref_type a, const_ref_type b) { return _mm512_sub_pd(a, b); }
+  static inline type mul(const_ref_type a, const_ref_type b) { return _mm512_mul_pd(a, b); }
+  static inline type div(const_ref_type a, const_ref_type b) { return _mm512_div_pd(a, b); }
 };
 
 template <>
@@ -92,25 +96,17 @@ struct simd<int> {
   using const_type = const __m512i;
   using const_ref_type = const __m512i&;
 
+  // ==================== 广播 ====================
+  static inline type set1(int val) { return _mm512_set1_epi32(val); }
+
+  // ==================== 读写 ====================
   static inline type load(const int* p) { return _mm512_load_si512(reinterpret_cast<const void*>(p)); }
   static inline void store(int* p, const_ref_type v) { _mm512_store_si512(reinterpret_cast<void*>(p), v); }
-
   static inline type loadu(const int* p) { return _mm512_loadu_si512(reinterpret_cast<const void*>(p)); }
   static inline void storeu(int* p, const_ref_type v) { _mm512_storeu_si512(reinterpret_cast<void*>(p), v); }
 
-  static inline type add(const_ref_type a, const_ref_type b) { return _mm512_add_epi32(a, b); }
-  static inline type sub(const_ref_type a, const_ref_type b) { return _mm512_sub_epi32(a, b); }
-  static inline type mul(const_ref_type a, const_ref_type b) { return _mm512_mullo_epi32(a, b); }
-  static inline type div(const_ref_type a, const_ref_type b) {
-    alignas(64) int av[16], bv[16], rv[16];
-    _mm512_store_si512(reinterpret_cast<void*>(av), a);
-    _mm512_store_si512(reinterpret_cast<void*>(bv), b);
-    for (int i = 0; i < 16; ++i) rv[i] = av[i] / bv[i];
-    return _mm512_load_si512(reinterpret_cast<const void*>(rv));
-  }
-
+  // ==================== 掩码读写 ====================
   static inline __mmask16 mask(const size_t& remaining) { return (1u << remaining) - 1; }
-
   static inline type mask_load(const int* p, const size_t& remaining) {
     return _mm512_maskz_load_epi32(mask(remaining), p);
   }
@@ -124,7 +120,17 @@ struct simd<int> {
     _mm512_mask_storeu_epi32(p, mask(remaining), v);
   }
 
-  static inline type set1(int val) { return _mm512_set1_epi32(val); }
+  // ==================== 四则运算 ====================
+  static inline type add(const_ref_type a, const_ref_type b) { return _mm512_add_epi32(a, b); }
+  static inline type sub(const_ref_type a, const_ref_type b) { return _mm512_sub_epi32(a, b); }
+  static inline type mul(const_ref_type a, const_ref_type b) { return _mm512_mullo_epi32(a, b); }
+  static inline type div(const_ref_type a, const_ref_type b) {
+    alignas(64) int av[16], bv[16], rv[16];
+    _mm512_store_si512(reinterpret_cast<void*>(av), a);
+    _mm512_store_si512(reinterpret_cast<void*>(bv), b);
+    for (int i = 0; i < 16; ++i) rv[i] = av[i] / bv[i];
+    return _mm512_load_si512(reinterpret_cast<const void*>(rv));
+  }
 };
 
 }  // namespace md

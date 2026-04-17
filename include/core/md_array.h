@@ -101,6 +101,26 @@ class array final : public base_expr<array<T, Layout, lengths...>, T>,
   }
 };
 
+// 编译期检查multi_dim_static
+namespace detail {
+
+template <typename T, size_t Rank = 2>
+struct multi_dim_static_checks {
+  using Layout = std::layout_right;
+  using test_mds = multi_dim_static<array<T, Layout, 2, 2>, T, Layout, 2, 2>;
+  static_assert(BasicMultiDim<test_mds, T, Rank>);
+  static_assert(MultiDimIndexable<test_mds, T, Rank, size_t, size_t>);
+  static_assert(MultiDimBoundsCheck<test_mds, T, Rank, size_t, size_t>);
+  static_assert(MultiDimIndexConvert<test_mds, Rank, size_t, size_t>);
+  static_assert(MultiDimStatic<test_mds, Rank>);
+};
+
+template struct multi_dim_static_checks<float>;
+template struct multi_dim_static_checks<double>;
+template struct multi_dim_static_checks<int>;
+
+}  // namespace detail
+
 }  // namespace md
 
 #endif  // __MDVECTOR_MD_ARRAY__

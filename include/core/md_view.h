@@ -148,6 +148,25 @@ class view final : public base_expr<view<T, Rank>, T>,
   }
 };
 
+// 编译期检查multi_dim_view
+namespace detail {
+
+template <typename T, size_t Rank = 2>
+struct multi_dim_view_checks {
+  using test_mdv = multi_dim_stride<view<T, Rank>, T, Rank>;
+  static_assert(BasicMultiDim<test_mdv, T, Rank>);
+  static_assert(MultiDimIndexable<test_mdv, T, Rank, size_t, size_t>);
+  static_assert(MultiDimBoundsCheck<test_mdv, T, Rank, size_t, size_t>);
+  static_assert(MultiDimIndexConvert<test_mdv, Rank, size_t, size_t>);
+  static_assert(MultiDimStrideAccess<test_mdv, Rank>);
+};
+
+template struct multi_dim_view_checks<float>;
+template struct multi_dim_view_checks<double>;
+template struct multi_dim_view_checks<int>;
+
+}  // namespace detail
+
 }  // namespace md
 
 #endif  // __MDVECTOR_MD_VIEW__

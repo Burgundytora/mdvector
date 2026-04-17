@@ -1,12 +1,31 @@
 #ifndef __MDVECTOR_SIMD__
 #define __MDVECTOR_SIMD__
 
+#include "../concepts/simd_concept.h"
 #include "simd_arch_select.h"
 #include "simd_io_policy.h"
 #include "simd_op_binary.h"
 #include "simd_op_unary.h"
 
 namespace md {
+
+namespace detail {
+
+// 编译期检测实现
+template <typename T>
+struct simd_impl_checks {
+  static_assert(HasSimdTypes<simd<T>>);
+  static_assert(HasSimdBroadcast<simd<T>, T>);
+  static_assert(HasSimdLoadStore<simd<T>, T>);
+  static_assert(HasSimdMaskLoadStore<simd<T>, T>);
+  static_assert(HasSimdArithmetic<simd<T>>);
+};
+
+template struct simd_impl_checks<float>;
+template struct simd_impl_checks<double>;
+template struct simd_impl_checks<int>;
+
+}  // namespace detail
 
 // 对齐
 template <typename T>
