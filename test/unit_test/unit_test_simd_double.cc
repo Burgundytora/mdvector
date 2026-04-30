@@ -12,7 +12,7 @@ static int check(bool cond, const char* msg) {
   return 0;
 }
 
-int test_simd_double_ops() {
+int test_simd_double_op() {
   int errors = 0;
   // 1) set1/load/store
   alignas(64) double src[16] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0};
@@ -62,7 +62,7 @@ int test_simd_double_ops() {
   return errors;
 }
 
-int test_vector_double_ops() {
+int test_vector_double_op() {
   int errors = 0;
   std::cout << "=== md::vector<double> operations test ===\n";
   md::vector<double, 2> v(2, 2);
@@ -123,8 +123,8 @@ int test_vector_double_ops() {
 int main() {
   int errors = 0;
   std::cout << "=== simd double unit test ===\n";
-  errors += test_simd_double_ops();
-  errors += test_vector_double_ops();
+  errors += test_simd_double_op();
+  errors += test_vector_double_op();
   if (errors == 0) {
     std::cout << "ALL PASS\n";
   } else {

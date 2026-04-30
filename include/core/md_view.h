@@ -23,7 +23,7 @@ class view final : public base_expr<view<T, Rank>, T>,
   using BaseExpr = base_expr<view<T, Rank>, T>;
   using Storage = view_storage<T>;
   using MultiDim = multi_dim_stride<view<T, Rank>, T, Rank>;
-  using FillOps = fill_op<view<T, Rank>, T>;
+  using FillOp = fill_op<view<T, Rank>, T>;
   using Expr = expression<view<T, Rank>, T, aligned_policy>;
 
   // ============ 构造函数 ============
@@ -71,12 +71,12 @@ class view final : public base_expr<view<T, Rank>, T>,
   using MultiDim::mdspan;
   using MultiDim::check_indices;
 
-  using FillOps::fill;
-  using FillOps::set_zeros;
-  using FillOps::set_ones;
-  using FillOps::set_arange;
-  using FillOps::set_random_uniform;
-  using FillOps::set_random_normal;
+  using FillOp::fill;
+  using FillOp::set_zeros;
+  using FillOp::set_ones;
+  using FillOp::set_arange;
+  using FillOp::set_random_uniform;
+  using FillOp::set_random_normal;
 
   using Expr::operator=;
   using Expr::operator+=;

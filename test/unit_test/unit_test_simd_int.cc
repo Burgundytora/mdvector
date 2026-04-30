@@ -12,7 +12,7 @@ static int check(bool cond, const char* msg) {
   return 0;
 }
 
-int test_simd_int_ops() {
+int test_simd_int_op() {
   int errors = 0;
   // 1) set1/load/store
   alignas(64) int src[16] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
@@ -59,7 +59,7 @@ int test_simd_int_ops() {
   return errors;
 }
 
-int test_vector_int_ops() {
+int test_vector_int_op() {
   int errors = 0;
   std::cout << "=== md::vector<int> operations test ===\n";
   md::vector<int, 2> v(2, 2);
@@ -115,8 +115,8 @@ int test_vector_int_ops() {
 int main() {
   int errors = 0;
   std::cout << "=== simd int unit test ===\n";
-  errors += test_simd_int_ops();
-  errors += test_vector_int_ops();
+  errors += test_simd_int_op();
+  errors += test_vector_int_op();
   if (errors == 0) {
     std::cout << "ALL PASS\n";
   } else {

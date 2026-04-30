@@ -25,7 +25,7 @@ class array final : public base_expr<array<T, Layout, lengths...>, T>,
   using Storage = stack_storage<T, lengths...>;
   using MultiDim = multi_dim_static<array<T, Layout, lengths...>, T, Layout, lengths...>;
   using Iterator = iterator_contiguous<array<T, Layout, lengths...>, T>;
-  using FillOps = fill_op<array<T, Layout, lengths...>, T>;
+  using FillOp = fill_op<array<T, Layout, lengths...>, T>;
   using Expr = expression<array<T, Layout, lengths...>, T, aligned_policy>;
 
   // ============ 构造函数 ============
@@ -70,12 +70,12 @@ class array final : public base_expr<array<T, Layout, lengths...>, T>,
   using Iterator::crbegin;
   using Iterator::crend;
 
-  using FillOps::fill;
-  using FillOps::set_zeros;
-  using FillOps::set_ones;
-  using FillOps::set_arange;
-  using FillOps::set_random_uniform;
-  using FillOps::set_random_normal;
+  using FillOp::fill;
+  using FillOp::set_zeros;
+  using FillOp::set_ones;
+  using FillOp::set_arange;
+  using FillOp::set_random_uniform;
+  using FillOp::set_random_normal;
 
   using Expr::operator=;
   using Expr::operator+=;

@@ -25,7 +25,7 @@ class span final : public base_expr<span<T, Rank, Layout>, T>,
   using Storage = view_storage<T>;
   using MultiDim = multi_dim_dynamic<span<T, Rank, Layout>, T, Rank, Layout>;
   using Iterator = iterator_contiguous<span<T, Rank, Layout>, T>;
-  using FillOps = fill_op<span<T, Rank, Layout>, T>;
+  using FillOp = fill_op<span<T, Rank, Layout>, T>;
   using Expr = expression<span<T, Rank, Layout>, T, unaligned_policy>;
 
   // ============ 构造函数 ============
@@ -80,12 +80,12 @@ class span final : public base_expr<span<T, Rank, Layout>, T>,
   using Iterator::crbegin;
   using Iterator::crend;
 
-  using FillOps::fill;
-  using FillOps::set_zeros;
-  using FillOps::set_ones;
-  using FillOps::set_arange;
-  using FillOps::set_random_uniform;
-  using FillOps::set_random_normal;
+  using FillOp::fill;
+  using FillOp::set_zeros;
+  using FillOp::set_ones;
+  using FillOp::set_arange;
+  using FillOp::set_random_uniform;
+  using FillOp::set_random_normal;
 
   using Expr::operator=;
   using Expr::operator+=;

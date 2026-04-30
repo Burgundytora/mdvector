@@ -12,7 +12,7 @@ static int check(bool cond, const char* msg) {
   return 0;
 }
 
-int test_simd_float_ops() {
+int test_simd_float_op() {
   int errors = 0;
   // 1) set1/load/store
   alignas(64) float src[16] = {1.0f, 2.0f,  3.0f,  4.0f,  5.0f,  6.0f,  7.0f,  8.0f,
@@ -61,7 +61,7 @@ int test_simd_float_ops() {
   return errors;
 }
 
-int test_vector_float_ops() {
+int test_vector_float_op() {
   int errors = 0;
   std::cout << "=== md::vector<float> operations test ===\n";
   md::vector<float, 2> v(2, 2);
@@ -118,8 +118,8 @@ int test_vector_float_ops() {
 int main() {
   int errors = 0;
   std::cout << "=== simd float unit test ===\n";
-  errors += test_simd_float_ops();
-  errors += test_vector_float_ops();
+  errors += test_simd_float_op();
+  errors += test_vector_float_op();
   if (errors == 0) {
     std::cout << "ALL PASS\n";
   } else {
