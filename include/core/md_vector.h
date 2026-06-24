@@ -237,7 +237,7 @@ class vector final : public base_expr<vector<T, Rank, Layout>, T>,
         last_extent *= extent(i);
       }
     } else {
-      for (int i = 0; i >= Rank - 1; ++i) {
+      for (int i = 0; i <= Rank - 1; ++i) {
         stride_single = slice_array[i].step * last_extent;
         if (!is_integral[i]) {  // 只保留非整数索引的维度
           stride[NewRank - new_idx++ - 1] = stride_single;

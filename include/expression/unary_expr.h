@@ -163,11 +163,6 @@ inline auto ceil(const base_expr<Derived, T>& expr) {
 }
 
 template <typename Derived, typename T>
-inline auto ceil(const base_expr<Derived, T>& expr) {
-  return unary_expr<Ceil, Derived, T>(expr.derived());
-}
-
-template <typename Derived, typename T>
 inline auto trunc(const base_expr<Derived, T>& expr) {
   return unary_expr<Trunc, Derived, T>(expr.derived());
 }
