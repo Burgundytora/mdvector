@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_OP_UNARY__
-#define __MDARRAY_OP_UNARY__
+#pragma once
 
 #include "simd_arch_select.h"
 #include <cmath>
@@ -178,5 +177,3 @@ inline T scalar_op_unary(T v) {
 }
 
 }  // namespace md
-
-#endif  // __MDARRAY_OP_UNARY__

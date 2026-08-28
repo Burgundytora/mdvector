@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_MD_ARRAY__
-#define __MDARRAY_MD_ARRAY__
+#pragma once
 
 #include "../storage/storage.h"
 #include "../iterator/iterator.h"
@@ -122,5 +121,3 @@ template struct multi_dim_static_checks<int>;
 }  // namespace detail
 
 }  // namespace md
-
-#endif  // __MDARRAY_MD_ARRAY__

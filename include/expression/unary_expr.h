@@ -1,6 +1,5 @@
 // expression/unary_expr.h
-#ifndef __MDARRAY_UNARY_EXPR__
-#define __MDARRAY_UNARY_EXPR__
+#pragma once
 
 #include "base_expr.h"
 #include "../simd/simd_op_unary.h"
@@ -193,5 +192,3 @@ inline auto lgamma(const base_expr<Derived, T>& expr) {
 }
 
 }  // namespace md
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_NONE__
-#define __MDARRAY_NONE__
+#pragma once
 
 #include "../simd_base.h"
 
@@ -92,5 +91,3 @@ struct simd<int> {
   static inline type set1(int val) { return val; }
 };
 }  // namespace md
-
-#endif  //__MDARRAY_NONE__

@@ -1,5 +1,4 @@
-#ifndef __TEST_SET_H__
-#define __TEST_SET_H__
+#pragma once
 
 #include <array>
 #include <iostream>
@@ -41,5 +40,3 @@ size_t dim1;
 size_t dim2;
 size_t total_element;
 size_t total_cal;
-
-#endif  // __TEST_SET_H__

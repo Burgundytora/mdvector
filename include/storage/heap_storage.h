@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_HEAP_STORAGE__
-#define __MDARRAY_HEAP_STORAGE__
+#pragma once
 
 #include "../concepts/storage_concept.h"
 #include "../simd/allocator.h"
@@ -39,5 +38,3 @@ class heap_storage {
 };
 
 }  // namespace md
-
-#endif  // __MDARRAY_HEAP_STORAGE__

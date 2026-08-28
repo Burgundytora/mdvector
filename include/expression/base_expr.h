@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_BASE_EXPR__
-#define __MDARRAY_BASE_EXPR__
+#pragma once
 
 #include "../simd/simd.h"
 #include "../parallel/parallel.h"
@@ -78,5 +77,3 @@ class base_expr {
 };
 
 }  // namespace md
-
-#endif  // __MDARRAY_BASE_EXPR__

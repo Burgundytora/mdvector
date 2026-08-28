@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_MD_VIEW__
-#define __MDARRAY_MD_VIEW__
+#pragma once
 
 #include "../storage/storage.h"
 #include "../iterator/iterator.h"
@@ -168,5 +167,3 @@ template struct multi_dim_view_checks<int>;
 }  // namespace detail
 
 }  // namespace md
-
-#endif  // __MDARRAY_MD_VIEW__

@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_EXPRESSION__
-#define __MDARRAY_EXPRESSION__
+#pragma once
 
 // #include "unary_expr.h"
 #include "operator.h"
@@ -107,5 +106,3 @@ class expression {
 };
 
 }  // namespace md
-
-#endif  // __MDARRAY_EXPRESSION__

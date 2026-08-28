@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_MDSPAN_PRINT__
-#define __MDARRAY_MDSPAN_PRINT__
+#pragma once
 
 #include "mdspan_impl.h"
 
@@ -92,5 +91,3 @@ void print_mdspan(std::mdspan<T, Extents, Layout> mdspan_) {
 }
 
 }  // namespace md
-
-#endif  // __MDARRAY_MDSPAN_PRINT__

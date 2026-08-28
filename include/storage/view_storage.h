@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_VIEW_STORAGE__
-#define __MDARRAY_VIEW_STORAGE__
+#pragma once
 
 #include "../concepts/storage_concept.h"
 
@@ -40,5 +39,3 @@ class view_storage {
 };
 
 }  // namespace md
-
-#endif  // __MDARRAY_VIEW_STORAGE__

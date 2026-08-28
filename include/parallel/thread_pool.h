@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_THREAD_POOL__
-#define __MDARRAY_THREAD_POOL__
+#pragma once
 
 #include <atomic>
 #include <latch>
@@ -139,5 +138,3 @@ class thread_pool {
 };
 
 }  // namespace md
-
-#endif  // __MDARRAY_THREAD_POOL__

@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_SIMD_BASE__
-#define __MDARRAY_SIMD_BASE__
+#pragma once
 
 namespace md {
 
@@ -7,5 +6,3 @@ template <typename T>
 struct simd;
 
 }  // namespace md
-
-#endif  // __MDARRAY_SIMD_BASE__

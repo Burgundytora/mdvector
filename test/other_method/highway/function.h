@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_HWY_FUNCTION_H__
-#define __MDARRAY_HWY_FUNCTION_H__
+#pragma once
 
 #include "hwy/highway.h"
 
@@ -86,4 +85,3 @@ void hwy_div(const T* __restrict a, const T* __restrict b, T* __restrict res, si
     hn::StoreN(hn::Div(va, vb), d, res + i, size - i);
   }
 }
-#endif  // __FUNCTION_H__

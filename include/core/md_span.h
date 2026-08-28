@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_MD_SPAN__
-#define __MDARRAY_MD_SPAN__
+#pragma once
 
 #include "../storage/storage.h"
 #include "../iterator/iterator.h"
@@ -117,5 +116,3 @@ class span final : public base_expr<span<T, Rank, Layout>, T>,
 };
 
 }  // namespace md
-
-#endif  // __MDARRAY_MD_SPAN__

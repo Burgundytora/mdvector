@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_BINARY_EXPR__
-#define __MDARRAY_BINARY_EXPR__
+#pragma once
 
 #include "extract_layout.h"
 #include "../simd/simd_op_binary.h"
@@ -72,5 +71,3 @@ class binary_expr : public base_expr<binary_expr<T, L, R, Cal>, T> {
 };
 
 }  // namespace md
-
-#endif  // __MDARRAY_BINARY_EXPR__

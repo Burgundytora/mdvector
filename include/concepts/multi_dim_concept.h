@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_MULTI_DIM_CONCEPT__
-#define __MDARRAY_MULTI_DIM_CONCEPT__
+#pragma once
 
 #include "base_concept.h"
 #include <concepts>
@@ -90,5 +89,3 @@ concept MultiDimStatic = requires {
 };
 
 }  // namespace md
-
-#endif  // __MDARRAY_MULTI_DIM_CONCEPT__

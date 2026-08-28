@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_SIMD_SELECT__
-#define __MDARRAY_SIMD_SELECT__
+#pragma once
 
 #include <iostream>
 
@@ -44,5 +43,3 @@ void print_simd_type() {
 }
 
 }  // namespace md
-
-#endif  // __MDARRAY_SIMD_SELECT__

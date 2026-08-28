@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_ALLOCATOR__
-#define __MDARRAY_ALLOCATOR__
+#pragma once
 
 #include <limits>
 #include <memory>
@@ -84,5 +83,3 @@ template <typename T>
 using auto_allocator = std::conditional_t<std::is_floating_point_v<T>, simd_allocator<T>, std::allocator<T>>;
 
 }  // namespace md
-
-#endif  // __MDARRAY_ALLOCATOR__

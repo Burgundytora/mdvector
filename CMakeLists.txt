@@ -32,7 +32,7 @@ target_include_directories(mdarray
 # 编译开关
 option(BUILD_MD_DEMO "" ON)
 option(BUILD_MD_UTEST "" ON)
-option(BUILD_MD_BENCHMARK "" OFF)
+option(BUILD_MD_BENCHMARK "" ON)
 
 
 if(BUILD_MD_DEMO)

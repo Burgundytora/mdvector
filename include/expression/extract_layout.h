@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_EXTRACT_LAYOUT__
-#define __MDARRAY_EXTRACT_LAYOUT__
+#pragma once
 
 #include "scalar_wrapper.h"
 
@@ -70,5 +69,3 @@ constexpr size_t derived_rank() {
 }
 
 }  // namespace md
-
-#endif  // __MDARRAY_EXTRACT_LAYOUT__

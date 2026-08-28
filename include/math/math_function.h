@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_MATH_FUNCTION__
-#define __MDARRAY_MATH_FUNCTION__
+#pragma once
 
 #include <cmath>
 #include <random>
@@ -179,5 +178,3 @@ auto abs_min(const Container& c) {
 }
 
 }  // namespace md
-
-#endif  // __MDARRAY_MATH_FUNCTION__

@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_UNROLL__
-#define __MDARRAY_UNROLL__
+#pragma once
 
 namespace md {
 
@@ -32,5 +31,3 @@ struct auto_unroll {
 };
 
 }  // namespace md
-
-#endif  // __MDARRAY_UNROLL__

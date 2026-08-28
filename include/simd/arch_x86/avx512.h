@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_AVX512__
-#define __MDARRAY_AVX512__
+#pragma once
 
 #include "../simd_base.h"
 // ======================== AVX512 ========================
@@ -134,5 +133,3 @@ struct simd<int> {
 };
 
 }  // namespace md
-
-#endif  // __MDARRAY_AVX512__

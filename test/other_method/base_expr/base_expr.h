@@ -1,5 +1,4 @@
-#ifndef ___MDARRAY_BASE_EXPR_H__
-#define ___MDARRAY_BASE_EXPR_H__
+#pragma once
 
 #include <cassert>
 #include <cstddef>
@@ -191,4 +190,3 @@ template <class T, class R1, class R2>
 Array<T, Div<T, R1, R2>> operator/(Array<T, R1> const& a, Array<T, R2> const& b) {
   return Array<T, Div<T, R1, R2>>(Div<T, R1, R2>(a.rep(), b.rep()));
 }
-#endif  // __BASE_EXPR_H__

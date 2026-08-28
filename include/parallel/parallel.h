@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_PARALLEL__
-#define __MDARRAY_PARALLEL__
+#pragma once
 
 #include "thread_pool.h"
 #include "cuda.h"
@@ -23,5 +22,3 @@ inline constexpr parallel_t par{};
 inline constexpr cuda_t cu{};
 
 }  // namespace md
-
-#endif  //__MDARRAY_PARALLEL__

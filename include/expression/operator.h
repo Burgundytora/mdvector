@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_OPERATOR__
-#define __MDARRAY_OPERATOR__
+#pragma once
 
 #include "binary_expr.h"
 
@@ -78,5 +77,3 @@ auto operator/(T lhs, const base_expr<R, T>& rhs) {
 }
 
 }  // namespace md
-
-#endif  // __MDARRAY_OPERATOR__

@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_SIMD_CONCEPT__
-#define __MDARRAY_SIMD_CONCEPT__
+#pragma once
 
 #include "base_concept.h"
 
@@ -109,5 +108,3 @@ concept HasSimdFma =
     };
 
 }  // namespace md
-
-#endif  // __MDARRAY_SIMD_CONCEPT__

@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_MDSPAN_IMPL__
-#define __MDARRAY_MDSPAN_IMPL__
+#pragma once
 
 #include <version>
 
@@ -335,5 +334,3 @@ class mdspan {
 }  // namespace std
 
 #endif
-
-#endif  // __MDARRAY_MDSPAN_IMPL__

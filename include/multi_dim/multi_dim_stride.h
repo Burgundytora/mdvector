@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_MULTI_DIM_STRIDE__
-#define __MDARRAY_MULTI_DIM_STRIDE__
+#pragma once
 
 #include "mdspan_print.h"
 
@@ -126,5 +125,3 @@ class multi_dim_stride {
 };
 
 }  // namespace md
-
-#endif  // __MDARRAY_MULTI_DIM_STRIDE__

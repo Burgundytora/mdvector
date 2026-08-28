@@ -1,6 +1,5 @@
 
-#ifndef __MDARRAY_SLICE__
-#define __MDARRAY_SLICE__
+#pragma once
 
 #include <cstddef>
 #include <array>
@@ -159,5 +158,3 @@ auto prepare_slices(std::array<std::size_t, Rank> extents, Slices... slices) {
 }
 
 }  // namespace md
-
-#endif  // __MDARRAY_SLICE__

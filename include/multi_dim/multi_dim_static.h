@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_MULTI_DIM_STATIC__
-#define __MDARRAY_MULTI_DIM_STATIC__
+#pragma once
 
 #include "mdspan_print.h"
 
@@ -108,5 +107,3 @@ class multi_dim_static {
 };
 
 }  // namespace md
-
-#endif  // __MDARRAY_MULTI_DIM_STATIC__

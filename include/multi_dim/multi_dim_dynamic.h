@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_MULTI_DIM_DYNAMIC__
-#define __MDARRAY_MULTI_DIM_DYNAMIC__
+#pragma once
 
 #include "mdspan_print.h"
 
@@ -136,5 +135,3 @@ class multi_dim_dynamic {
 };
 
 }  // namespace md
-
-#endif  // __MDARRAY_MULTI_DIM_DYNAMIC__

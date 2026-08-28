@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_TYPE_CONCEPT__
-#define __MDARRAY_TYPE_CONCEPT__
+#pragma once
 
 #include <concepts>
 #include <type_traits>
@@ -66,5 +65,3 @@ struct std::formatter<std::array<T, N>> : std::formatter<std::string> {
     return std::formatter<std::string>::format(result, ctx);
   }
 };
-
-#endif  //__MDARRAY_TYPE_CONCEPT__

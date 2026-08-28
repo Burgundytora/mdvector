@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_MD_VECTOR__
-#define __MDARRAY_MD_VECTOR__
+#pragma once
 
 #include "md_span.h"
 #include "md_view.h"
@@ -314,5 +313,3 @@ template struct multi_dim_dynamci_checks<int>;
 }  // namespace detail
 
 }  // namespace md
-
-#endif  // __MDARRAY_MD_VECTOR__

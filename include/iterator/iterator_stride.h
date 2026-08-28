@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_INTERAOTR_STRIDE__
-#define __MDARRAY_INTERAOTR_STRIDE__
+#pragma once
 
 #include "../concepts/base_concept.h"
 
@@ -154,5 +153,3 @@ class iterator_stride {
 };
 
 }  // namespace md
-
-#endif  // __MDARRAY_INTERAOTR_STRIDE__

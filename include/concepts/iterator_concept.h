@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_ITERATOR_CONCEPT__
-#define __MDARRAY_ITERATOR_CONCEPT__
+#pragma once
 
 #include "base_concept.h"
 
@@ -17,5 +16,3 @@ concept Iterable = requires(S& s, const S& cs) {
 };
 
 }  // namespace md
-
-#endif  // __MDARRAY_ITERATOR_CONCEPT__

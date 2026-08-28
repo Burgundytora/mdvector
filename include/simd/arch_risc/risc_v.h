@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_RISC_V__
-#define __MDARRAY_RISC_V__
+#pragma once
 
 #include "../simd_base.h"
 // ======================== RISC-V Vector ========================
@@ -116,5 +115,3 @@ struct simd<int> {
 };
 
 }  // namespace md
-
-#endif  // __MDARRAY_RISC_V__

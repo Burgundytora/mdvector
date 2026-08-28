@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_ITERATOR_FILL__
-#define __MDARRAY_ITERATOR_FILL__
+#pragma once
 
 #include "../concepts/iterator_concept.h"
 
@@ -77,5 +76,3 @@ class fill_op {
 };
 
 }  // namespace md
-
-#endif  // __MDARRAY_ITERATOR_FILL__

@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_SCALAR_WRAPPER__
-#define __MDARRAY_SCALAR_WRAPPER__
+#pragma once
 
 #include "base_expr.h"
 
@@ -32,5 +31,3 @@ class scalar_wrapper : public base_expr<scalar_wrapper<T>, T> {
 };
 
 }  // namespace md
-
-#endif  // __MDARRAY_SCALAR_WRAPPER__

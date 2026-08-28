@@ -1,5 +1,4 @@
-#ifndef __MDARRAY_SIMD_FUNCTION__
-#define __MDARRAY_SIMD_FUNCTION__
+#pragma once
 
 #include "simd.h"
 
@@ -317,5 +316,3 @@ void simd_scalar_div(T a, const T* __restrict b, T* __restrict c, const size_t n
 }
 
 }  // namespace md
-
-#endif  // __MDARRAY_SIMD_FUNCTION__

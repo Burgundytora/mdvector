@@ -1,5 +1,4 @@
-#ifndef HEADER_TIME_COST_H_
-#define HEADER_TIME_COST_H_
+#pragma once
 
 #include <chrono>
 #include <fstream>
@@ -75,5 +74,3 @@ struct TimerRecorder {
   static inline vector<string> method_name_;
   static inline map<string, vector<double>> speed_recorder_;
 };
-
-#endif  // HEADER_TIME_COST_H_
