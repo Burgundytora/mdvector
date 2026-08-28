@@ -2,8 +2,7 @@
 
 #include "../simd_base.h"
 // ======================== SSE ========================
-#include <emmintrin.h>  // SSE2
-#include <xmmintrin.h>  // SSE
+#include <immintrin.h>
 
 namespace md {
 
@@ -12,6 +11,9 @@ struct simd<float> {
   static constexpr size_t alignment = 16;
   static constexpr size_t pack_size = 4;
   using type = __m128;
+  using ref_type = __m128&;
+  using const_type = const __m128;
+  using const_ref_type = const __m128&;
 
   // ==================== 广播 ====================
   static inline type set1(float val) { return _mm_set1_ps(val); }
@@ -64,6 +66,9 @@ struct simd<double> {
   static constexpr size_t alignment = 16;
   static constexpr size_t pack_size = 2;
   using type = __m128d;
+  using ref_type = __m128d&;
+  using const_type = const __m128d;
+  using const_ref_type = const __m128d&;
 
   // ==================== 广播 ====================
   static inline type set1(double val) { return _mm_set1_pd(val); }

@@ -6,12 +6,36 @@
 
 namespace md {
 
+template <typename T, typename L, typename R, typename Cal>
+class binary_expr;
+
+template <typename Op, typename SubExpr, typename T>
+class unary_expr;
+
+namespace detail {
+
+template <typename>
+struct is_expression_node : std::false_type {};
+
+template <typename T, typename L, typename R, typename Cal>
+struct is_expression_node<binary_expr<T, L, R, Cal>> : std::true_type {};
+
+template <typename Op, typename SubExpr, typename T>
+struct is_expression_node<unary_expr<Op, SubExpr, T>> : std::true_type {};
+
+template <typename E>
+using unary_storage_t = std::conditional_t<is_expression_node<E>::value, E, const E&>;
+
+}  // namespace detail
+
 template <typename Op, typename SubExpr, typename T>
 class unary_expr : public base_expr<unary_expr<Op, SubExpr, T>, T> {
-  const SubExpr& expr_;
+  detail::unary_storage_t<SubExpr> expr_;
 
  public:
   using value_type = T;
+  using layout_type = typename SubExpr::layout_type;
+  static constexpr size_t rank_ = SubExpr::rank_;
 
   explicit unary_expr(const SubExpr& expr) noexcept : expr_(expr) {}
 
@@ -21,6 +45,12 @@ class unary_expr : public base_expr<unary_expr<Op, SubExpr, T>, T> {
   template <typename T2>
   auto load_simd(size_t i) const noexcept {
     auto val = expr_.template load_simd<T2>(i);
+    return simd_op_unary<T2, Op>(val);
+  }
+
+  template <typename T2>
+  auto load_simd_mask(size_t i) const noexcept {
+    auto val = expr_.template load_simd_mask<T2>(i);
     return simd_op_unary<T2, Op>(val);
   }
 
@@ -137,17 +167,17 @@ inline auto tanh(const base_expr<Derived, T>& expr) {
 }
 
 template <typename Derived, typename T>
-inline auto Asinh(const base_expr<Derived, T>& expr) {
+inline auto asinh(const base_expr<Derived, T>& expr) {
   return unary_expr<Asinh, Derived, T>(expr.derived());
 }
 
 template <typename Derived, typename T>
-inline auto Acosh(const base_expr<Derived, T>& expr) {
+inline auto acosh(const base_expr<Derived, T>& expr) {
   return unary_expr<Acosh, Derived, T>(expr.derived());
 }
 
 template <typename Derived, typename T>
-inline auto Atanh(const base_expr<Derived, T>& expr) {
+inline auto atanh(const base_expr<Derived, T>& expr) {
   return unary_expr<Atanh, Derived, T>(expr.derived());
 }
 

@@ -13,7 +13,7 @@ class scalar_wrapper : public base_expr<scalar_wrapper<T>, T> {
  public:
   explicit scalar_wrapper(T val) : simd_value_(simd<T>::set1(val)) {}
 
-  scalar_wrapper(const scalar_wrapper &) = delete;
+  scalar_wrapper(const scalar_wrapper&) = default;
 
   template <typename U>
   typename simd<U>::type load_simd(size_t) const {

@@ -1,7 +1,7 @@
 #pragma once
 
-// #include "unary_expr.h"
 #include "operator.h"
+#include "unary_expr.h"
 #include "../simd/simd.h"
 
 namespace md {
@@ -95,7 +95,7 @@ class expression {
   auto operator-() const noexcept
     requires Numeric<T>
   {
-    return derived() * static_cast<T>(-1);
+    return unary_expr<Neg, Derived, T>(derived());
   }
 
   auto operator+() const noexcept

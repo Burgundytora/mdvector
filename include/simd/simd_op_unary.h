@@ -1,178 +1,157 @@
 #pragma once
 
-#include "simd_arch_select.h"
 #include <cmath>
+#include <cstddef>
+#include <type_traits>
 
 namespace md {
 
-// ============================================================================
-// 一元操作标签
-// ============================================================================
+struct Neg;
+struct Abs;
+struct Sqrt;
+struct Cbrt;
+struct RSqrt;
+struct Exp;
+struct Exp2;
+struct Expm1;
+struct Log;
+struct Log2;
+struct Log10;
+struct Log1p;
+struct Sin;
+struct Cos;
+struct Tan;
+struct Asin;
+struct Acos;
+struct Atan;
+struct Sinh;
+struct Cosh;
+struct Tanh;
+struct Asinh;
+struct Acosh;
+struct Atanh;
+struct Floor;
+struct Ceil;
+struct Trunc;
+struct Round;
+struct Erf;
+struct Erfc;
+struct Tgamma;
+struct Lgamma;
 
-// 基本数学函数
-struct Neg;    // 取负: -x
-struct Abs;    // 绝对值: |x|
-struct Sqrt;   // 平方根: √x
-struct Cbrt;   // 立方根: ∛x
-struct RSqrt;  // 平方根倒数: 1/√x
+namespace detail {
 
-// 指数和对数
-struct Exp;    // e^x
-struct Exp2;   // 2^x
-struct Expm1;  // e^x - 1
-struct Log;    // ln(x)
-struct Log2;   // log2(x)
-struct Log10;  // log10(x)
-struct Log1p;  // ln(1+x)
+template <class>
+inline constexpr bool dependent_false_v = false;
 
-// 三角函数
-struct Sin;   // sin(x)
-struct Cos;   // cos(x)
-struct Tan;   // tan(x)
-struct Asin;  // arcsin(x)
-struct Acos;  // arccos(x)
-struct Atan;  // arctan(x)
-
-// 双曲函数
-struct Sinh;   // sinh(x)
-struct Cosh;   // cosh(x)
-struct Tanh;   // tanh(x)
-struct Asinh;  // arcsinh(x)
-struct Acosh;  // arccosh(x)
-struct Atanh;  // arctanh(x)
-
-// 取整函数
-struct Floor;  // ⌊x⌋
-struct Ceil;   // ⌈x⌉
-struct Trunc;  // 向零取整
-struct Round;  // 四舍五入
-
-// 其他
-struct Erf;     // 误差函数
-struct Erfc;    // 互补误差函数
-struct Tgamma;  // Gamma 函数
-struct Lgamma;  // Log Gamma 函数
-
-// ============================================================================
-// SIMD 一元操作分发
-// ============================================================================
 template <class T, class Op>
-inline typename simd<T>::type simd_op_unary(typename simd<T>::const_ref_type v) {
-  // 基本数学
-  if constexpr (std::is_same_v<Op, Neg>) {
-    return simd<T>::neg(v);
-  } else if constexpr (std::is_same_v<Op, Abs>) {
-    return simd<T>::abs(v);
-  } else if constexpr (std::is_same_v<Op, Sqrt>) {
-    return simd<T>::sqrt(v);
-  } else if constexpr (std::is_same_v<Op, Cbrt>) {
-    return simd<T>::cbrt(v);
-  } else if constexpr (std::is_same_v<Op, RSqrt>) {
-    return simd<T>::rsqrt(v);
-  }
-  // 指数和对数
-  else if constexpr (std::is_same_v<Op, Exp>) {
-    return simd<T>::exp(v);
-  } else if constexpr (std::is_same_v<Op, Exp2>) {
-    return simd<T>::exp2(v);
-  } else if constexpr (std::is_same_v<Op, Expm1>) {
-    return simd<T>::expm1(v);
-  } else if constexpr (std::is_same_v<Op, Log>) {
-    return simd<T>::log(v);
-  } else if constexpr (std::is_same_v<Op, Log2>) {
-    return simd<T>::log2(v);
-  } else if constexpr (std::is_same_v<Op, Log10>) {
-    return simd<T>::log10(v);
-  } else if constexpr (std::is_same_v<Op, Log1p>) {
-    return simd<T>::log1p(v);
-  }
-  // 三角函数
-  else if constexpr (std::is_same_v<Op, Sin>) {
-    return simd<T>::sin(v);
-  } else if constexpr (std::is_same_v<Op, Cos>) {
-    return simd<T>::cos(v);
-  } else if constexpr (std::is_same_v<Op, Tan>) {
-    return simd<T>::tan(v);
-  } else if constexpr (std::is_same_v<Op, Asin>) {
-    return simd<T>::asin(v);
-  } else if constexpr (std::is_same_v<Op, Acos>) {
-    return simd<T>::acos(v);
-  } else if constexpr (std::is_same_v<Op, Atan>) {
-    return simd<T>::atan(v);
-  }
-  // 双曲函数
-  else if constexpr (std::is_same_v<Op, Sinh>) {
-    return simd<T>::sinh(v);
-  } else if constexpr (std::is_same_v<Op, Cosh>) {
-    return simd<T>::cosh(v);
-  } else if constexpr (std::is_same_v<Op, Tanh>) {
-    return simd<T>::tanh(v);
-  } else if constexpr (std::is_same_v<Op, Asinh>) {
-    return simd<T>::asinh(v);
-  } else if constexpr (std::is_same_v<Op, Acosh>) {
-    return simd<T>::acosh(v);
-  } else if constexpr (std::is_same_v<Op, Atanh>) {
-    return simd<T>::atanh(v);
-  }
-  // 取整函数
-  else if constexpr (std::is_same_v<Op, Floor>) {
-    return simd<T>::floor(v);
-  } else if constexpr (std::is_same_v<Op, Ceil>) {
-    return simd<T>::ceil(v);
-  } else if constexpr (std::is_same_v<Op, Trunc>) {
-    return simd<T>::trunc(v);
-  } else if constexpr (std::is_same_v<Op, Round>) {
-    return simd<T>::round(v);
-  }
-  // 其他
-  else if constexpr (std::is_same_v<Op, Erf>) {
-    return simd<T>::erf(v);
-  } else if constexpr (std::is_same_v<Op, Erfc>) {
-    return simd<T>::erfc(v);
-  } else if constexpr (std::is_same_v<Op, Tgamma>) {
-    return simd<T>::tgamma(v);
-  } else if constexpr (std::is_same_v<Op, Lgamma>) {
-    return simd<T>::lgamma(v);
-  } else {
-    static_assert(false, "simd_op_unary: unsupported operation");
-  }
-}
-
-// ============================================================================
-// 标量回退（用于不支持 SIMD 的数学函数）
-// ============================================================================
-template <class T, class Op>
-inline T scalar_op_unary(T v) {
+inline T scalar_op_unary_impl(T v) {
   if constexpr (std::is_same_v<Op, Neg>) {
     return -v;
   } else if constexpr (std::is_same_v<Op, Abs>) {
-    return std::abs(v);
+    return static_cast<T>(std::abs(v));
   } else if constexpr (std::is_same_v<Op, Sqrt>) {
-    return std::sqrt(v);
+    return static_cast<T>(std::sqrt(v));
   } else if constexpr (std::is_same_v<Op, Cbrt>) {
-    return std::cbrt(v);
+    return static_cast<T>(std::cbrt(v));
+  } else if constexpr (std::is_same_v<Op, RSqrt>) {
+    return static_cast<T>(T{1} / std::sqrt(v));
   } else if constexpr (std::is_same_v<Op, Exp>) {
-    return std::exp(v);
+    return static_cast<T>(std::exp(v));
+  } else if constexpr (std::is_same_v<Op, Exp2>) {
+    return static_cast<T>(std::exp2(v));
+  } else if constexpr (std::is_same_v<Op, Expm1>) {
+    return static_cast<T>(std::expm1(v));
   } else if constexpr (std::is_same_v<Op, Log>) {
-    return std::log(v);
+    return static_cast<T>(std::log(v));
+  } else if constexpr (std::is_same_v<Op, Log2>) {
+    return static_cast<T>(std::log2(v));
   } else if constexpr (std::is_same_v<Op, Log10>) {
-    return std::log10(v);
+    return static_cast<T>(std::log10(v));
+  } else if constexpr (std::is_same_v<Op, Log1p>) {
+    return static_cast<T>(std::log1p(v));
   } else if constexpr (std::is_same_v<Op, Sin>) {
-    return std::sin(v);
+    return static_cast<T>(std::sin(v));
   } else if constexpr (std::is_same_v<Op, Cos>) {
-    return std::cos(v);
+    return static_cast<T>(std::cos(v));
   } else if constexpr (std::is_same_v<Op, Tan>) {
-    return std::tan(v);
+    return static_cast<T>(std::tan(v));
+  } else if constexpr (std::is_same_v<Op, Asin>) {
+    return static_cast<T>(std::asin(v));
+  } else if constexpr (std::is_same_v<Op, Acos>) {
+    return static_cast<T>(std::acos(v));
+  } else if constexpr (std::is_same_v<Op, Atan>) {
+    return static_cast<T>(std::atan(v));
+  } else if constexpr (std::is_same_v<Op, Sinh>) {
+    return static_cast<T>(std::sinh(v));
+  } else if constexpr (std::is_same_v<Op, Cosh>) {
+    return static_cast<T>(std::cosh(v));
+  } else if constexpr (std::is_same_v<Op, Tanh>) {
+    return static_cast<T>(std::tanh(v));
+  } else if constexpr (std::is_same_v<Op, Asinh>) {
+    return static_cast<T>(std::asinh(v));
+  } else if constexpr (std::is_same_v<Op, Acosh>) {
+    return static_cast<T>(std::acosh(v));
+  } else if constexpr (std::is_same_v<Op, Atanh>) {
+    return static_cast<T>(std::atanh(v));
   } else if constexpr (std::is_same_v<Op, Floor>) {
-    return std::floor(v);
+    return static_cast<T>(std::floor(v));
   } else if constexpr (std::is_same_v<Op, Ceil>) {
-    return std::ceil(v);
+    return static_cast<T>(std::ceil(v));
   } else if constexpr (std::is_same_v<Op, Trunc>) {
-    return std::trunc(v);
+    return static_cast<T>(std::trunc(v));
   } else if constexpr (std::is_same_v<Op, Round>) {
-    return std::round(v);
+    return static_cast<T>(std::round(v));
+  } else if constexpr (std::is_same_v<Op, Erf>) {
+    return static_cast<T>(std::erf(v));
+  } else if constexpr (std::is_same_v<Op, Erfc>) {
+    return static_cast<T>(std::erfc(v));
+  } else if constexpr (std::is_same_v<Op, Tgamma>) {
+    return static_cast<T>(std::tgamma(v));
+  } else if constexpr (std::is_same_v<Op, Lgamma>) {
+    return static_cast<T>(std::lgamma(v));
   } else {
-    static_assert(false, "scalar_op_unary: unsupported operation");
+    static_assert(dependent_false_v<Op>, "unsupported unary operation");
+  }
+}
+
+}  // namespace detail
+}  // namespace md
+
+#include "simd_arch_select.h"
+
+#if defined(__x86_64__) || defined(_M_X64) || defined(_M_IX86) || defined(_M_AMD64)
+#if defined(__AVX512F__)
+#include "arch_x86/avx512_unary.h"
+#elif defined(__AVX2__)
+#include "arch_x86/avx2_unary.h"
+#elif defined(__SSE4_1__)
+#include "arch_x86/sse_unary.h"
+#else
+#include "arch_common/none_unary.h"
+#endif
+#elif defined(__arm__) || defined(__aarch64__)
+#include "arch_arm/neon_unary.h"
+#elif defined(__riscv)
+#include "arch_risc/risc_v_unary.h"
+#else
+#include "arch_common/none_unary.h"
+#endif
+
+#include "arch_common/unary_fallback.h"
+
+namespace md {
+template <class T, class Op>
+inline T scalar_op_unary(T v) {
+  return detail::scalar_op_unary_impl<T, Op>(v);
+}
+
+template <class T, class Op>
+inline typename simd<T>::type simd_op_unary(typename simd<T>::type v) {
+  if constexpr (detail::has_native_simd_op_unary_v<T, Op>) {
+    return detail::native_simd_op_unary<T, Op>(v);
+  } else {
+    return detail::map_simd_lanes<T, Op>(v);
   }
 }
 
