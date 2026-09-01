@@ -1,36 +1,14 @@
 // expression/unary_expr.h
 #pragma once
 
-#include "base_expr.h"
+#include "extract_layout.h"
 #include "../simd/simd_op_unary.h"
 
 namespace md {
 
-template <typename T, typename L, typename R, typename Cal>
-class binary_expr;
-
-template <typename Op, typename SubExpr, typename T>
-class unary_expr;
-
-namespace detail {
-
-template <typename>
-struct is_expression_node : std::false_type {};
-
-template <typename T, typename L, typename R, typename Cal>
-struct is_expression_node<binary_expr<T, L, R, Cal>> : std::true_type {};
-
-template <typename Op, typename SubExpr, typename T>
-struct is_expression_node<unary_expr<Op, SubExpr, T>> : std::true_type {};
-
-template <typename E>
-using unary_storage_t = std::conditional_t<is_expression_node<E>::value, E, const E&>;
-
-}  // namespace detail
-
 template <typename Op, typename SubExpr, typename T>
 class unary_expr : public base_expr<unary_expr<Op, SubExpr, T>, T> {
-  detail::unary_storage_t<SubExpr> expr_;
+  AutoType<SubExpr> expr_;
 
  public:
   using value_type = T;

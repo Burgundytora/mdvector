@@ -4,11 +4,41 @@
 
 namespace md {
 
+template <typename T, typename L, typename R, typename Cal>
+class binary_expr;
+
+template <typename Op, typename SubExpr, typename T>
+class unary_expr;
+
+namespace detail {
+
+// Expression nodes own their lightweight child nodes, while containers and
+// views remain referenced. This keeps temporary expression trees alive without
+// copying any array data.
+template <typename>
+struct is_expression_node : std::false_type {};
+
+template <typename T, typename L, typename R, typename Cal>
+struct is_expression_node<binary_expr<T, L, R, Cal>> : std::true_type {};
+
+template <typename Op, typename SubExpr, typename T>
+struct is_expression_node<unary_expr<Op, SubExpr, T>> : std::true_type {};
+
+template <typename T>
+inline constexpr bool is_expression_node_v = is_expression_node<std::remove_cvref_t<T>>::value;
+
+template <typename T>
+using expression_storage_t =
+    std::conditional_t<is_expression_node_v<T>, std::remove_cvref_t<T>, const std::remove_cvref_t<T>&>;
+
+}  // namespace detail
+
 template <typename T, typename = void>
 struct tensor_scalar_type {
-  using type = const T&;
-  static constexpr size_t rank_ = T::rank_;
-  using layout_type = typename T::layout_type;
+  using raw_type = std::remove_cvref_t<T>;
+  using type = detail::expression_storage_t<raw_type>;
+  static constexpr size_t rank_ = raw_type::rank_;
+  using layout_type = typename raw_type::layout_type;
   static constexpr bool is_scalar = false;
 };
 
