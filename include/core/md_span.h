@@ -35,9 +35,9 @@ class span final : public base_expr<span<T, Rank, Layout>, T>,
       : Storage(data, calculate_size(shape)), MultiDim(shape, std::make_index_sequence<Rank>{}) {}
 
   // 删除移动/拷贝 赋值/构造 不管理所有权
-  span(const span& other) = delete;
+  span(const span& other) = default;
 
-  span(const span&& other) = delete;
+  span(span&& other) = default;
 
   span& operator=(const span& other) = delete;
 

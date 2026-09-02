@@ -1,6 +1,7 @@
 #pragma once
 
 #include "extract_layout.h"
+#include "expression_shape.h"
 #include "../simd/simd_op_binary.h"
 
 namespace md {
@@ -17,15 +18,13 @@ class binary_expr : public base_expr<binary_expr<T, L, R, Cal>, T> {
   AutoType<R> rhs;
 
  public:
-  binary_expr(const L& l, const R& r) : lhs(l), rhs(r) {}
-
-  size_t used_size() const {
-    if constexpr (std::is_arithmetic_v<R>) {
-      return lhs.used_size();
-    } else {
-      return rhs.used_size();
+  binary_expr(const L& l, const R& r) : lhs(l), rhs(r) {
+    if constexpr (!std::is_arithmetic_v<L> && !std::is_arithmetic_v<R>) {
+      detail::debug_check_same_shape(l, r);
     }
   }
+
+  size_t used_size() const { return get_aligned_size<T>(size()); }
 
   size_t size() const {
     if constexpr (std::is_arithmetic_v<R>) {
@@ -45,15 +44,15 @@ class binary_expr : public base_expr<binary_expr<T, L, R, Cal>, T> {
 
   template <typename U>
   typename simd<U>::type load_simd(size_t i) const {
-    auto l = lhs.template load_simd<U>(i);
-    auto r = rhs.template load_simd<U>(i);
+    auto l = detail::load_operand_simd<U>(lhs, i);
+    auto r = detail::load_operand_simd<U>(rhs, i);
     return simd_op_binary<U, Cal>(l, r);
   }
 
   template <typename U>
   typename simd<U>::type load_simd_mask(size_t i) const {
-    auto l = lhs.template load_simd_mask<U>(i);
-    auto r = rhs.template load_simd_mask<U>(i);
+    auto l = detail::load_operand_simd<U>(lhs, i);
+    auto r = detail::load_operand_simd<U>(rhs, i);
     return simd_op_binary<U, Cal>(l, r);
   }
 
@@ -67,6 +66,11 @@ class binary_expr : public base_expr<binary_expr<T, L, R, Cal>, T> {
       return static_cast<T>(rhs.scalar_at(i));
     }();
     return scalar_op_binary<T, Cal>(l, r);
+  }
+
+  template <typename Dest>
+  bool requires_temporary(const Dest& dest) const {
+    return lhs.requires_temporary(dest) || rhs.requires_temporary(dest);
   }
 
   // 取负

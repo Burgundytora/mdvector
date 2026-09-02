@@ -13,6 +13,12 @@ class unary_expr;
 template <typename T, typename Condition, typename TrueExpr, typename FalseExpr>
 class ternary_expr;
 
+template <typename T, size_t Rank, typename Layout>
+class span;
+
+template <typename T, size_t Rank>
+class view;
+
 namespace detail {
 
 // Expression nodes own their lightweight child nodes, while containers and
@@ -33,9 +39,21 @@ struct is_expression_node<ternary_expr<T, Condition, TrueExpr, FalseExpr>> : std
 template <typename T>
 inline constexpr bool is_expression_node_v = is_expression_node<std::remove_cvref_t<T>>::value;
 
+template <typename>
+struct is_lightweight_view : std::false_type {};
+
+template <typename T, size_t Rank, typename Layout>
+struct is_lightweight_view<span<T, Rank, Layout>> : std::true_type {};
+
+template <typename T, size_t Rank>
+struct is_lightweight_view<view<T, Rank>> : std::true_type {};
+
 template <typename T>
-using expression_storage_t =
-    std::conditional_t<is_expression_node_v<T>, std::remove_cvref_t<T>, const std::remove_cvref_t<T>&>;
+inline constexpr bool is_lightweight_view_v = is_lightweight_view<std::remove_cvref_t<T>>::value;
+
+template <typename T>
+using expression_storage_t = std::conditional_t<is_expression_node_v<T> || is_lightweight_view_v<T>,
+                                                std::remove_cvref_t<T>, const std::remove_cvref_t<T>&>;
 
 }  // namespace detail
 
@@ -58,6 +76,30 @@ struct tensor_scalar_type<T, std::enable_if_t<std::is_arithmetic_v<T>>> {
 
 template <typename T>
 using AutoType = typename tensor_scalar_type<T>::type;
+
+namespace detail {
+
+template <typename U, typename Operand>
+typename simd<U>::type load_operand_simd(const Operand& operand, size_t i) {
+  using operand_type = std::remove_cvref_t<Operand>;
+  if constexpr (operand_type::rank_ == 0 || is_expression_node_v<operand_type> ||
+                std::is_same_v<typename operand_type::value_type, U>) {
+    return operand.template load_simd<U>(i);
+  } else {
+    alignas(simd<U>::alignment) std::array<U, simd<U>::pack_size> converted{};
+    for (size_t lane = 0; lane < simd<U>::pack_size && i + lane < operand.size(); ++lane) {
+      if constexpr (requires { operand.data(); } &&
+                    !std::is_same_v<typename operand_type::layout_type, std::layout_stride>) {
+        converted[lane] = static_cast<U>(operand.data()[i + lane]);
+      } else {
+        converted[lane] = static_cast<U>(operand.scalar_at(i + lane));
+      }
+    }
+    return simd<U>::load(converted.data());
+  }
+}
+
+}  // namespace detail
 
 // 辅助 trait 来检查是否为 layout_stride
 template <typename Layout>

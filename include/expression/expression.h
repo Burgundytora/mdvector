@@ -21,41 +21,41 @@ class expression {
 
   // ============ 表达式模板赋值 ============
 
-  template <typename E>
-  Derived& operator=(const base_expr<E, T>& expr) noexcept
-    requires Numeric<T>
+  template <typename E, typename U>
+  Derived& operator=(const base_expr<E, U>& expr)
+    requires(Numeric<T> && std::convertible_to<U, T>)
   {
     expr.template eval_to<>(derived());
     return derived();
   }
 
-  template <typename E>
-  Derived& operator+=(const base_expr<E, T>& expr) noexcept
-    requires Numeric<T>
+  template <typename E, typename U>
+  Derived& operator+=(const base_expr<E, U>& expr)
+    requires(Numeric<T> && std::convertible_to<U, T>)
   {
     (derived() + expr).template eval_to<>(derived());
     return derived();
   }
 
-  template <typename E>
-  Derived& operator-=(const base_expr<E, T>& expr) noexcept
-    requires Numeric<T>
+  template <typename E, typename U>
+  Derived& operator-=(const base_expr<E, U>& expr)
+    requires(Numeric<T> && std::convertible_to<U, T>)
   {
     (derived() - expr).template eval_to<>(derived());
     return derived();
   }
 
-  template <typename E>
-  Derived& operator*=(const base_expr<E, T>& expr) noexcept
-    requires Numeric<T>
+  template <typename E, typename U>
+  Derived& operator*=(const base_expr<E, U>& expr)
+    requires(Numeric<T> && std::convertible_to<U, T>)
   {
     (derived() * expr).template eval_to<>(derived());
     return derived();
   }
 
-  template <typename E>
-  Derived& operator/=(const base_expr<E, T>& expr) noexcept
-    requires Numeric<T>
+  template <typename E, typename U>
+  Derived& operator/=(const base_expr<E, U>& expr)
+    requires(Numeric<T> && std::convertible_to<U, T>)
   {
     (derived() / expr).template eval_to<>(derived());
     return derived();

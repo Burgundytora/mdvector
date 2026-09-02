@@ -1,95 +1,34 @@
 #pragma once
 
+#include <type_traits>
+
 #include "binary_expr.h"
 
 namespace md {
 
-// 向量 + 向量
-template <typename T, typename L, typename R>
-auto operator+(const base_expr<L, T>& lhs, const base_expr<R, T>& rhs) {
-  return binary_expr<T, L, R, Add>(lhs.derived(), rhs.derived());
-}
-
-// 向量 + 标量
-template <typename L, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-auto operator+(const base_expr<L, T>& lhs, const T& rhs) {
-  return binary_expr<T, L, T, Add>(lhs.derived(), rhs);
-}
-
-// 标量 + 向量
-template <typename R, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-auto operator+(T lhs, const base_expr<R, T>& rhs) {
-  return binary_expr<T, T, R, Add>(lhs, rhs.derived());
-}
-
-// 向量 - 向量
-template <typename T, typename L, typename R>
-auto operator-(const base_expr<L, T>& lhs, const base_expr<R, T>& rhs) {
-  return binary_expr<T, L, R, Sub>(lhs.derived(), rhs.derived());
-}
-
-// 向量 - 标量
-template <typename L, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-auto operator-(const base_expr<L, T>& lhs, T rhs) {
-  return binary_expr<T, L, T, Sub>(lhs.derived(), rhs);
-}
-
-// 标量 - 向量
-template <typename R, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-auto operator-(T lhs, const base_expr<R, T>& rhs) {
-  return binary_expr<T, T, R, Sub>(lhs, rhs.derived());
-}
-
-// 向量 * 向量
-template <typename T, typename L, typename R>
-auto operator*(const base_expr<L, T>& lhs, const base_expr<R, T>& rhs) {
-  return binary_expr<T, L, R, Mul>(lhs.derived(), rhs.derived());
-}
-
-// 向量 * 标量
-template <typename L, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-auto operator*(const base_expr<L, T>& lhs, T rhs) {
-  return binary_expr<T, L, T, Mul>(lhs.derived(), rhs);
-}
-
-// 标量 * 向量
-template <typename R, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-auto operator*(T lhs, const base_expr<R, T>& rhs) {
-  return binary_expr<T, T, R, Mul>(lhs, rhs.derived());
-}
-
-// 向量 / 向量
-template <typename T, typename L, typename R>
-auto operator/(const base_expr<L, T>& lhs, const base_expr<R, T>& rhs) {
-  return binary_expr<T, L, R, Div>(lhs.derived(), rhs.derived());
-}
-
-// 向量 / 标量
-template <typename L, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-auto operator/(const base_expr<L, T>& lhs, T rhs) {
-  return binary_expr<T, L, T, Div>(lhs.derived(), rhs);
-}
-
-// 标量 / 向量
-template <typename R, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-auto operator/(T lhs, const base_expr<R, T>& rhs) {
-  return binary_expr<T, T, R, Div>(lhs, rhs.derived());
-}
-
-#define MD_DEFINE_BINARY_EXPRESSION_OPERATOR(symbol, operation)                           \
-  template <typename T, typename L, typename R>                                           \
-  auto operator symbol(const base_expr<L, T>& lhs, const base_expr<R, T>& rhs) {          \
-    return binary_expr<T, L, R, operation>(lhs.derived(), rhs.derived());                 \
-  }                                                                                       \
-  template <typename L, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>> \
-  auto operator symbol(const base_expr<L, T>& lhs, T rhs) {                               \
-    return binary_expr<T, L, T, operation>(lhs.derived(), rhs);                           \
-  }                                                                                       \
-  template <typename R, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>> \
-  auto operator symbol(T lhs, const base_expr<R, T>& rhs) {                               \
-    return binary_expr<T, T, R, operation>(lhs, rhs.derived());                           \
+#define MD_DEFINE_BINARY_EXPRESSION_OPERATOR(symbol, operation)                     \
+  template <typename L, typename LT, typename R, typename RT>                       \
+  auto operator symbol(const base_expr<L, LT>& lhs, const base_expr<R, RT>& rhs) {  \
+    using result_type = std::common_type_t<LT, RT>;                                 \
+    return binary_expr<result_type, L, R, operation>(lhs.derived(), rhs.derived()); \
+  }                                                                                 \
+  template <typename L, typename LT, typename S>                                    \
+    requires std::is_arithmetic_v<S>                                                \
+  auto operator symbol(const base_expr<L, LT>& lhs, S rhs) {                        \
+    using result_type = std::common_type_t<LT, S>;                                  \
+    return binary_expr<result_type, L, S, operation>(lhs.derived(), rhs);           \
+  }                                                                                 \
+  template <typename S, typename R, typename RT>                                    \
+    requires std::is_arithmetic_v<S>                                                \
+  auto operator symbol(S lhs, const base_expr<R, RT>& rhs) {                        \
+    using result_type = std::common_type_t<S, RT>;                                  \
+    return binary_expr<result_type, S, R, operation>(lhs, rhs.derived());           \
   }
 
+MD_DEFINE_BINARY_EXPRESSION_OPERATOR(+, Add)
+MD_DEFINE_BINARY_EXPRESSION_OPERATOR(-, Sub)
+MD_DEFINE_BINARY_EXPRESSION_OPERATOR(*, Mul)
+MD_DEFINE_BINARY_EXPRESSION_OPERATOR(/, Div)
 MD_DEFINE_BINARY_EXPRESSION_OPERATOR(==, Equal)
 MD_DEFINE_BINARY_EXPRESSION_OPERATOR(!=, NotEqual)
 MD_DEFINE_BINARY_EXPRESSION_OPERATOR(<, Less)
@@ -109,19 +48,22 @@ auto operator!(const base_expr<Derived, T>& expr) {
   return binary_expr<T, Derived, T, Equal>(expr.derived(), T{});
 }
 
-template <typename L, typename R, typename T>
-auto logical_and(const base_expr<L, T>& lhs, const base_expr<R, T>& rhs) {
-  return binary_expr<T, L, R, LogicalAnd>(lhs.derived(), rhs.derived());
+template <typename L, typename LT, typename R, typename RT>
+auto logical_and(const base_expr<L, LT>& lhs, const base_expr<R, RT>& rhs) {
+  using result_type = std::common_type_t<LT, RT>;
+  return binary_expr<result_type, L, R, LogicalAnd>(lhs.derived(), rhs.derived());
 }
 
-template <typename L, typename R, typename T>
-auto logical_or(const base_expr<L, T>& lhs, const base_expr<R, T>& rhs) {
-  return binary_expr<T, L, R, LogicalOr>(lhs.derived(), rhs.derived());
+template <typename L, typename LT, typename R, typename RT>
+auto logical_or(const base_expr<L, LT>& lhs, const base_expr<R, RT>& rhs) {
+  using result_type = std::common_type_t<LT, RT>;
+  return binary_expr<result_type, L, R, LogicalOr>(lhs.derived(), rhs.derived());
 }
 
-template <typename L, typename R, typename T>
-auto logical_xor(const base_expr<L, T>& lhs, const base_expr<R, T>& rhs) {
-  return binary_expr<T, L, R, LogicalXor>(lhs.derived(), rhs.derived());
+template <typename L, typename LT, typename R, typename RT>
+auto logical_xor(const base_expr<L, LT>& lhs, const base_expr<R, RT>& rhs) {
+  using result_type = std::common_type_t<LT, RT>;
+  return binary_expr<result_type, L, R, LogicalXor>(lhs.derived(), rhs.derived());
 }
 
 }  // namespace md

@@ -43,9 +43,9 @@ class vector final : public base_expr<vector<T, Rank, Layout>, T>,
   explicit vector(Sizes... sizes) : vector(std::array<size_t, Rank>{static_cast<size_t>(sizes)...}) {}
 
   // 从表达式构造
-  template <typename E>
-  vector(const base_expr<E, T>& expr)
-    requires Numeric<T>
+  template <typename E, typename U>
+  vector(const base_expr<E, U>& expr)
+    requires(Numeric<T> && std::convertible_to<U, T>)
   {
     MultiDim::shape_ = expr.extents();
     Storage::resize(calculate_size(MultiDim::shape_));
@@ -74,9 +74,9 @@ class vector final : public base_expr<vector<T, Rank, Layout>, T>,
 
   vector& operator=(vector&& other) noexcept = default;
 
-  template <typename E>
-  vector& operator=(const base_expr<E, T>& expr)
-    requires Numeric<T>
+  template <typename E, typename U>
+  vector& operator=(const base_expr<E, U>& expr)
+    requires(Numeric<T> && std::convertible_to<U, T>)
   {
     set_shape(expr.extents());
     expr.template eval_to<>(*this);

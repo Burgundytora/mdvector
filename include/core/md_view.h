@@ -35,9 +35,9 @@ class view final : public base_expr<view<T, Rank>, T>,
   }
 
   // 删除移动/拷贝 赋值/构造 不管理所有权
-  view(const view& other) = delete;
+  view(const view& other) = default;
 
-  view(const view&& other) = delete;
+  view(view&& other) = default;
 
   view& operator=(const view& other) = delete;
 

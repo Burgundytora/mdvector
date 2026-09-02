@@ -23,14 +23,13 @@ class unary_expr : public base_expr<unary_expr<Op, SubExpr, T>, T> {
 
   template <typename T2>
   auto load_simd(size_t i) const noexcept {
-    auto val = expr_.template load_simd<T2>(i);
+    auto val = detail::load_operand_simd<T2>(expr_, i);
     return simd_op_unary<T2, Op>(val);
   }
 
   template <typename T2>
   auto load_simd_mask(size_t i) const noexcept {
-    auto val = expr_.template load_simd_mask<T2>(i);
-    return simd_op_unary<T2, Op>(val);
+    return load_simd<T2>(i);
   }
 
   // 标量访问（用于边界或不支持 SIMD 的情况）
@@ -40,6 +39,11 @@ class unary_expr : public base_expr<unary_expr<Op, SubExpr, T>, T> {
     } else {
       return scalar_op_unary<T, Op>(expr_.scalar_at(i));
     }
+  }
+
+  template <typename Dest>
+  bool requires_temporary(const Dest& dest) const {
+    return expr_.requires_temporary(dest);
   }
 };
 
