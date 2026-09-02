@@ -12,8 +12,20 @@ class base_expr {
   const Derived& derived() const noexcept { return static_cast<const Derived&>(*this); }
 
   size_t used_size() const noexcept { return derived().used_size(); }
+  size_t size() const noexcept { return derived().size(); }
 
   auto extents() const noexcept { return derived().extents(); }
+
+  // Linear scalar access shared by containers, views, and expression nodes.
+  // It intentionally goes through the existing SIMD load interface so rank-N
+  // containers do not need a separate one-dimensional operator[].
+  T scalar_at(size_t i) const noexcept {
+    constexpr size_t pack_size = simd<T>::pack_size;
+    alignas(simd<T>::alignment) std::array<T, pack_size> values{};
+    const size_t pack_begin = (i / pack_size) * pack_size;
+    simd<T>::store(values.data(), derived().template load_simd<T>(pack_begin));
+    return values[i - pack_begin];
+  }
 
   // 默认顺序求值
   template <typename Dest>

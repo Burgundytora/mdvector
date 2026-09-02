@@ -27,6 +27,14 @@ class binary_expr : public base_expr<binary_expr<T, L, R, Cal>, T> {
     }
   }
 
+  size_t size() const {
+    if constexpr (std::is_arithmetic_v<R>) {
+      return lhs.size();
+    } else {
+      return rhs.size();
+    }
+  }
+
   auto extents() const {
     if constexpr (std::is_arithmetic_v<R>) {
       return lhs.extents();
@@ -47,6 +55,18 @@ class binary_expr : public base_expr<binary_expr<T, L, R, Cal>, T> {
     auto l = lhs.template load_simd_mask<U>(i);
     auto r = rhs.template load_simd_mask<U>(i);
     return simd_op_binary<U, Cal>(l, r);
+  }
+
+  T operator[](size_t i) const {
+    const T l = [&] {
+      if constexpr (detail::is_expression_node_v<L>) return static_cast<T>(lhs[i]);
+      return static_cast<T>(lhs.scalar_at(i));
+    }();
+    const T r = [&] {
+      if constexpr (detail::is_expression_node_v<R>) return static_cast<T>(rhs[i]);
+      return static_cast<T>(rhs.scalar_at(i));
+    }();
+    return scalar_op_binary<T, Cal>(l, r);
   }
 
   // 取负

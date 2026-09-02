@@ -18,6 +18,7 @@ class unary_expr : public base_expr<unary_expr<Op, SubExpr, T>, T> {
   explicit unary_expr(const SubExpr& expr) noexcept : expr_(expr) {}
 
   size_t used_size() const noexcept { return expr_.used_size(); }
+  size_t size() const noexcept { return expr_.size(); }
   auto extents() const noexcept { return expr_.extents(); }
 
   template <typename T2>
@@ -33,7 +34,13 @@ class unary_expr : public base_expr<unary_expr<Op, SubExpr, T>, T> {
   }
 
   // 标量访问（用于边界或不支持 SIMD 的情况）
-  T operator[](size_t i) const { return scalar_op_unary<T, Op>(expr_[i]); }
+  T operator[](size_t i) const {
+    if constexpr (detail::is_expression_node_v<SubExpr>) {
+      return scalar_op_unary<T, Op>(expr_[i]);
+    } else {
+      return scalar_op_unary<T, Op>(expr_.scalar_at(i));
+    }
+  }
 };
 
 // ============================================================================
@@ -82,6 +89,11 @@ inline auto expm1(const base_expr<Derived, T>& expr) {
 template <typename Derived, typename T>
 inline auto log(const base_expr<Derived, T>& expr) {
   return unary_expr<Log, Derived, T>(expr.derived());
+}
+
+template <typename Derived, typename T>
+inline auto ln(const base_expr<Derived, T>& expr) {
+  return log(expr);
 }
 
 template <typename Derived, typename T>

@@ -1,103 +1,59 @@
 #pragma once
 
+#include <algorithm>
 #include <cmath>
-#include <random>
+#include <functional>
 #include <numeric>
+#include <vector>
 
-#include "../concepts/base_concept.h"
-#include "../core/md_vector.h"
+#include "../expression/binary_expr.h"
+#include "../expression/unary_expr.h"
 
-// 独立数学函数模板
 namespace md {
 
-// 数学函数返回一个新的mdvector做为临时值
-#define DEFINE_BASE_MD_MATH_FUNC(name, op)                                                   \
-  template <MultiDimContainer Container>                                                     \
-  auto name(const Container& c) noexcept {                                                   \
-    md::vector<typename Container::value_type, Container::rank_, std::layout_right> res = c; \
-    std::transform(res.begin(), res.end(), res.begin(),                                      \
-                   [](Container::value_type val) noexcept { return std::op(val); });         \
-    return res;                                                                              \
-  }
-
-DEFINE_BASE_MD_MATH_FUNC(cos, cos);
-DEFINE_BASE_MD_MATH_FUNC(cosh, cosh);
-DEFINE_BASE_MD_MATH_FUNC(acos, acos);
-DEFINE_BASE_MD_MATH_FUNC(sin, sin);
-DEFINE_BASE_MD_MATH_FUNC(sinh, sinh);
-DEFINE_BASE_MD_MATH_FUNC(asin, asin);
-DEFINE_BASE_MD_MATH_FUNC(tan, tan);
-DEFINE_BASE_MD_MATH_FUNC(atan, atan);
-DEFINE_BASE_MD_MATH_FUNC(tanh, tanh);
-DEFINE_BASE_MD_MATH_FUNC(abs, abs);
-DEFINE_BASE_MD_MATH_FUNC(sqrt, sqrt);
-DEFINE_BASE_MD_MATH_FUNC(cbrt, cbrt);
-DEFINE_BASE_MD_MATH_FUNC(log10, log10);
-DEFINE_BASE_MD_MATH_FUNC(ln, log);
-DEFINE_BASE_MD_MATH_FUNC(ceil, ceil);
-DEFINE_BASE_MD_MATH_FUNC(floor, floor);
-DEFINE_BASE_MD_MATH_FUNC(trunc, trunc);
-
-#undef DEFINE_BASE_MD_MATH_FUNC
-
-template <MultiDimContainer Container, typename T>
-auto exp(const Container& c, T y) {
-  md::vector<typename Container::value_type, Container::rank_, typename Container::layout_type> res = c;
-  std::transform(res.begin(), res.end(), res.begin(), [y](double val) noexcept { return std::pow(y, val); });
-  return res;
+// Element-wise mathematical functions. Unary functions are declared in
+// unary_expr.h; these overloads cover the binary functions without creating
+// an intermediate md::vector.
+template <typename Derived, typename T, typename Y>
+  requires std::convertible_to<Y, T>
+inline auto exp(const base_expr<Derived, T>& exponent, Y base) {
+  return binary_expr<T, T, Derived, Pow>(static_cast<T>(base), exponent.derived());
 }
 
-template <MultiDimContainer Container, typename T>
-auto pow(const Container& c, T y) {
-  md::vector<typename Container::value_type, Container::rank_, typename Container::layout_type> res = c;
-  std::transform(res.begin(), res.end(), res.begin(), [y](double val) noexcept { return std::pow(val, y); });
-  return res;
+template <typename Derived, typename T, typename Y>
+  requires std::convertible_to<Y, T>
+inline auto pow(const base_expr<Derived, T>& value, Y exponent) {
+  return binary_expr<T, Derived, T, Pow>(value.derived(), static_cast<T>(exponent));
 }
 
-template <MultiDimContainer Container, typename T>
-auto fmod(const Container& c, T y) {
-  md::vector<typename Container::value_type, Container::rank_, typename Container::layout_type> res = c;
-  std::transform(res.begin(), res.end(), res.begin(), [y](double val) noexcept { return std::fmod(val, y); });
-  return res;
+template <typename L, typename R, typename T>
+inline auto pow(const base_expr<L, T>& value, const base_expr<R, T>& exponent) {
+  return binary_expr<T, L, R, Pow>(value.derived(), exponent.derived());
 }
 
-template <MultiDimContainer Container1, MultiDimContainer Container2>
-auto hypot(const Container1& x, const Container2& y) {
-  using value_type = typename Container1::value_type;
-  md::vector<value_type, Container1::rank_, typename Container1::layout_type> res = x;
-  md::vector<value_type, Container1::rank_, typename Container1::layout_type> y_vec = y;
-
-  auto x_it = res.begin();
-  auto y_it = y_vec.begin();
-  auto res_it = res.begin();
-
-  for (; x_it != res.end() && y_it != y_vec.end(); ++x_it, ++y_it, ++res_it) {
-    *res_it = std::hypot(*x_it, *y_it);
-  }
-
-  return res;
+template <typename Derived, typename T, typename Y>
+  requires std::convertible_to<Y, T>
+inline auto fmod(const base_expr<Derived, T>& value, Y divisor) {
+  return binary_expr<T, Derived, T, Fmod>(value.derived(), static_cast<T>(divisor));
 }
 
-// 三个容器的 hypot
-template <MultiDimContainer Container1, MultiDimContainer Container2, MultiDimContainer Container3>
-auto hypot(const Container1& x, const Container2& y, const Container3& z) {
-  using value_type = typename Container1::value_type;
-  md::vector<value_type, Container1::rank_, typename Container1::layout_type> res = x;
-  md::vector<value_type, Container1::rank_, typename Container1::layout_type> y_vec = y;
-  md::vector<value_type, Container1::rank_, typename Container1::layout_type> z_vec = z;
-
-  auto x_it = res.begin();
-  auto y_it = y_vec.begin();
-  auto z_it = z_vec.begin();
-  auto res_it = res.begin();
-
-  for (; x_it != res.end() && y_it != y_vec.end() && z_it != z_vec.end(); ++x_it, ++y_it, ++z_it, ++res_it) {
-    *res_it = std::hypot(*x_it, *y_it, *z_it);
-  }
-
-  return res;
+template <typename L, typename R, typename T>
+inline auto fmod(const base_expr<L, T>& value, const base_expr<R, T>& divisor) {
+  return binary_expr<T, L, R, Fmod>(value.derived(), divisor.derived());
 }
 
+template <typename L, typename R, typename T>
+inline auto hypot(const base_expr<L, T>& x, const base_expr<R, T>& y) {
+  return binary_expr<T, L, R, Hypot>(x.derived(), y.derived());
+}
+
+template <typename X, typename Y, typename Z, typename T>
+inline auto hypot(const base_expr<X, T>& x, const base_expr<Y, T>& y, const base_expr<Z, T>& z) {
+  return hypot(hypot(x, y), z);
+}
+
+// Generic container reductions are retained for standard iterator-based
+// containers. Expression-specific overloads below consume lazy trees directly.
 template <StatisticContainer Container>
 auto sum(const Container& c) {
   return std::reduce(c.begin(), c.end());
@@ -126,8 +82,8 @@ auto mean(const Container& c) {
 template <StatisticContainer Container>
 auto variance(const Container& c) {
   auto m = mean(c);
-  double sum_sq = std::accumulate(c.begin(), c.end(), 0.0, [m](double acc, auto val) {
-    double diff = static_cast<double>(val) - static_cast<double>(m);
+  long double sum_sq = std::accumulate(c.begin(), c.end(), 0.0L, [m](long double acc, auto val) {
+    const long double diff = static_cast<long double>(val) - static_cast<long double>(m);
     return acc + diff * diff;
   });
   return static_cast<typename Container::value_type>(sum_sq / (c.size() - 1));
@@ -139,42 +95,143 @@ auto standard_deviation(const Container& c) {
 }
 
 template <StatisticContainer Container>
-auto median(const Container& c) {  // 按值传递以进行排序
-  std::vector<typename Container::value_type> vec(c.size());
-  vec.assign(std::begin(c), std::end(c));
-  std::sort(vec.begin(), vec.end());
-  size_t n = vec.size();
+auto median(const Container& c) {
+  std::vector<typename Container::value_type> values(c.begin(), c.end());
+  std::sort(values.begin(), values.end());
+  const size_t n = values.size();
   if (n % 2 == 0) {
-    return (vec[n / 2 - 1] + vec[n / 2]) / typename Container::value_type(2);
-  } else {
-    return vec[n / 2];
+    return (values[n / 2 - 1] + values[n / 2]) / typename Container::value_type(2);
   }
+  return values[n / 2];
 }
 
-// 最大值索引
 template <StatisticContainer Container>
 size_t max_index(const Container& c) {
-  return std::distance(c.begin(), std::max_element(c.begin(), c.end()));
+  return static_cast<size_t>(std::distance(c.begin(), std::max_element(c.begin(), c.end())));
 }
 
-// 最小值索引
 template <StatisticContainer Container>
 size_t min_index(const Container& c) {
-  return std::distance(c.begin(), std::min_element(c.begin(), c.end()));
+  return static_cast<size_t>(std::distance(c.begin(), std::min_element(c.begin(), c.end())));
 }
 
-// 绝对值最大值
 template <StatisticContainer Container>
 auto abs_max(const Container& c) {
   if (c.empty()) return typename Container::value_type(0);
   return *std::max_element(c.begin(), c.end(), [](auto a, auto b) { return std::abs(a) < std::abs(b); });
 }
 
-// 绝对值最小值
 template <StatisticContainer Container>
 auto abs_min(const Container& c) {
   if (c.empty()) return typename Container::value_type(0);
   return *std::min_element(c.begin(), c.end(), [](auto a, auto b) { return std::abs(a) < std::abs(b); });
+}
+
+template <typename Derived, typename T>
+T sum(const base_expr<Derived, T>& expression) {
+  const auto& expr = expression.derived();
+  T result{};
+  for (size_t i = 0; i < expr.size(); ++i) result += expr[i];
+  return result;
+}
+
+template <typename Derived, typename T>
+T prod(const base_expr<Derived, T>& expression) {
+  const auto& expr = expression.derived();
+  T result{1};
+  for (size_t i = 0; i < expr.size(); ++i) result *= expr[i];
+  return result;
+}
+
+template <typename Derived, typename T>
+T max(const base_expr<Derived, T>& expression) {
+  const auto& expr = expression.derived();
+  T result = expr[0];
+  for (size_t i = 1; i < expr.size(); ++i) result = std::max(result, static_cast<T>(expr[i]));
+  return result;
+}
+
+template <typename Derived, typename T>
+T min(const base_expr<Derived, T>& expression) {
+  const auto& expr = expression.derived();
+  T result = expr[0];
+  for (size_t i = 1; i < expr.size(); ++i) result = std::min(result, static_cast<T>(expr[i]));
+  return result;
+}
+
+template <typename Derived, typename T>
+T mean(const base_expr<Derived, T>& expression) {
+  return sum(expression) / static_cast<T>(expression.size());
+}
+
+template <typename Derived, typename T>
+T variance(const base_expr<Derived, T>& expression) {
+  const auto& expr = expression.derived();
+  const T m = mean(expression);
+  long double sum_sq = 0.0L;
+  for (size_t i = 0; i < expr.size(); ++i) {
+    const long double diff = static_cast<long double>(expr[i]) - static_cast<long double>(m);
+    sum_sq += diff * diff;
+  }
+  return static_cast<T>(sum_sq / (expr.size() - 1));
+}
+
+template <typename Derived, typename T>
+T standard_deviation(const base_expr<Derived, T>& expression) {
+  return static_cast<T>(std::sqrt(variance(expression)));
+}
+
+template <typename Derived, typename T>
+T median(const base_expr<Derived, T>& expression) {
+  const auto& expr = expression.derived();
+  std::vector<T> values(expr.size());
+  for (size_t i = 0; i < expr.size(); ++i) values[i] = expr[i];
+  std::sort(values.begin(), values.end());
+  const size_t n = values.size();
+  if (n % 2 == 0) return (values[n / 2 - 1] + values[n / 2]) / T(2);
+  return values[n / 2];
+}
+
+template <typename Derived, typename T>
+size_t max_index(const base_expr<Derived, T>& expression) {
+  const auto& expr = expression.derived();
+  size_t result = 0;
+  for (size_t i = 1; i < expr.size(); ++i) {
+    if (expr[result] < expr[i]) result = i;
+  }
+  return result;
+}
+
+template <typename Derived, typename T>
+size_t min_index(const base_expr<Derived, T>& expression) {
+  const auto& expr = expression.derived();
+  size_t result = 0;
+  for (size_t i = 1; i < expr.size(); ++i) {
+    if (expr[i] < expr[result]) result = i;
+  }
+  return result;
+}
+
+template <typename Derived, typename T>
+T abs_max(const base_expr<Derived, T>& expression) {
+  const auto& expr = expression.derived();
+  if (expr.size() == 0) return T{};
+  size_t result = 0;
+  for (size_t i = 1; i < expr.size(); ++i) {
+    if (std::abs(expr[result]) < std::abs(expr[i])) result = i;
+  }
+  return expr[result];
+}
+
+template <typename Derived, typename T>
+T abs_min(const base_expr<Derived, T>& expression) {
+  const auto& expr = expression.derived();
+  if (expr.size() == 0) return T{};
+  size_t result = 0;
+  for (size_t i = 1; i < expr.size(); ++i) {
+    if (std::abs(expr[i]) < std::abs(expr[result])) result = i;
+  }
+  return expr[result];
 }
 
 }  // namespace md

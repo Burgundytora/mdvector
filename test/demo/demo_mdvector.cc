@@ -408,7 +408,7 @@ int main() {
   auto x2 = pos_info.span(0, slice(1, -1));
   auto y2 = pos_info.span(1, slice(1, -1));
   auto z2 = pos_info.span(2, slice(1, -1));
-  auto length = hypot(x2 - x1, y2 - y1, z2 - z1);
+  md::vector<double, 1> length = hypot(x2 - x1, y2 - y1, z2 - z1);
   std::cout << "element length:\n";
   length.print();
 

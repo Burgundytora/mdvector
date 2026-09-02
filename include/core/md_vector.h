@@ -74,6 +74,15 @@ class vector final : public base_expr<vector<T, Rank, Layout>, T>,
 
   vector& operator=(vector&& other) noexcept = default;
 
+  template <typename E>
+  vector& operator=(const base_expr<E, T>& expr)
+    requires Numeric<T>
+  {
+    set_shape(expr.extents());
+    expr.template eval_to<>(*this);
+    return *this;
+  }
+
   // ============ 形状修改 ============
 
   void set_shape(const std::array<size_t, Rank>& shape) {
@@ -127,7 +136,6 @@ class vector final : public base_expr<vector<T, Rank, Layout>, T>,
   using FillOp::set_random_uniform;
   using FillOp::set_random_normal;
 
-  using Expr::operator=;
   using Expr::operator+=;
   using Expr::operator-=;
   using Expr::operator*=;

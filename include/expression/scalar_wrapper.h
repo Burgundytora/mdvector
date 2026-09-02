@@ -6,12 +6,13 @@ namespace md {
 
 template <typename T>
 class scalar_wrapper : public base_expr<scalar_wrapper<T>, T> {
+  T value_;
   typename simd<T>::type simd_value_;
   static constexpr size_t rank_ = 0;
   using value_type = T;
 
  public:
-  explicit scalar_wrapper(T val) : simd_value_(simd<T>::set1(val)) {}
+  explicit scalar_wrapper(T val) : value_(val), simd_value_(simd<T>::set1(val)) {}
 
   scalar_wrapper(const scalar_wrapper&) = default;
 
@@ -26,6 +27,9 @@ class scalar_wrapper : public base_expr<scalar_wrapper<T>, T> {
   }
 
   size_t used_size() const { return 1; }
+  size_t size() const { return 1; }
+
+  T operator[](size_t) const { return value_; }
 
   std::array<size_t, 1> extents() const { return std::array<size_t, 1>{1}; }
 };
