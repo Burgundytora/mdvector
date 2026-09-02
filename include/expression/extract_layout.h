@@ -10,6 +10,9 @@ class binary_expr;
 template <typename Op, typename SubExpr, typename T>
 class unary_expr;
 
+template <typename T, typename Condition, typename TrueExpr, typename FalseExpr>
+class ternary_expr;
+
 namespace detail {
 
 // Expression nodes own their lightweight child nodes, while containers and
@@ -23,6 +26,9 @@ struct is_expression_node<binary_expr<T, L, R, Cal>> : std::true_type {};
 
 template <typename Op, typename SubExpr, typename T>
 struct is_expression_node<unary_expr<Op, SubExpr, T>> : std::true_type {};
+
+template <typename T, typename Condition, typename TrueExpr, typename FalseExpr>
+struct is_expression_node<ternary_expr<T, Condition, TrueExpr, FalseExpr>> : std::true_type {};
 
 template <typename T>
 inline constexpr bool is_expression_node_v = is_expression_node<std::remove_cvref_t<T>>::value;

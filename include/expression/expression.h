@@ -1,6 +1,7 @@
 #pragma once
 
 #include "operator.h"
+#include "conditional_expr.h"
 #include "unary_expr.h"
 #include "../simd/simd.h"
 

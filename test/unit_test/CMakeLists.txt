@@ -1,4 +1,4 @@
-﻿include_directories(${PROJECT_SOURCE_DIR}/src)
+include_directories(${PROJECT_SOURCE_DIR}/src)
 
 add_executable(unit_test_base unit_test_base.cc)
 add_executable(unit_test_scalar unit_test_scalar.cc)
@@ -13,6 +13,7 @@ add_executable(unit_test_simd_float unit_test_simd_float.cc)
 add_executable(unit_test_simd_double unit_test_simd_double.cc)
 add_executable(unit_test_expr unit_test_expr.cc)
 add_executable(unit_test_unary unit_test_unary.cc)
+add_executable(unit_test_condition unit_test_condition.cc)
 
 add_mingw_link(unit_test_base)
 add_mingw_link(unit_test_scalar)
@@ -27,3 +28,4 @@ add_mingw_link(unit_test_simd_float)
 add_mingw_link(unit_test_simd_double)
 add_mingw_link(unit_test_expr)
 add_mingw_link(unit_test_unary)
+add_mingw_link(unit_test_condition)

@@ -4,40 +4,9 @@
 #include <cstddef>
 #include <type_traits>
 
-namespace md {
+#include "simd_op_tags.h"
 
-struct Neg;
-struct Abs;
-struct Sqrt;
-struct Cbrt;
-struct RSqrt;
-struct Exp;
-struct Exp2;
-struct Expm1;
-struct Log;
-struct Log2;
-struct Log10;
-struct Log1p;
-struct Sin;
-struct Cos;
-struct Tan;
-struct Asin;
-struct Acos;
-struct Atan;
-struct Sinh;
-struct Cosh;
-struct Tanh;
-struct Asinh;
-struct Acosh;
-struct Atanh;
-struct Floor;
-struct Ceil;
-struct Trunc;
-struct Round;
-struct Erf;
-struct Erfc;
-struct Tgamma;
-struct Lgamma;
+namespace md {
 
 namespace detail {
 
@@ -119,24 +88,6 @@ inline T scalar_op_unary_impl(T v) {
 }  // namespace md
 
 #include "simd_arch_select.h"
-
-#if defined(__x86_64__) || defined(_M_X64) || defined(_M_IX86) || defined(_M_AMD64)
-#if defined(__AVX512F__)
-#include "arch_x86/avx512_unary.h"
-#elif defined(__AVX2__)
-#include "arch_x86/avx2_unary.h"
-#elif defined(__SSE4_1__)
-#include "arch_x86/sse_unary.h"
-#else
-#include "arch_common/none_unary.h"
-#endif
-#elif defined(__arm__) || defined(__aarch64__)
-#include "arch_arm/neon_unary.h"
-#elif defined(__riscv)
-#include "arch_risc/risc_v_unary.h"
-#else
-#include "arch_common/none_unary.h"
-#endif
 
 #include "arch_common/unary_fallback.h"
 

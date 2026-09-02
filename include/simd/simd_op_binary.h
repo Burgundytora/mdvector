@@ -5,17 +5,10 @@
 #include <cstddef>
 #include <type_traits>
 
+#include "simd_op_tags.h"
 #include "simd_arch_select.h"
 
 namespace md {
-
-struct Add;
-struct Sub;
-struct Mul;
-struct Div;
-struct Pow;
-struct Hypot;
-struct Fmod;
 
 namespace detail {
 
@@ -38,6 +31,24 @@ inline T scalar_op_binary_impl(T l, T r) {
     return static_cast<T>(std::hypot(l, r));
   } else if constexpr (std::is_same_v<Cal, Fmod>) {
     return static_cast<T>(std::fmod(l, r));
+  } else if constexpr (std::is_same_v<Cal, Equal>) {
+    return static_cast<T>(l == r);
+  } else if constexpr (std::is_same_v<Cal, NotEqual>) {
+    return static_cast<T>(l != r);
+  } else if constexpr (std::is_same_v<Cal, Less>) {
+    return static_cast<T>(l < r);
+  } else if constexpr (std::is_same_v<Cal, LessEqual>) {
+    return static_cast<T>(l <= r);
+  } else if constexpr (std::is_same_v<Cal, Greater>) {
+    return static_cast<T>(l > r);
+  } else if constexpr (std::is_same_v<Cal, GreaterEqual>) {
+    return static_cast<T>(l >= r);
+  } else if constexpr (std::is_same_v<Cal, LogicalAnd>) {
+    return static_cast<T>(static_cast<bool>(l) && static_cast<bool>(r));
+  } else if constexpr (std::is_same_v<Cal, LogicalOr>) {
+    return static_cast<T>(static_cast<bool>(l) || static_cast<bool>(r));
+  } else if constexpr (std::is_same_v<Cal, LogicalXor>) {
+    return static_cast<T>(static_cast<bool>(l) != static_cast<bool>(r));
   } else {
     static_assert(binary_dependent_false_v<Cal>, "unsupported binary operation");
   }
@@ -75,7 +86,13 @@ inline typename simd<T>::type simd_op_binary(typename simd<T>::const_ref_type l,
     return simd<T>::mul(l, r);
   } else if constexpr (std::is_same_v<Cal, Div>) {
     return simd<T>::div(l, r);
-  } else if constexpr (std::is_same_v<Cal, Pow> || std::is_same_v<Cal, Hypot> || std::is_same_v<Cal, Fmod>) {
+  } else if constexpr (detail::has_native_simd_op_binary_v<T, Cal>) {
+    return detail::native_simd_op_binary<T, Cal>(l, r);
+  } else if constexpr (std::is_same_v<Cal, Pow> || std::is_same_v<Cal, Hypot> || std::is_same_v<Cal, Fmod> ||
+                       std::is_same_v<Cal, Equal> || std::is_same_v<Cal, NotEqual> || std::is_same_v<Cal, Less> ||
+                       std::is_same_v<Cal, LessEqual> || std::is_same_v<Cal, Greater> ||
+                       std::is_same_v<Cal, GreaterEqual> || std::is_same_v<Cal, LogicalAnd> ||
+                       std::is_same_v<Cal, LogicalOr> || std::is_same_v<Cal, LogicalXor>) {
     return detail::map_binary_simd_lanes<T, Cal>(l, r);
   } else {
     static_assert(detail::binary_dependent_false_v<Cal>, "unsupported binary operation");

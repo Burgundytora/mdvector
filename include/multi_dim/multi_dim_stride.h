@@ -94,8 +94,9 @@ class multi_dim_stride {
       throw std::out_of_range("Linear index out of range");
     }
     std::array<size_t, Rank> indices{};
-    for (size_t i = 0; i < Rank; ++i) {
-      indices[i] = (linear_index / stride_[i]) % shape_[i];
+    for (size_t i = Rank; i-- > 0;) {
+      indices[i] = linear_index % shape_[i];
+      linear_index /= shape_[i];
     }
     return indices;
   }
