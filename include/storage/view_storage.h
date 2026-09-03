@@ -13,6 +13,7 @@ template <typename T, bool AligedSize = true>
 class view_storage {
  public:
   using value_type = T;
+  using element_type = std::remove_const_t<T>;
   using ownership = view_data_tag;
 
  private:
@@ -26,8 +27,8 @@ class view_storage {
   view_storage(T* ptr, size_t n)
       : data_(ptr),
         raw_size_(n),
-        align_size_(get_aligned_size<T>(raw_size_)),
-        remaining_size_(raw_size_ == 0 ? 0 : ((raw_size_ - 1) % simd<T>::pack_size) + 1) {}
+        align_size_(get_aligned_size<element_type>(raw_size_)),
+        remaining_size_(raw_size_ == 0 ? 0 : ((raw_size_ - 1) % simd<element_type>::pack_size) + 1) {}
 
   T* data() noexcept { return data_; }
   const T* data() const noexcept { return data_; }

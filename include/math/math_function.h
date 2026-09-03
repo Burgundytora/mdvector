@@ -5,6 +5,8 @@
 #include <functional>
 #include <numeric>
 #include <vector>
+#include <limits>
+#include <stdexcept>
 
 #include "../expression/binary_expr.h"
 #include "../expression/unary_expr.h"
@@ -66,21 +68,25 @@ auto prod(const Container& c) {
 
 template <StatisticContainer Container>
 auto max(const Container& c) {
+  if (c.size() == 0) throw std::invalid_argument("max of empty container");
   return *std::max_element(c.begin(), c.end());
 }
 
 template <StatisticContainer Container>
 auto min(const Container& c) {
+  if (c.size() == 0) throw std::invalid_argument("min of empty container");
   return *std::min_element(c.begin(), c.end());
 }
 
 template <StatisticContainer Container>
 auto mean(const Container& c) {
+  if (c.size() == 0) throw std::invalid_argument("mean of empty container");
   return sum(c) / static_cast<typename Container::value_type>(c.size());
 }
 
 template <StatisticContainer Container>
 auto variance(const Container& c) {
+  if (c.size() < 2) throw std::invalid_argument("variance requires at least two elements");
   auto m = mean(c);
   long double sum_sq = std::accumulate(c.begin(), c.end(), 0.0L, [m](long double acc, auto val) {
     const long double diff = static_cast<long double>(val) - static_cast<long double>(m);
@@ -143,9 +149,116 @@ T prod(const base_expr<Derived, T>& expression) {
   return result;
 }
 
+template <StatisticContainer Container>
+bool any(const Container& c) {
+  return std::any_of(c.begin(), c.end(), [](const auto& v) { return static_cast<bool>(v); });
+}
+
+template <StatisticContainer Container>
+bool all(const Container& c) {
+  return std::all_of(c.begin(), c.end(), [](const auto& v) { return static_cast<bool>(v); });
+}
+
+template <StatisticContainer Container>
+size_t argmin(const Container& c) {
+  if (c.size() == 0) throw std::invalid_argument("argmin of empty container");
+  return static_cast<size_t>(std::distance(c.begin(), std::min_element(c.begin(), c.end())));
+}
+
+template <StatisticContainer Container>
+size_t argmax(const Container& c) {
+  if (c.size() == 0) throw std::invalid_argument("argmax of empty container");
+  return static_cast<size_t>(std::distance(c.begin(), std::max_element(c.begin(), c.end())));
+}
+
+template <size_t Axis, typename Derived, typename T>
+  requires(Axis < Derived::rank_ && Derived::rank_ > 1)
+auto sum_axis(const base_expr<Derived, T>& expression) {
+  constexpr size_t Rank = Derived::rank_, OutRank = Rank - 1;
+  const auto shape = expression.extents();
+  std::array<size_t, OutRank> out_shape{};
+  for (size_t d = 0, o = 0; d < Rank; ++d) if (d != Axis) out_shape[o++] = shape[d];
+  md::vector<T, OutRank> result(out_shape);
+  std::array<size_t, Rank> idx{};
+  for (size_t out = 0; out < result.size(); ++out) {
+    size_t rem = out;
+    for (size_t d = OutRank; d-- > 0;) { const size_t sd = d >= Axis ? d + 1 : d; idx[sd] = rem % shape[sd]; rem /= shape[sd]; }
+    T acc{};
+    for (idx[Axis] = 0; idx[Axis] < shape[Axis]; ++idx[Axis]) {
+      size_t linear = 0; for (size_t d = 0; d < Rank; ++d) linear = linear * shape[d] + idx[d];
+      acc += expression.derived().scalar_at(linear);
+    }
+    result[out] = acc;
+  }
+  return result;
+}
+
+template <size_t Axis, typename Derived, typename T>
+  requires(Axis < Derived::rank_ && Derived::rank_ > 1)
+auto mean_axis(const base_expr<Derived, T>& expression) {
+  auto result = sum_axis<Axis>(expression);
+  result /= static_cast<T>(expression.extents()[Axis]);
+  return result;
+}
+
+template <size_t Axis, typename Derived, typename T>
+  requires(Axis < Derived::rank_ && Derived::rank_ > 1)
+auto prod_axis(const base_expr<Derived, T>& expression) {
+  constexpr size_t Rank = Derived::rank_, OutRank = Rank - 1;
+  const auto shape = expression.extents();
+  std::array<size_t, OutRank> out_shape{};
+  for (size_t d = 0, o = 0; d < Rank; ++d) if (d != Axis) out_shape[o++] = shape[d];
+  md::vector<T, OutRank> result(out_shape);
+  std::array<size_t, Rank> idx{};
+  for (size_t out = 0; out < result.size(); ++out) {
+    size_t rem = out;
+    for (size_t d = OutRank; d-- > 0;) { const size_t sd = d >= Axis ? d + 1 : d; idx[sd] = rem % shape[sd]; rem /= shape[sd]; }
+    T acc{1};
+    for (idx[Axis] = 0; idx[Axis] < shape[Axis]; ++idx[Axis]) {
+      size_t linear = 0; for (size_t d = 0; d < Rank; ++d) linear = linear * shape[d] + idx[d];
+      acc *= expression.derived().scalar_at(linear);
+    }
+    result[out] = acc;
+  }
+  return result;
+}
+
+template <size_t Axis, typename Derived, typename T>
+  requires(Axis < Derived::rank_ && Derived::rank_ > 1)
+auto min_axis(const base_expr<Derived, T>& expression) {
+  constexpr size_t Rank = Derived::rank_, OutRank = Rank - 1;
+  const auto shape = expression.extents(); std::array<size_t, OutRank> out_shape{};
+  for (size_t d = 0, o = 0; d < Rank; ++d) if (d != Axis) out_shape[o++] = shape[d];
+  md::vector<T, OutRank> result(out_shape); std::array<size_t, Rank> idx{};
+  for (size_t out = 0; out < result.size(); ++out) {
+    size_t rem = out; for (size_t d = OutRank; d-- > 0;) { const size_t sd = d >= Axis ? d + 1 : d; idx[sd] = rem % shape[sd]; rem /= shape[sd]; }
+    T acc = std::numeric_limits<T>::max();
+    for (idx[Axis] = 0; idx[Axis] < shape[Axis]; ++idx[Axis]) { size_t linear = 0; for (size_t d = 0; d < Rank; ++d) linear = linear * shape[d] + idx[d]; acc = std::min(acc, static_cast<T>(expression.derived().scalar_at(linear))); }
+    result[out] = acc;
+  }
+  return result;
+}
+
+template <size_t Axis, typename Derived, typename T>
+  requires(Axis < Derived::rank_ && Derived::rank_ > 1)
+auto max_axis(const base_expr<Derived, T>& expression) {
+  constexpr size_t Rank = Derived::rank_, OutRank = Rank - 1;
+  const auto shape = expression.extents(); std::array<size_t, OutRank> out_shape{};
+  for (size_t d = 0, o = 0; d < Rank; ++d) if (d != Axis) out_shape[o++] = shape[d];
+  md::vector<T, OutRank> result(out_shape); std::array<size_t, Rank> idx{};
+  for (size_t out = 0; out < result.size(); ++out) {
+    size_t rem = out; for (size_t d = OutRank; d-- > 0;) { const size_t sd = d >= Axis ? d + 1 : d; idx[sd] = rem % shape[sd]; rem /= shape[sd]; }
+    T acc = std::numeric_limits<T>::lowest();
+    for (idx[Axis] = 0; idx[Axis] < shape[Axis]; ++idx[Axis]) { size_t linear = 0; for (size_t d = 0; d < Rank; ++d) linear = linear * shape[d] + idx[d]; acc = std::max(acc, static_cast<T>(expression.derived().scalar_at(linear))); }
+    result[out] = acc;
+  }
+  return result;
+}
+
 template <typename Derived, typename T>
 T max(const base_expr<Derived, T>& expression) {
   const auto& expr = expression.derived();
+  if (expr.size() == 0) throw std::invalid_argument("max of empty expression");
   T result = expr[0];
   for (size_t i = 1; i < expr.size(); ++i) result = std::max(result, static_cast<T>(expr[i]));
   return result;
@@ -154,13 +267,47 @@ T max(const base_expr<Derived, T>& expression) {
 template <typename Derived, typename T>
 T min(const base_expr<Derived, T>& expression) {
   const auto& expr = expression.derived();
+  if (expr.size() == 0) throw std::invalid_argument("min of empty expression");
   T result = expr[0];
   for (size_t i = 1; i < expr.size(); ++i) result = std::min(result, static_cast<T>(expr[i]));
   return result;
 }
 
 template <typename Derived, typename T>
+bool any(const base_expr<Derived, T>& expression) {
+  const auto& expr = expression.derived();
+  for (size_t i = 0; i < expr.size(); ++i) if (static_cast<bool>(expr[i])) return true;
+  return false;
+}
+
+template <typename Derived, typename T>
+bool all(const base_expr<Derived, T>& expression) {
+  const auto& expr = expression.derived();
+  for (size_t i = 0; i < expr.size(); ++i) if (!static_cast<bool>(expr[i])) return false;
+  return true;
+}
+
+template <typename Derived, typename T>
+size_t argmin(const base_expr<Derived, T>& expression) {
+  const auto& expr = expression.derived();
+  if (expr.size() == 0) throw std::invalid_argument("argmin of empty expression");
+  size_t result = 0;
+  for (size_t i = 1; i < expr.size(); ++i) if (expr[i] < expr[result]) result = i;
+  return result;
+}
+
+template <typename Derived, typename T>
+size_t argmax(const base_expr<Derived, T>& expression) {
+  const auto& expr = expression.derived();
+  if (expr.size() == 0) throw std::invalid_argument("argmax of empty expression");
+  size_t result = 0;
+  for (size_t i = 1; i < expr.size(); ++i) if (expr[result] < expr[i]) result = i;
+  return result;
+}
+
+template <typename Derived, typename T>
 T mean(const base_expr<Derived, T>& expression) {
+  if (expression.size() == 0) throw std::invalid_argument("mean of empty expression");
   return sum(expression) / static_cast<T>(expression.size());
 }
 

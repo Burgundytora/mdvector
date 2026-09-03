@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <array>
+#include <stdexcept>
 
 #include "../multi_dim/mdspan_impl.h"
 
@@ -35,19 +36,21 @@ void check_slice_bounds(const std::array<slice, Rank>& slices, const std::array<
     if (slices[i].is_all) {
       continue;
     }
+    if (slices[i].step == 0) throw std::invalid_argument("slice step cannot be zero");
 
     // 处理负数索引（-1 表示最后一个元素）
     std::ptrdiff_t start = normalize_index(slices[i].start, extents[i]);
     std::ptrdiff_t end = normalize_index(slices[i].end, extents[i]);
     // 检查边界
-    if (start < 0 || start >= static_cast<std::ptrdiff_t>(extents[i])) {
+    if (start < 0 || start > static_cast<std::ptrdiff_t>(extents[i])) {
       throw std::out_of_range("span slice start out of range");
     }
-    if (end < 0 || end >= static_cast<std::ptrdiff_t>(extents[i])) {
+    if (end < -1 || end >= static_cast<std::ptrdiff_t>(extents[i])) {
       throw std::out_of_range("span slice end out of range");
     }
     if (start > end) {  // 允许 start == end（单元素）
-      throw std::invalid_argument("span slice start must <= end");
+      if (slices[i].step > 0 && start > end) continue;
+      if (slices[i].step < 0 && start > end) continue;
     }
   }
 }

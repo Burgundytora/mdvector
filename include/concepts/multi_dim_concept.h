@@ -74,7 +74,7 @@ concept MultiDimShapeMutable = requires(M& m, const std::array<size_t, Rank>& sh
 // ============================================================================
 template <typename M, size_t Rank>
 concept MultiDimStrideAccess = requires(const M& cm, size_t dim) {
-  { cm.strides() } -> std::same_as<std::array<size_t, Rank>>;
+  { cm.strides() } -> std::same_as<std::array<std::ptrdiff_t, Rank>>;
   { cm.stride(dim) } -> std::convertible_to<size_t>;
 };
 

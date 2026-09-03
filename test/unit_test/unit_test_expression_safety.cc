@@ -87,6 +87,23 @@ int main() {
     if (!close(where_result[i], expected, 1e-12)) return 1;
   }
 
+  md::vector<double, 2> reduction_input(2, 3);
+  reduction_input.set_arange(1.0, 1.0);
+  if (md::sum(reduction_input) != 21.0 || md::prod(reduction_input) != 720.0 ||
+      md::min(reduction_input) != 1.0 || md::max(reduction_input) != 6.0 ||
+      md::argmin(reduction_input) != 0 || md::argmax(reduction_input) != 5)
+    return 1;
+  auto row_sums = md::sum_axis<1>(reduction_input);
+  auto col_products = md::prod_axis<0>(reduction_input);
+  if (row_sums.extents() != std::array<size_t, 1>{2} || row_sums[0] != 6.0 || row_sums[1] != 15.0 ||
+      col_products[0] != 4.0 || col_products[2] != 18.0)
+    return 1;
+  md::vector<int, 1> predicates(4);
+  predicates[0] = 0; predicates[1] = 1; predicates[2] = 0; predicates[3] = 2;
+  if (!md::any(predicates) || md::all(predicates)) return 1;
+  predicates.fill(1);
+  if (!md::all(predicates)) return 1;
+
   md::vector<double, 2> shape_a(2, 3);
   md::vector<double, 2> shape_b(3, 2);
 #ifndef NDEBUG

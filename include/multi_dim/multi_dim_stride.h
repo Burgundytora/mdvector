@@ -11,8 +11,8 @@ template <typename Derived, typename T, size_t Rank>
 class multi_dim_stride {
  protected:
   std::array<size_t, Rank> shape_;
-  std::array<size_t, Rank> stride_;
-  std::mdspan<T, std::dextents<size_t, Rank>, std::layout_stride> mdspan_;
+  std::array<std::ptrdiff_t, Rank> stride_;
+  std::mdspan<T, std::dextents<std::ptrdiff_t, Rank>, std::layout_stride> mdspan_;
 
   Derived& derived() noexcept { return static_cast<Derived&>(*this); }
   const Derived& derived() const noexcept { return static_cast<const Derived&>(*this); }
@@ -20,24 +20,24 @@ class multi_dim_stride {
  public:
   multi_dim_stride() = default;
 
-  multi_dim_stride(const std::array<size_t, Rank>& shape, const std::array<size_t, Rank>& stride) {
+  multi_dim_stride(const std::array<size_t, Rank>& shape, const std::array<std::ptrdiff_t, Rank>& stride) {
     shape_ = shape;
     stride_ = stride;
     [&]<size_t... Is>(std::index_sequence<Is...>) {
-      mdspan_ = std::mdspan<T, std::dextents<size_t, Rank>, std::layout_stride>(
+      mdspan_ = std::mdspan<T, std::dextents<std::ptrdiff_t, Rank>, std::layout_stride>(
           derived().data(),
-          std::layout_stride::mapping(std::dextents<size_t, Rank>(shape[Is]...),  // ✅ 展开为 shape[0], shape[1], ...
+          std::layout_stride::mapping(std::dextents<std::ptrdiff_t, Rank>(shape[Is]...),  // ✅ 展开为 shape[0], shape[1], ...
                                       stride));
     }(std::make_index_sequence<Rank>{});
   }
 
-  void init_mdspan(const std::array<size_t, Rank>& shape, const std::array<size_t, Rank>& stride) {
+  void init_mdspan(const std::array<size_t, Rank>& shape, const std::array<std::ptrdiff_t, Rank>& stride) {
     shape_ = shape;
     stride_ = stride;
     [&]<size_t... Is>(std::index_sequence<Is...>) {
-      mdspan_ = std::mdspan<T, std::dextents<size_t, Rank>, std::layout_stride>(
+      mdspan_ = std::mdspan<T, std::dextents<std::ptrdiff_t, Rank>, std::layout_stride>(
           derived().data(),
-          std::layout_stride::mapping(std::dextents<size_t, Rank>(shape[Is]...),  // ✅ 展开为 shape[0], shape[1], ...
+          std::layout_stride::mapping(std::dextents<std::ptrdiff_t, Rank>(shape[Is]...),  // ✅ 展开为 shape[0], shape[1], ...
                                       stride));
     }(std::make_index_sequence<Rank>{});
   }
@@ -46,7 +46,7 @@ class multi_dim_stride {
   size_t extent(size_t dim) const noexcept { return shape_[dim]; }
 
   auto strides() const noexcept { return stride_; }
-  size_t stride(size_t dim) const noexcept { return stride_[dim]; }
+  std::ptrdiff_t stride(size_t dim) const noexcept { return stride_[dim]; }
 
   auto constexpr rank() const noexcept { return Rank; }
 

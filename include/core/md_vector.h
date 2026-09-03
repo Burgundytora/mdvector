@@ -193,7 +193,7 @@ class vector final : public base_expr<vector<T, Rank, Layout>, T>,
     }
 
     // 计算新的数据指针偏移
-    std::size_t offset = calculate_offset(slice_array, is_integral);
+    std::ptrdiff_t offset = calculate_offset(slice_array, is_integral);
 
     // 返回适当维度的span
     if constexpr (NewRank == 0) {
@@ -226,15 +226,17 @@ class vector final : public base_expr<vector<T, Rank, Layout>, T>,
         const auto& s = slice_array[i];
         std::ptrdiff_t start = normalize_index(s.start, extent(i));
         std::ptrdiff_t end = normalize_index(s.end, extent(i));
-        new_extents[new_idx++] = s.is_all ? extent(i) : 1 + std::floor((end - start) / s.step);
+        if (s.is_all) new_extents[new_idx++] = extent(i);
+        else if ((s.step > 0 && start > end) || (s.step < 0 && start < end)) new_extents[new_idx++] = 0;
+        else new_extents[new_idx++] = static_cast<size_t>(1 + (s.step > 0 ? (end - start) / s.step : (start - end) / (-s.step)));
       }
     }
 
     // 计算步长
-    std::array<size_t, NewRank> stride;
+    std::array<std::ptrdiff_t, NewRank> stride;
     new_idx = 0;
-    size_t stride_single = 1;
-    size_t last_extent = 1;
+    std::ptrdiff_t stride_single = 1;
+    std::ptrdiff_t last_extent = 1;
     if constexpr (std::is_same_v<Layout, std::layout_right>) {
       for (int i = Rank - 1; i >= 0; --i) {
         stride_single = slice_array[i].step * last_extent;
@@ -244,17 +246,18 @@ class vector final : public base_expr<vector<T, Rank, Layout>, T>,
         last_extent *= extent(i);
       }
     } else {
+      new_idx = 0;
       for (int i = 0; i <= Rank - 1; ++i) {
         stride_single = slice_array[i].step * last_extent;
         if (!is_integral[i]) {  // 只保留非整数索引的维度
-          stride[NewRank - new_idx++ - 1] = stride_single;
+          stride[new_idx++] = stride_single;
         }
         last_extent *= extent(i);
       }
     }
 
     // 计算新的数据指针偏移
-    std::size_t offset = calculate_offset(slice_array, is_integral);
+    std::ptrdiff_t offset = calculate_offset(slice_array, is_integral);
 
     // 返回适当维度的span
     if constexpr (NewRank == 0) {
@@ -265,6 +268,51 @@ class vector final : public base_expr<vector<T, Rank, Layout>, T>,
     }
   }
 
+  // Read-only view overload.  The returned view carries const T in its type,
+  // so mutation and expression assignment are rejected at compile time.
+  template <typename... Slices>
+  auto view(Slices... slices) const {
+    static_assert(sizeof...(Slices) == Rank, "Number of slices must match dimensionality");
+    constexpr std::size_t NewRank = compressed_rank_v<Slices...>;
+    auto [slice_array, is_integral] = prepare_slices<Rank>(extents(), slices...);
+    check_slice_bounds<Rank>(slice_array, extents());
+    std::array<std::size_t, NewRank> new_extents{};
+    std::size_t new_idx = 0;
+    for (int i = 0; i < Rank; ++i) if (!is_integral[i]) {
+      const auto& s = slice_array[i];
+      const std::ptrdiff_t start = normalize_index(s.start, extent(i));
+      const std::ptrdiff_t end = normalize_index(s.end, extent(i));
+      new_extents[new_idx++] = s.is_all ? extent(i) :
+          ((s.step > 0 && start > end) || (s.step < 0 && start < end) ? 0 :
+           static_cast<size_t>(1 + (s.step > 0 ? (end - start) / s.step : (start - end) / (-s.step))));
+    }
+    std::array<std::ptrdiff_t, NewRank> stride{};
+    new_idx = 0;
+    std::ptrdiff_t stride_single = 1, last_extent = 1;
+    if constexpr (std::is_same_v<Layout, std::layout_right>) {
+      for (int i = Rank - 1; i >= 0; --i) {
+        stride_single = slice_array[i].step * last_extent;
+        if (!is_integral[i]) stride[NewRank - new_idx++ - 1] = stride_single;
+        last_extent *= static_cast<std::ptrdiff_t>(extent(i));
+      }
+    } else {
+      new_idx = 0;
+      for (int i = 0; i < Rank; ++i) {
+        stride_single = slice_array[i].step * last_extent;
+        if (!is_integral[i]) stride[new_idx++] = stride_single;
+        last_extent *= static_cast<std::ptrdiff_t>(extent(i));
+      }
+    }
+    std::ptrdiff_t offset = 0, base_stride = 1;
+    if constexpr (std::is_same_v<Layout, std::layout_right>) {
+      for (int i = Rank - 1; i >= 0; --i) { offset += slice_array[i].start * base_stride; base_stride *= extent(i); }
+    } else {
+      for (int i = 0; i < Rank; ++i) { offset += slice_array[i].start * base_stride; base_stride *= extent(i); }
+    }
+    if constexpr (NewRank == 0) return static_cast<const T*>(data()) + offset;
+    else return md::view<const T, NewRank>(data() + offset, new_extents, stride);
+  }
+
  private:
   void check_initialized() const {
     if (mdspan().empty()) {
@@ -272,9 +320,9 @@ class vector final : public base_expr<vector<T, Rank, Layout>, T>,
     }
   }
   // 计算数据指针偏移
-  std::size_t calculate_offset(const std::array<slice, Rank>& slices, const std::array<bool, Rank>& is_integral) {
-    std::size_t offset = 0;
-    std::size_t stride = 1;
+  std::ptrdiff_t calculate_offset(const std::array<slice, Rank>& slices, const std::array<bool, Rank>& is_integral) {
+    std::ptrdiff_t offset = 0;
+    std::ptrdiff_t stride = 1;
 
     // 按内存布局计算偏移（这里以行优先为例）
     if constexpr (std::is_same_v<Layout, std::layout_right>) {
@@ -283,7 +331,7 @@ class vector final : public base_expr<vector<T, Rank, Layout>, T>,
           offset += slices[i].start * stride;
           stride *= extent(i);
         } else {
-          offset += static_cast<std::size_t>(slices[i].start) * stride;
+          offset += slices[i].start * stride;
         }
       }
     } else {
@@ -292,7 +340,7 @@ class vector final : public base_expr<vector<T, Rank, Layout>, T>,
           offset += slices[i].start * stride;
           stride *= extent(i);
         } else {
-          offset += static_cast<std::size_t>(slices[i].start) * stride;
+          offset += slices[i].start * stride;
         }
       }
     }

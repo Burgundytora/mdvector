@@ -44,6 +44,17 @@ int main() {
     std::println("view_1 * -mat2:");
     view_1.print();
 
+    // Reverse and empty slices use signed strides and remain bounds-safe.
+    auto reversed = mat.view(slice(9, -1, 0), all());
+    if (reversed.extents() != std::array<size_t, 2>{10, 10} || reversed(0, 0) != mat(9, 0) ||
+        reversed(9, 9) != mat(0, 9)) return 1;
+    auto empty = mat.view(slice(4, 1), all());
+    if (empty.extent(0) != 0 || empty.size() != 0) return 1;
+    const auto& const_mat = mat;
+    auto read_only = const_mat.view(slice(0, 2), all());
+    static_assert(std::is_const_v<typename decltype(read_only)::value_type>);
+    if (read_only(0, 0) != mat(0, 0)) return 1;
+
   } catch (const std::exception& e) {
     std::cout << "error: " << e.what() << std::endl;
   }

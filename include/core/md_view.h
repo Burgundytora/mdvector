@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdexcept>
+
 #include "../storage/storage.h"
 #include "../iterator/iterator.h"
 #include "../multi_dim/multi_dim.h"
@@ -29,9 +31,28 @@ class view final : public base_expr<view<T, Rank>, T>,
 
   view() = default;
 
-  explicit view(T* data, const std::array<size_t, Rank>& shape, const std::array<size_t, Rank>& stride)
+  explicit view(T* data, const std::array<size_t, Rank>& shape, const std::array<std::ptrdiff_t, Rank>& stride)
       : Storage(data, calculate_size(shape)) {
+    if (calculate_size(shape) != 0 && data == nullptr) throw std::invalid_argument("view data cannot be null");
+    for (size_t d = 0; d < Rank; ++d) {
+      if (shape[d] > 1 && stride[d] == 0) throw std::invalid_argument("view stride cannot be zero");
+    }
     MultiDim::init_mdspan(shape, stride);
+  }
+
+  // Compatibility overload for callers that provide the historical unsigned
+  // stride array (all values are non-negative in that form).
+  template <typename S>
+    requires std::same_as<S, size_t>
+  explicit view(T* data, const std::array<size_t, Rank>& shape, const std::array<S, Rank>& stride)
+      : Storage(data, calculate_size(shape)) {
+    if (calculate_size(shape) != 0 && data == nullptr) throw std::invalid_argument("view data cannot be null");
+    std::array<std::ptrdiff_t, Rank> signed_stride{};
+    for (size_t d = 0; d < Rank; ++d) {
+      if (shape[d] > 1 && stride[d] == 0) throw std::invalid_argument("view stride cannot be zero");
+      signed_stride[d] = static_cast<std::ptrdiff_t>(stride[d]);
+    }
+    MultiDim::init_mdspan(shape, signed_stride);
   }
 
   // 删除移动/拷贝 赋值/构造 不管理所有权
