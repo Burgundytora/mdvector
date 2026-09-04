@@ -10,22 +10,23 @@
 namespace md {
 
 template <typename T, size_t Rank>
-class view final : public base_expr<view<T, Rank>, T>,
+class view final : public base_expr<view<T, Rank>, std::remove_const_t<T>>,
                    public view_storage<T>,
                    public multi_dim_stride<view<T, Rank>, T, Rank>,
-                   public fill_op<view<T, Rank>, T>,
-                   public expression<view<T, Rank>, T, aligned_policy> {
+                   public fill_op<view<T, Rank>, std::remove_const_t<T>>,
+                   public expression<view<T, Rank>, std::remove_const_t<T>, aligned_policy> {
  public:
+  using element_type = std::remove_const_t<T>;
   using simd_policy = aligned_policy;
-  using value_type = T;
+  using value_type = element_type;
   using layout_type = std::layout_stride;
   static constexpr size_t rank_ = Rank;
 
-  using BaseExpr = base_expr<view<T, Rank>, T>;
+  using BaseExpr = base_expr<view<T, Rank>, element_type>;
   using Storage = view_storage<T>;
   using MultiDim = multi_dim_stride<view<T, Rank>, T, Rank>;
-  using FillOp = fill_op<view<T, Rank>, T>;
-  using Expr = expression<view<T, Rank>, T, aligned_policy>;
+  using FillOp = fill_op<view<T, Rank>, element_type>;
+  using Expr = expression<view<T, Rank>, element_type, aligned_policy>;
 
   // ============ 构造函数 ============
 
@@ -132,17 +133,17 @@ class view final : public base_expr<view<T, Rank>, T>,
   typename simd<T2>::type load_simd(size_t i) const noexcept {
     // 内存不连续 使用对齐的buffer转存
     if (i + simd<T2>::pack_size <= size()) {
-      alignas(simd<T>::alignment) T buffer[simd<T>::pack_size]{};
+      alignas(simd<element_type>::alignment) element_type buffer[simd<element_type>::pack_size]{};
       size_t temp_i = i;
-      for (size_t j = 0; j < simd<T>::pack_size && temp_i < size(); ++j, ++temp_i) {
+      for (size_t j = 0; j < simd<element_type>::pack_size && temp_i < size(); ++j, ++temp_i) {
         buffer[j] = *const_iterator(this, temp_i);  // 使用 const_iterator
       }
       return simd_policy::template load<T2>(buffer);
     } else {
-      alignas(simd<T>::alignment) T buffer[simd<T>::pack_size]{};
+      alignas(simd<element_type>::alignment) element_type buffer[simd<element_type>::pack_size]{};
       size_t temp_i = i;
       size_t count = 0;
-      for (; count < simd<T>::pack_size && temp_i < size(); ++count, ++temp_i) {
+      for (; count < simd<element_type>::pack_size && temp_i < size(); ++count, ++temp_i) {
         buffer[count] = *const_iterator(this, temp_i);  // 使用 const_iterator
       }
       return simd_policy::template mask_load<T2>(buffer, count);
@@ -150,18 +151,19 @@ class view final : public base_expr<view<T, Rank>, T>,
   }
 
   template <typename T2>
+    requires(!std::is_const_v<T>)
   void store_simd(size_t i, typename simd<T2>::const_ref_type val) noexcept {
     // 先将simd转换为普通变量再用迭代器赋值
     if (i + simd<T2>::pack_size <= size()) {
-      alignas(simd<T>::alignment) T buffer[simd<T>::pack_size];
-      simd_policy::template store<T>(buffer, val);
-      for (size_t j = 0; j < simd<T>::pack_size && (i + j) < size(); ++j) {
+      alignas(simd<element_type>::alignment) element_type buffer[simd<element_type>::pack_size];
+      simd_policy::template store<element_type>(buffer, val);
+      for (size_t j = 0; j < simd<element_type>::pack_size && (i + j) < size(); ++j) {
         *iterator(this, i + j) = buffer[j];
       }
     } else {
-      alignas(simd<T>::alignment) T buffer[simd<T>::pack_size]{};
+      alignas(simd<element_type>::alignment) element_type buffer[simd<element_type>::pack_size]{};
       const size_t remaining = size() - i;
-      simd_policy::template mask_store<T>(buffer, remaining, val);
+      simd_policy::template mask_store<element_type>(buffer, remaining, val);
       for (size_t j = 0; j < remaining; ++j) {
         *iterator(this, i + j) = buffer[j];
       }

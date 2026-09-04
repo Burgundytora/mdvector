@@ -2,17 +2,111 @@
 
 #include "mdspan_print.h"
 
+#include <array>
+#include <cstddef>
+#include <format>
+#include <stdexcept>
+#include <tuple>
+
 namespace md {
 
-// ============================================================================
-// 3. multi_dim_stride - 用于 view（跨步，不连续）
-// ============================================================================
+// std::layout_stride only accepts mappings that satisfy its uniqueness and
+// stride-ordering preconditions. A general slice can be perfectly valid while
+// not satisfying those preconditions (and a negative stride never does), so a
+// view must not use std::mdspan as its internal address calculator.
+template <typename T, size_t Rank>
+class strided_mdspan_adapter {
+ public:
+  using element_type = T;
+  using index_type = std::ptrdiff_t;
+  using size_type = size_t;
+  using reference = T&;
+
+  class mapping_type {
+   public:
+    mapping_type(const std::array<size_t, Rank>& shape,
+                 const std::array<std::ptrdiff_t, Rank>& stride) noexcept
+        : shape_(&shape), stride_(&stride) {}
+
+    template <typename... Indices>
+    std::ptrdiff_t operator()(Indices... indices) const noexcept {
+      static_assert(sizeof...(Indices) == Rank);
+      const std::array<std::ptrdiff_t, Rank> index{
+          static_cast<std::ptrdiff_t>(indices)...};
+      std::ptrdiff_t offset = 0;
+      for (size_t d = 0; d < Rank; ++d) offset += index[d] * (*stride_)[d];
+      return offset;
+    }
+
+    size_t extent(size_t dim) const noexcept { return (*shape_)[dim]; }
+    std::ptrdiff_t stride(size_t dim) const noexcept { return (*stride_)[dim]; }
+
+   private:
+    const std::array<size_t, Rank>* shape_;
+    const std::array<std::ptrdiff_t, Rank>* stride_;
+  };
+
+  strided_mdspan_adapter() = default;
+
+  strided_mdspan_adapter(T* data, const std::array<size_t, Rank>& shape,
+                         const std::array<std::ptrdiff_t, Rank>& stride) noexcept
+      : data_(data), shape_(shape), stride_(stride) {}
+
+  void reset(T* data, const std::array<size_t, Rank>& shape,
+             const std::array<std::ptrdiff_t, Rank>& stride) noexcept {
+    data_ = data;
+    shape_ = shape;
+    stride_ = stride;
+  }
+
+  static constexpr size_t rank() noexcept { return Rank; }
+  size_t extent(size_t dim) const noexcept { return shape_[dim]; }
+  std::ptrdiff_t stride(size_t dim) const noexcept { return stride_[dim]; }
+  const auto& extents() const noexcept { return shape_; }
+  const auto& strides() const noexcept { return stride_; }
+
+  size_t size() const noexcept {
+    size_t result = 1;
+    for (size_t extent : shape_) result *= extent;
+    return result;
+  }
+
+  bool empty() const noexcept { return size() == 0; }
+  T* data_handle() const noexcept { return data_; }
+  mapping_type mapping() const noexcept { return mapping_type(shape_, stride_); }
+
+  template <typename... Indices>
+  T& operator()(Indices... indices) const noexcept {
+    return data_[mapping()(indices...)];
+  }
+
+  template <typename... Indices>
+  T& operator[](Indices... indices) const noexcept {
+    return operator()(indices...);
+  }
+
+  T& logical_at(size_t linear) const noexcept {
+    std::array<size_t, Rank> indices{};
+    for (size_t d = Rank; d-- > 0;) {
+      indices[d] = linear % shape_[d];
+      linear /= shape_[d];
+    }
+    return std::apply([this](auto... index) -> T& { return operator()(index...); }, indices);
+  }
+
+ private:
+  T* data_ = nullptr;
+  std::array<size_t, Rank> shape_{};
+  std::array<std::ptrdiff_t, Rank> stride_{};
+};
+
+// Multidimensional indexing for a possibly non-contiguous view.
 template <typename Derived, typename T, size_t Rank>
 class multi_dim_stride {
  protected:
-  std::array<size_t, Rank> shape_;
-  std::array<std::ptrdiff_t, Rank> stride_;
-  std::mdspan<T, std::dextents<std::ptrdiff_t, Rank>, std::layout_stride> mdspan_;
+  std::array<size_t, Rank> shape_{};
+  std::array<std::ptrdiff_t, Rank> stride_{};
+  strided_mdspan_adapter<T, Rank> mdspan_{};
 
   Derived& derived() noexcept { return static_cast<Derived&>(*this); }
   const Derived& derived() const noexcept { return static_cast<const Derived&>(*this); }
@@ -20,26 +114,15 @@ class multi_dim_stride {
  public:
   multi_dim_stride() = default;
 
-  multi_dim_stride(const std::array<size_t, Rank>& shape, const std::array<std::ptrdiff_t, Rank>& stride) {
-    shape_ = shape;
-    stride_ = stride;
-    [&]<size_t... Is>(std::index_sequence<Is...>) {
-      mdspan_ = std::mdspan<T, std::dextents<std::ptrdiff_t, Rank>, std::layout_stride>(
-          derived().data(),
-          std::layout_stride::mapping(std::dextents<std::ptrdiff_t, Rank>(shape[Is]...),  // ✅ 展开为 shape[0], shape[1], ...
-                                      stride));
-    }(std::make_index_sequence<Rank>{});
-  }
+  multi_dim_stride(const std::array<size_t, Rank>& shape,
+                   const std::array<std::ptrdiff_t, Rank>& stride)
+      : shape_(shape), stride_(stride) {}
 
-  void init_mdspan(const std::array<size_t, Rank>& shape, const std::array<std::ptrdiff_t, Rank>& stride) {
+  void init_mdspan(const std::array<size_t, Rank>& shape,
+                   const std::array<std::ptrdiff_t, Rank>& stride) noexcept {
     shape_ = shape;
     stride_ = stride;
-    [&]<size_t... Is>(std::index_sequence<Is...>) {
-      mdspan_ = std::mdspan<T, std::dextents<std::ptrdiff_t, Rank>, std::layout_stride>(
-          derived().data(),
-          std::layout_stride::mapping(std::dextents<std::ptrdiff_t, Rank>(shape[Is]...),  // ✅ 展开为 shape[0], shape[1], ...
-                                      stride));
-    }(std::make_index_sequence<Rank>{});
+    mdspan_.reset(derived().data(), shape_, stride_);
   }
 
   auto extents() const noexcept { return shape_; }
@@ -48,27 +131,27 @@ class multi_dim_stride {
   auto strides() const noexcept { return stride_; }
   std::ptrdiff_t stride(size_t dim) const noexcept { return stride_[dim]; }
 
-  auto constexpr rank() const noexcept { return Rank; }
+  static constexpr size_t rank() noexcept { return Rank; }
 
   template <typename... Indices>
-  T& operator()(Indices... indices) {
+  T& operator()(Indices... indices) noexcept {
     static_assert(sizeof...(Indices) == Rank);
-    return mdspan_[indices...];
+    return derived().data()[get_1d_index(indices...)];
   }
 
   template <typename... Indices>
-  const T& operator()(Indices... indices) const {
+  const T& operator()(Indices... indices) const noexcept {
     static_assert(sizeof...(Indices) == Rank);
-    return mdspan_[indices...];
+    return derived().data()[get_1d_index(indices...)];
   }
 
   template <typename... Indices>
-  T& operator[](Indices... indices) {
+  T& operator[](Indices... indices) noexcept {
     return operator()(indices...);
   }
 
   template <typename... Indices>
-  const T& operator[](Indices... indices) const {
+  const T& operator[](Indices... indices) const noexcept {
     return operator()(indices...);
   }
 
@@ -85,8 +168,13 @@ class multi_dim_stride {
   }
 
   template <typename... Indices>
-  size_t get_1d_index(Indices... indices) const {
-    return mdspan_.mapping()(indices...);
+  std::ptrdiff_t get_1d_index(Indices... indices) const noexcept {
+    static_assert(sizeof...(Indices) == Rank);
+    const std::array<std::ptrdiff_t, Rank> index{
+        static_cast<std::ptrdiff_t>(indices)...};
+    std::ptrdiff_t offset = 0;
+    for (size_t d = 0; d < Rank; ++d) offset += index[d] * stride_[d];
+    return offset;
   }
 
   std::array<size_t, Rank> get_md_index(size_t linear_index) const {
@@ -101,25 +189,29 @@ class multi_dim_stride {
     return indices;
   }
 
-  size_t get_dim_index(size_t linear_index, size_t dim) const { return get_md_index(linear_index)[dim]; }
+  size_t get_dim_index(size_t linear_index, size_t dim) const {
+    if (dim >= Rank) throw std::out_of_range("Dimension out of range");
+    return get_md_index(linear_index)[dim];
+  }
 
   void print() const
     requires Printable<T>
   {
-    if (!mdspan_.empty()) {
-      print_mdspan(mdspan_);
-    }
+    if (!mdspan_.empty()) print_mdspan(mdspan_);
   }
 
-  const auto& mdspan() const { return mdspan_; }
+  const auto& mdspan() const noexcept { return mdspan_; }
 
  protected:
   template <typename... Indices>
   void check_indices(Indices... indices) const {
-    const size_t idx_array[Rank] = {static_cast<size_t>(indices)...};
+    static_assert(sizeof...(Indices) == Rank);
+    const std::array<std::ptrdiff_t, Rank> index{
+        static_cast<std::ptrdiff_t>(indices)...};
     for (size_t i = 0; i < Rank; ++i) {
-      if (idx_array[i] >= shape_[i]) {
-        throw std::out_of_range(std::format("Index {} out of range (dim {}, size {})", idx_array[i], i, shape_[i]));
+      if (index[i] < 0 || static_cast<size_t>(index[i]) >= shape_[i]) {
+        throw std::out_of_range(
+            std::format("Index {} out of range (dim {}, size {})", index[i], i, shape_[i]));
       }
     }
   }

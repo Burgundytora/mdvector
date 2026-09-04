@@ -52,7 +52,7 @@ int main() {
     if (empty.extent(0) != 0 || empty.size() != 0) return 1;
     const auto& const_mat = mat;
     auto read_only = const_mat.view(slice(0, 2), all());
-    static_assert(std::is_const_v<typename decltype(read_only)::value_type>);
+    static_assert(std::is_const_v<std::remove_reference_t<decltype(read_only(0, 0))>>);
     if (read_only(0, 0) != mat(0, 0)) return 1;
 
   } catch (const std::exception& e) {

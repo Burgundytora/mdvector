@@ -56,7 +56,7 @@ template <typename M, size_t Rank, typename... Indices>
 concept MultiDimIndexConvert = requires(const M& cm, size_t linear_idx, size_t dim, Indices... idx) {
   requires sizeof...(Indices) == Rank;
 
-  { cm.get_1d_index(idx...) } -> std::convertible_to<size_t>;
+  { cm.get_1d_index(idx...) } -> std::convertible_to<std::ptrdiff_t>;
   { cm.get_md_index(linear_idx) } -> std::same_as<std::array<size_t, Rank>>;
   { cm.get_dim_index(linear_idx, dim) } -> std::convertible_to<size_t>;
 };
@@ -75,7 +75,7 @@ concept MultiDimShapeMutable = requires(M& m, const std::array<size_t, Rank>& sh
 template <typename M, size_t Rank>
 concept MultiDimStrideAccess = requires(const M& cm, size_t dim) {
   { cm.strides() } -> std::same_as<std::array<std::ptrdiff_t, Rank>>;
-  { cm.stride(dim) } -> std::convertible_to<size_t>;
+  { cm.stride(dim) } -> std::convertible_to<std::ptrdiff_t>;
 };
 
 // ============================================================================

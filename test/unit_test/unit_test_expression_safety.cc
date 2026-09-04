@@ -54,6 +54,15 @@ int main() {
     }
   }
 
+  // Alias bounds must include memory before data() for a negative-stride view.
+  md::vector<double, 1> reverse_alias(8);
+  reverse_alias.set_arange(1.0, 1.0);
+  auto reverse_input = reverse_alias.view(slice(7, -1, 0));
+  auto reverse_output = reverse_alias.view(all());
+  reverse_output = reverse_input + 0.0;
+  for (size_t i = 0; i < reverse_alias.size(); ++i)
+    if (reverse_alias[i] != static_cast<double>(8 - i)) return 1;
+
   // Mixed element types promote to common_type and remain lazy/SIMD-evaluable.
   const size_t mixed_size = md::simd<double>::pack_size * 2 + 1;
   md::vector<float, 1> floats(mixed_size);

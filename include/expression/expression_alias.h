@@ -2,24 +2,39 @@
 
 #include "../concepts/storage_concept.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <type_traits>
+#include <utility>
 
 namespace md::detail {
 
 template <typename Object>
-size_t mapped_element_count(const Object& object) {
+std::pair<std::uintptr_t, std::uintptr_t> mapped_memory_region(const Object& object) {
+  const auto base = reinterpret_cast<std::uintptr_t>(object.data());
+  if (object.size() == 0) return {base, base};
+
+  std::ptrdiff_t minimum_offset = 0;
+  std::ptrdiff_t maximum_offset = 0;
   if constexpr (requires { object.strides(); }) {
     const auto extents = object.extents();
     const auto strides = object.strides();
-    size_t count = object.size() == 0 ? 0 : 1;
     for (size_t i = 0; i < Object::rank_; ++i) {
-      if (extents[i] != 0) count += (extents[i] - 1) * strides[i];
+      const auto delta = static_cast<std::ptrdiff_t>(extents[i] - 1) * strides[i];
+      minimum_offset += std::min<std::ptrdiff_t>(0, delta);
+      maximum_offset += std::max<std::ptrdiff_t>(0, delta);
     }
-    return count;
   } else {
-    return object.size();
+    maximum_offset = static_cast<std::ptrdiff_t>(object.size() - 1);
   }
+
+  constexpr size_t element_size = sizeof(typename Object::value_type);
+  const auto address_at = [base](std::ptrdiff_t offset) {
+    if (offset < 0)
+      return base - static_cast<std::uintptr_t>(-offset) * element_size;
+    return base + static_cast<std::uintptr_t>(offset) * element_size;
+  };
+  return {address_at(minimum_offset), address_at(maximum_offset) + element_size};
 }
 
 template <typename Source, typename Dest>
@@ -32,10 +47,8 @@ bool memory_regions_overlap(const Source& source, const Dest& dest) {
                 })) {
     return false;
   } else {
-    const auto source_begin = reinterpret_cast<std::uintptr_t>(source.data());
-    const auto dest_begin = reinterpret_cast<std::uintptr_t>(dest.data());
-    const auto source_end = source_begin + mapped_element_count(source) * sizeof(typename Source::value_type);
-    const auto dest_end = dest_begin + mapped_element_count(dest) * sizeof(typename Dest::value_type);
+    const auto [source_begin, source_end] = mapped_memory_region(source);
+    const auto [dest_begin, dest_end] = mapped_memory_region(dest);
     return source_begin < dest_end && dest_begin < source_end;
   }
 }

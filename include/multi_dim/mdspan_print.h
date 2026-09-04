@@ -6,8 +6,8 @@
 
 namespace md {
 
-template <typename T, typename Extents, typename Layout>
-void print_mdspan(std::mdspan<T, Extents, Layout> mdspan_) {
+template <typename Mdspan>
+void print_mdspan(const Mdspan& mdspan_) {
   constexpr size_t Rank = mdspan_.rank();
   if constexpr (Rank == 1) {
     // 1D 输出
@@ -78,7 +78,10 @@ void print_mdspan(std::mdspan<T, Extents, Layout> mdspan_) {
 
     // 简单的扁平化遍历显示前几个元素
     for (int i = 0; i < mdspan_.size() && count < max_elements; ++i, ++count) {
-      std::cout << *(mdspan_.data_handle() + i);
+      if constexpr (requires { mdspan_.logical_at(i); })
+        std::cout << mdspan_.logical_at(i);
+      else
+        std::cout << *(mdspan_.data_handle() + i);
       if (i < mdspan_.size() - 1 && count < max_elements - 1) {
         std::cout << ", ";
       }
